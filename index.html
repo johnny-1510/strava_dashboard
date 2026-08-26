@@ -168,6 +168,23 @@
 
   @media(max-width:980px){ .goals{grid-template-columns:1fr;} }
 
+  /* ---- Jahreskalender ---- */
+  .cal-summary{display:flex; gap:32px; margin-bottom:16px; flex-wrap:wrap;}
+  .cal-summary .item .val{font-size:28px; font-weight:800; font-family:var(--mono);}
+  .cal-summary .item .val.accent{color:var(--red-2);}
+  .cal-summary .item .lbl{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:2px;}
+  .cal-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+  .cal-card{background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:14px; min-height:110px;}
+  .cal-card.empty{opacity:.35;}
+  .cal-head{display:flex; justify-content:flex-end;}
+  .cal-month{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+  .cal-hours{font-size:26px; font-weight:800; margin-top:6px;}
+  .cal-hours span{font-size:11px; color:var(--muted); font-weight:600; margin-left:4px;}
+  .cal-bars{display:flex; align-items:flex-end; gap:1.5px; height:36px; margin-top:10px;}
+  .cal-bars div{flex:1; background:var(--outdoor); border-radius:1px; min-height:2px;}
+  @media(max-width:980px){ .cal-grid{grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:560px){ .cal-grid{grid-template-columns:repeat(2,1fr);} .cal-summary{gap:20px;} }
+
   /* ---- Responsive ---- */
   @media(max-width:980px){
     .hero{grid-template-columns:1fr 1fr;}
@@ -337,6 +354,60 @@
         <div class="plan behind">leicht hinter Plan</div>
       </div>
     </div>
+  </div>
+
+  <div class="section-lbl">Kalender 2026</div>
+  <div class="cal-summary">
+    <div class="item"><div class="val">275</div><div class="lbl">Stunden</div></div>
+    <div class="item"><div class="val">7.638</div><div class="lbl">Kilometer</div></div>
+    <div class="item"><div class="val accent">1030</div><div class="lbl">Persönliche Rekorde</div></div>
+    <div class="item"><div class="val">261</div><div class="lbl">Aktivitäten</div></div>
+  </div>
+  <div class="cal-grid">
+    <div class="cal-card">
+      <div class="cal-head"><span class="cal-month">Jan.</span></div>
+      <div class="cal-hours">26<span>Std.</span></div>
+      <div class="cal-bars"><div style="height:8%"></div><div style="height:7%"></div><div style="height:4%"></div><div style="height:7%"></div><div style="height:7%"></div><div style="height:11%"></div><div style="height:6%"></div><div style="height:4%"></div><div style="height:14%"></div><div style="height:15%"></div><div style="height:9%"></div><div style="height:12%"></div><div style="height:17%"></div><div style="height:15%"></div><div style="height:28%"></div><div style="height:14%"></div><div style="height:4%"></div><div style="height:7%"></div><div style="height:18%"></div><div style="height:14%"></div><div style="height:14%"></div><div style="height:14%"></div><div style="height:21%"></div><div style="height:43%"></div><div style="height:4%"></div><div style="height:14%"></div><div style="height:16%"></div><div style="height:4%"></div><div style="height:14%"></div><div style="height:21%"></div><div style="height:4%"></div></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-head"><span class="cal-month">Feb.</span></div>
+      <div class="cal-hours">24<span>Std.</span></div>
+      <div class="cal-bars"><div style="height:15%"></div><div style="height:16%"></div><div style="height:4%"></div><div style="height:15%"></div><div style="height:14%"></div><div style="height:21%"></div><div style="height:14%"></div><div style="height:16%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:14%"></div><div style="height:16%"></div><div style="height:42%"></div><div style="height:18%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:12%"></div><div style="height:16%"></div><div style="height:15%"></div><div style="height:14%"></div><div style="height:28%"></div><div style="height:11%"></div><div style="height:27%"></div><div style="height:18%"></div></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-head"><span class="cal-month">März</span></div>
+      <div class="cal-hours">37<span>Std.</span></div>
+      <div class="cal-bars"><div style="height:17%"></div><div style="height:14%"></div><div style="height:18%"></div><div style="height:14%"></div><div style="height:16%"></div><div style="height:31%"></div><div style="height:12%"></div><div style="height:35%"></div><div style="height:4%"></div><div style="height:14%"></div><div style="height:18%"></div><div style="height:21%"></div><div style="height:21%"></div><div style="height:16%"></div><div style="height:14%"></div><div style="height:14%"></div><div style="height:15%"></div><div style="height:17%"></div><div style="height:27%"></div><div style="height:21%"></div><div style="height:21%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:14%"></div><div style="height:28%"></div><div style="height:14%"></div><div style="height:16%"></div><div style="height:15%"></div><div style="height:4%"></div><div style="height:23%"></div><div style="height:34%"></div></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-head"><span class="cal-month">Apr.</span></div>
+      <div class="cal-hours">26<span>Std.</span></div>
+      <div class="cal-bars"><div style="height:21%"></div><div style="height:12%"></div><div style="height:15%"></div><div style="height:12%"></div><div style="height:7%"></div><div style="height:11%"></div><div style="height:45%"></div><div style="height:15%"></div><div style="height:16%"></div><div style="height:13%"></div><div style="height:19%"></div><div style="height:21%"></div><div style="height:8%"></div><div style="height:25%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:24%"></div><div style="height:16%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:15%"></div><div style="height:15%"></div><div style="height:33%"></div><div style="height:18%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:10%"></div></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-head"><span class="cal-month">Mai</span></div>
+      <div class="cal-hours">46<span>Std.</span></div>
+      <div class="cal-bars"><div style="height:23%"></div><div style="height:19%"></div><div style="height:42%"></div><div style="height:4%"></div><div style="height:14%"></div><div style="height:15%"></div><div style="height:31%"></div><div style="height:25%"></div><div style="height:25%"></div><div style="height:15%"></div><div style="height:12%"></div><div style="height:15%"></div><div style="height:4%"></div><div style="height:40%"></div><div style="height:11%"></div><div style="height:11%"></div><div style="height:42%"></div><div style="height:28%"></div><div style="height:29%"></div><div style="height:13%"></div><div style="height:4%"></div><div style="height:22%"></div><div style="height:35%"></div><div style="height:32%"></div><div style="height:4%"></div><div style="height:15%"></div><div style="height:9%"></div><div style="height:29%"></div><div style="height:26%"></div><div style="height:22%"></div><div style="height:44%"></div></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-head"><span class="cal-month">Juni</span></div>
+      <div class="cal-hours">37<span>Std.</span></div>
+      <div class="cal-bars"><div style="height:21%"></div><div style="height:19%"></div><div style="height:4%"></div><div style="height:20%"></div><div style="height:33%"></div><div style="height:27%"></div><div style="height:33%"></div><div style="height:30%"></div><div style="height:17%"></div><div style="height:28%"></div><div style="height:4%"></div><div style="height:35%"></div><div style="height:15%"></div><div style="height:61%"></div><div style="height:4%"></div><div style="height:8%"></div><div style="height:6%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:7%"></div><div style="height:19%"></div><div style="height:20%"></div><div style="height:36%"></div><div style="height:26%"></div><div style="height:36%"></div><div style="height:4%"></div><div style="height:12%"></div><div style="height:15%"></div></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-head"><span class="cal-month">Juli</span></div>
+      <div class="cal-hours">43<span>Std.</span></div>
+      <div class="cal-bars"><div style="height:16%"></div><div style="height:4%"></div><div style="height:15%"></div><div style="height:56%"></div><div style="height:25%"></div><div style="height:4%"></div><div style="height:12%"></div><div style="height:17%"></div><div style="height:27%"></div><div style="height:15%"></div><div style="height:33%"></div><div style="height:4%"></div><div style="height:18%"></div><div style="height:12%"></div><div style="height:25%"></div><div style="height:16%"></div><div style="height:4%"></div><div style="height:100%"></div><div style="height:45%"></div><div style="height:7%"></div><div style="height:18%"></div><div style="height:16%"></div><div style="height:15%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:38%"></div><div style="height:20%"></div><div style="height:11%"></div><div style="height:14%"></div><div style="height:36%"></div></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-head"><span class="cal-month">Aug.</span></div>
+      <div class="cal-hours">35<span>Std.</span></div>
+      <div class="cal-bars"><div style="height:4%"></div><div style="height:15%"></div><div style="height:26%"></div><div style="height:32%"></div><div style="height:17%"></div><div style="height:4%"></div><div style="height:28%"></div><div style="height:4%"></div><div style="height:41%"></div><div style="height:30%"></div><div style="height:14%"></div><div style="height:19%"></div><div style="height:14%"></div><div style="height:5%"></div><div style="height:32%"></div><div style="height:27%"></div><div style="height:16%"></div><div style="height:19%"></div><div style="height:4%"></div><div style="height:39%"></div><div style="height:16%"></div><div style="height:4%"></div><div style="height:53%"></div><div style="height:26%"></div><div style="height:14%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div><div style="height:4%"></div></div>
+    </div>
+    <div class="cal-card empty"><div class="cal-head"><span class="cal-month">Sept.</span></div></div>
+    <div class="cal-card empty"><div class="cal-head"><span class="cal-month">Okt.</span></div></div>
+    <div class="cal-card empty"><div class="cal-head"><span class="cal-month">Nov.</span></div></div>
+    <div class="cal-card empty"><div class="cal-head"><span class="cal-month">Dez.</span></div></div>
   </div>
 </div>
 <footer>Live-Daten aus Strava · Stand 25.08.2026, 261 Aktivitäten YTD</footer>
