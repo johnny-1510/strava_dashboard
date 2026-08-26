@@ -99,6 +99,19 @@
   .chip.active:hover{background:var(--red-2); border-color:var(--red-2);}
   .filters .sep{width:1px; align-self:stretch; background:var(--line); margin:2px 4px;}
 
+  .custom-range{
+    display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+    padding:0 0 20px; margin-top:-8px; margin-bottom:14px;
+    font-family:var(--mono); font-size:11.5px; color:var(--muted);
+  }
+  .custom-range label{display:flex; align-items:center; gap:8px;}
+  .custom-range input[type="date"]{
+    background:var(--panel); border:1px solid var(--line); color:var(--text);
+    font-family:var(--mono); font-size:11.5px; padding:6px 10px; border-radius:var(--r-sm);
+    color-scheme:dark;
+  }
+  .custom-range input[type="date"]:focus{border-color:var(--outdoor);}
+
   /* ---- Hero row ---- */
   .hero{
     display:grid; grid-template-columns: 1.3fr 1fr 1fr; gap:16px; margin-bottom:16px;
@@ -278,6 +291,7 @@
       <div class="chip" data-period="7d">Letzte 7 Tage</div>
       <div class="chip" data-period="30d">Letzte 30 Tage</div>
       <div class="chip" data-period="ytd">Jahr 2026</div>
+      <div class="chip" data-period="custom">Custom</div>
     </div>
     <div class="sep"></div>
     <div class="filter-group" id="sportGroup">
@@ -285,13 +299,11 @@
       <div class="chip" data-sport="indoor">Indoor</div>
       <div class="chip" data-sport="outdoor">Outdoor</div>
     </div>
-    <div class="sep"></div>
-    <div class="filter-group" id="todGroup">
-      <div class="chip active" data-tod="all">Ganztags</div>
-      <div class="chip" data-tod="morgen">Morgen</div>
-      <div class="chip" data-tod="mittag">Mittag</div>
-      <div class="chip" data-tod="abend">Abend</div>
-    </div>
+  </div>
+  <div class="custom-range" id="customRange" style="display:none;">
+    <label>Von <input type="date" id="dateFrom" min="2026-01-01" max="2026-08-25" value="2026-08-01"></label>
+    <label>Bis <input type="date" id="dateTo" min="2026-01-01" max="2026-08-25" value="2026-08-25"></label>
+    <button id="applyCustom" class="reload-btn" style="padding:7px 16px;">Anwenden</button>
   </div>
 
   <div class="hero">
@@ -326,7 +338,15 @@
 
   <div class="charts" style="margin-top:16px;">
     <div class="panel">
-      <h3 id="todChartTitle">Effort/Minute nach Tageszeit</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+        <h3 id="todChartTitle" style="margin-bottom:0;">Effort/Minute nach Tageszeit</h3>
+        <div class="filter-group" id="todGroup" style="gap:5px;">
+          <div class="chip active" data-tod="all" style="font-size:10px; padding:4px 10px;">Alle</div>
+          <div class="chip" data-tod="morgen" style="font-size:10px; padding:4px 10px;">Morgen</div>
+          <div class="chip" data-tod="mittag" style="font-size:10px; padding:4px 10px;">Mittag</div>
+          <div class="chip" data-tod="abend" style="font-size:10px; padding:4px 10px;">Abend</div>
+        </div>
+      </div>
       <div class="bars" id="todBars"></div>
       <div class="legend" id="todLegend"></div>
     </div>
@@ -417,7 +437,7 @@
 
   DATA.forEach(a => { a._dt = new Date(a.t); });
 
-  const state = { period: 'week', sport: 'all', tod: 'all' };
+  const state = { period: 'week', sport: 'all', tod: 'all', customFrom: new Date(2026,7,1), customTo: new Date(2026,7,25,23,59,59) };
 
   function startOfWeek(d){
     const day = d.getDay(); // 0=So
@@ -435,6 +455,7 @@
       case '7d': return dt >= new Date(NOW - 7*86400000);
       case '30d': return dt >= new Date(NOW - 30*86400000);
       case 'ytd': return dt.getFullYear() === 2026;
+      case 'custom': return dt >= state.customFrom && dt <= state.customTo;
       default: return true;
     }
   }
@@ -450,22 +471,26 @@
     if(h < 16) return 'mittag';
     return 'abend';
   }
-  function inTod(a){
-    if(state.tod === 'all') return true;
-    return todBucket(a._dt) === state.tod;
-  }
 
+  // Tageszeit ist bewusst KEIN globaler Filter mehr (bei kleinen Zeiträumen wie "Diese Woche"
+  // würde das fast immer auf 0 Aktivitäten führen und wirkt wie ein Bug). Stattdessen ist
+  // Morgen/Mittag/Abend nur eine Hervorhebung innerhalb des Tageszeit-Charts.
   function filtered(){
-    return DATA.filter(a => inPeriod(a) && inSport(a) && inTod(a));
+    return DATA.filter(a => inPeriod(a) && inSport(a));
   }
 
   const fmtInt = n => Math.round(n).toLocaleString('de-DE');
   const fmtKm = n => n.toLocaleString('de-DE', {minimumFractionDigits: n < 100 ? 1 : 0, maximumFractionDigits: 1});
   const fmtDec = n => n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
 
-  const PERIOD_LABELS = { week: 'Diese Woche · Mo–So', '7d': 'Letzte 7 Tage (rollierend)', '30d': 'Letzte 30 Tage (rollierend)', ytd: 'Jahr 2026 (YTD)' };
+  const PERIOD_LABELS = { week: 'Diese Woche · Mo–So', '7d': 'Letzte 7 Tage (rollierend)', '30d': 'Letzte 30 Tage (rollierend)', ytd: 'Jahr 2026 (YTD)', custom: 'Custom-Zeitraum' };
   const SPORT_LABELS = { all: '', indoor: ' · Indoor/Zwift', outdoor: ' · Outdoor' };
-  const TOD_LABELS = { all: '', morgen: ' · Morgens (< 10 Uhr)', mittag: ' · Mittags (10–16 Uhr)', abend: ' · Abends (≥ 16 Uhr)' };
+
+  function customLabel(){
+    const f = state.customFrom.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
+    const t = state.customTo.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
+    return `${f} – ${t}`;
+  }
 
   function computeStats(arr){
     const n = arr.length;
@@ -513,7 +538,7 @@
   function render(){
     const arr = filtered();
     const stats = computeStats(arr);
-    const periodLabel = PERIOD_LABELS[state.period] + SPORT_LABELS[state.sport] + TOD_LABELS[state.tod];
+    const periodLabel = (state.period === 'custom' ? customLabel() : PERIOD_LABELS[state.period]) + SPORT_LABELS[state.sport];
 
     // Hero
     const heroLabel = document.getElementById('heroLabel');
@@ -571,7 +596,7 @@
     document.getElementById('todLegend').innerHTML = buckets.map(b =>
       `<span><i style="background:${colors[b]}"></i>${labels[b]} · ${epm[buckets.indexOf(b)].toFixed(2)}</span>`
     ).join('');
-    document.getElementById('todChartTitle').textContent = 'Effort/Minute nach Tageszeit' + (state.period !== 'ytd' ? ' — ' + PERIOD_LABELS[state.period] : ' — Jahr 2026');
+    document.getElementById('todChartTitle').textContent = 'Effort/Minute nach Tageszeit — ' + (state.period === 'custom' ? customLabel() : PERIOD_LABELS[state.period]);
 
     // Wochentag-Heatmap (Zeitraum+Sport+Tageszeit-Filter, wie Haupt-Auswahl)
     const wd = weekdayEffort(arr.length ? arr : []);
@@ -615,8 +640,18 @@
     chip.classList.add('active');
   }
 
+  const customRangeEl = document.getElementById('customRange');
+  const dateFromEl = document.getElementById('dateFrom');
+  const dateToEl = document.getElementById('dateTo');
+
   document.querySelectorAll('#periodGroup .chip').forEach(chip => {
-    chip.addEventListener('click', () => { state.period = chip.dataset.period; setActive('#periodGroup', chip); render(); });
+    chip.addEventListener('click', () => {
+      state.period = chip.dataset.period;
+      setActive('#periodGroup', chip);
+      customRangeEl.style.display = (state.period === 'custom') ? 'flex' : 'none';
+      if(state.period === 'custom') applyCustomDates();
+      render();
+    });
   });
   document.querySelectorAll('#sportGroup .chip').forEach(chip => {
     chip.addEventListener('click', () => { state.sport = chip.dataset.sport; setActive('#sportGroup', chip); render(); });
@@ -624,6 +659,15 @@
   document.querySelectorAll('#todGroup .chip').forEach(chip => {
     chip.addEventListener('click', () => { state.tod = chip.dataset.tod; setActive('#todGroup', chip); render(); });
   });
+
+  function applyCustomDates(){
+    const from = new Date(dateFromEl.value + 'T00:00:00');
+    const to = new Date(dateToEl.value + 'T23:59:59');
+    if(from > to){ alert('„Von“ muss vor „Bis“ liegen.'); return; }
+    state.customFrom = from; state.customTo = to;
+    render();
+  }
+  document.getElementById('applyCustom').addEventListener('click', applyCustomDates);
 
   // Kalender-Jahresübersicht (statisch, YTD, unabhängig vom Filter)
   const MONTH_NAMES = ['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sept.','Okt.','Nov.','Dez.'];
