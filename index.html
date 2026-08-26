@@ -22,7 +22,7 @@
   --accent-soft: #c8102e1a;
   --indoor: #e0a35c;
   --outdoor: #35c9b0;
-  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --mono: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Helvetica, Arial, sans-serif;
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Helvetica, Arial, sans-serif;
   --ease: cubic-bezier(.16,1,.3,1);
   --r-sm: 10px;
@@ -35,6 +35,7 @@ html{scroll-behavior:smooth;}
 body{
   background:var(--bg);
   color:var(--text); font-family:var(--sans);
+  font-variant-numeric:tabular-nums;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   letter-spacing:-0.01em;
@@ -51,11 +52,9 @@ header{
   gap:16px; flex-wrap:wrap;
 }
 .brand{display:flex; align-items:center; gap:14px;}
-.ring-mark{position:relative; width:34px; height:34px; flex-shrink:0;}
+.ring-mark{position:relative; width:32px; height:32px; flex-shrink:0;}
 .ring-mark .arc{position:absolute; inset:0; border-radius:50%;}
-.ring-mark .arc.a1{background:conic-gradient(var(--outdoor) 68%, var(--line) 0); mask:radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px)); -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));}
-.ring-mark .arc.a2{inset:6px; background:conic-gradient(var(--indoor) 84%, var(--line) 0); mask:radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3.5px)); -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3.5px));}
-.ring-mark .arc.a3{inset:12px; background:conic-gradient(var(--accent-2) 47%, var(--line) 0); mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));}
+.ring-mark .arc.a1{background:conic-gradient(var(--outdoor) 72%, var(--line) 0); mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));}
 .brand-text{display:flex; flex-direction:column; gap:2px;}
 .brand span.name{font-weight:700; letter-spacing:-.01em; font-size:18px;}
 .brand span.sub{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); letter-spacing:.06em;}
@@ -300,7 +299,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
   <header>
     <div class="brand">
-      <div class="ring-mark"><div class="arc a1"></div><div class="arc a2"></div><div class="arc a3"></div></div>
+      <div class="ring-mark"><div class="arc a1"></div></div>
       <div class="brand-text">
         <span class="name">Fersch Training</span>
         <span class="sub" id="brandSub">Rad · Zwift · Lauf</span>
@@ -714,15 +713,16 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const tod = todEffort(todBase);
     const buckets = ['morgen','mittag','abend'];
     const labels = {morgen:'Morgen', mittag:'Mittag', abend:'Abend'};
-    const colors = {morgen: 'var(--indoor)', mittag: 'var(--muted)', abend: 'var(--outdoor)'};
     const epm = buckets.map(b => tod[b].min > 0 ? tod[b].effort/tod[b].min : 0);
     const maxEpm = Math.max(...epm, 0.01);
     document.getElementById('todBars').innerHTML = buckets.map((b,i) => {
       const dimmed = (state.tod !== 'all' && state.tod !== b);
-      return `<div class="bar-col" data-tod="${b}"><div class="bar" style="height:${Math.max(4, epm[i]/maxEpm*100)}%; background:${colors[b]}; opacity:${dimmed?0.3:1}"></div><div class="bar-lbl">${labels[b]}</div></div>`;
+      const isMax = epm[i] === Math.max(...epm) && epm[i] > 0;
+      const barColor = isMax ? 'var(--text)' : 'var(--outdoor)';
+      return `<div class="bar-col" data-tod="${b}"><div class="bar" style="height:${Math.max(4, epm[i]/maxEpm*100)}%; background:${barColor}; opacity:${dimmed?0.35:(isMax?1:0.65)}"></div><div class="bar-lbl">${labels[b]}</div></div>`;
     }).join('');
     document.getElementById('todLegend').innerHTML = buckets.map((b,i) =>
-      `<span><i style="background:${colors[b]}"></i>${labels[b]} · ${epm[i].toFixed(2)}</span>`
+      `<span><i style="background:var(--outdoor)"></i>${labels[b]} · ${epm[i].toFixed(2)}</span>`
     ).join('');
     document.getElementById('todChartTitle').textContent = 'Effort/Minute nach Tageszeit — ' + periodLabel;
 
@@ -731,10 +731,11 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const wdLabels = ['Mo','Di','Mi','Do','Fr','Sa','So'];
     const maxWd = Math.max(...wd, 1);
     document.getElementById('weekdayHeat').innerHTML = wd.map((v,i) => {
-      const alpha = Math.round((v/maxWd)*200 + 30);
+      const alpha = Math.round((v/maxWd)*195 + 40);
       const isPeak = v === maxWd && v > 0;
-      const bg = isPeak ? 'var(--accent-2)' : `rgba(53,201,176,${(alpha/255).toFixed(2)})`;
-      return `<div class="heat-col" data-day="${i}"><div class="heat-cell" style="background:${bg}" title="${wdLabels[i]}: ${Math.round(v)}"></div><div class="heat-lbl">${wdLabels[i]}</div></div>`;
+      const bg = `rgba(53,201,176,${(alpha/255).toFixed(2)})`;
+      const ring = isPeak ? 'box-shadow:inset 0 0 0 2px var(--text);' : '';
+      return `<div class="heat-col" data-day="${i}"><div class="heat-cell" style="background:${bg}; ${ring}" title="${wdLabels[i]}: ${Math.round(v)}"></div><div class="heat-lbl">${wdLabels[i]}${isPeak ? ' •' : ''}</div></div>`;
     }).join('');
     const peakIdx = wd.indexOf(Math.max(...wd));
     document.getElementById('weekdayLegend').innerHTML = stats.n > 0
