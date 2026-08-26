@@ -5,264 +5,294 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fersch // Training Dashboard</title>
 <style>
-  :root{
-    --bg: #08090a;
-    --panel: #111315;
-    --panel-2: #17191c;
-    --panel-hover: #1c1f22;
-    --line: #232629;
-    --line-soft: #1a1c1e;
-    --carbon-hi: #2a2d30;
-    --text: #f5f6f7;
-    --text-dim: #c8cbce;
-    --muted: #82868b;
-    --muted-2: #5c6064;
-    --red: #d81324;
-    --red-2: #ff2f3f;
-    --indoor: #f5a24d;
-    --outdoor: #2dd4bf;
-    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Helvetica, Arial, sans-serif;
-    --ease: cubic-bezier(.16,1,.3,1);
-    --r-sm: 6px;
-    --r-md: 10px;
-    --r-lg: 14px;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  ::selection{background:var(--red); color:#fff;}
-  html{scroll-behavior:smooth;}
-  body{
-    background:
-      radial-gradient(ellipse 900px 500px at 15% -10%, #d8132414, transparent 60%),
-      repeating-linear-gradient(115deg, #0000 0 3px, #ffffff04 3px 4px),
-      var(--bg);
-    color:var(--text); font-family:var(--sans);
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    letter-spacing:-0.01em;
-  }
-  a{color:inherit;}
-  :focus-visible{outline:2px solid var(--outdoor); outline-offset:2px; border-radius:4px;}
-  .wrap{max-width:1240px; margin:0 auto; padding:28px 24px 80px;}
+:root{
+  --bg: #0b0c0d;
+  --panel: #16171a;
+  --panel-2: #1b1c1f;
+  --panel-hover: #202226;
+  --line: #26282b;
+  --line-strong: #34363a;
+  --carbon-hi: #2a2c2f;
+  --text: #f2f3f4;
+  --text-dim: #b9bcbf;
+  --muted: #86898d;
+  --muted-2: #5a5d61;
+  --accent: #c8102e;
+  --accent-2: #e0173a;
+  --accent-soft: #c8102e1a;
+  --indoor: #e0a35c;
+  --outdoor: #35c9b0;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Helvetica, Arial, sans-serif;
+  --ease: cubic-bezier(.16,1,.3,1);
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+::selection{background:var(--accent); color:#fff;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text); font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  letter-spacing:-0.01em;
+}
+a{color:inherit;}
+:focus-visible{outline:2px solid var(--outdoor); outline-offset:2px; border-radius:4px;}
+button{font:inherit;}
+.wrap{max-width:1240px; margin:0 auto; padding:32px 24px 90px;}
 
-  /* ---- Header ---- */
-  header{
-    display:flex; justify-content:space-between; align-items:center;
-    padding-bottom:20px; border-bottom:1px solid var(--line); margin-bottom:24px;
-    gap:16px; flex-wrap:wrap;
-  }
-  .brand{display:flex; align-items:center; gap:12px;}
-  .brand .mark{
-    width:32px; height:24px;
-    background:linear-gradient(135deg, var(--red-2), var(--red) 60%);
-    clip-path: polygon(0% 100%, 70% 100%, 100% 0%, 40% 0%);
-    box-shadow: 0 0 18px #d8132440;
-    flex-shrink:0;
-  }
-  .brand-text{display:flex; flex-direction:column; gap:1px;}
-  .brand span.name{font-family:var(--mono); font-weight:700; letter-spacing:.09em; font-size:15px; text-transform:uppercase;}
-  .brand span.sub{font-family:var(--mono); font-size:10px; color:var(--muted-2); letter-spacing:.06em;}
-  .header-right{display:flex; align-items:center; gap:12px;}
-  .synced{font-family:var(--mono); font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px;}
-  .synced .dot{width:6px; height:6px; border-radius:50%; background:var(--outdoor); box-shadow:0 0 6px var(--outdoor);}
+/* ---- Header ---- */
+header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding-bottom:24px; margin-bottom:28px;
+  gap:16px; flex-wrap:wrap;
+}
+.brand{display:flex; align-items:center; gap:14px;}
+.ring-mark{position:relative; width:34px; height:34px; flex-shrink:0;}
+.ring-mark .arc{position:absolute; inset:0; border-radius:50%;}
+.ring-mark .arc.a1{background:conic-gradient(var(--outdoor) 68%, var(--line) 0); mask:radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px)); -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));}
+.ring-mark .arc.a2{inset:6px; background:conic-gradient(var(--indoor) 84%, var(--line) 0); mask:radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3.5px)); -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3.5px));}
+.ring-mark .arc.a3{inset:12px; background:conic-gradient(var(--accent-2) 47%, var(--line) 0); mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));}
+.brand-text{display:flex; flex-direction:column; gap:2px;}
+.brand span.name{font-weight:700; letter-spacing:-.01em; font-size:18px;}
+.brand span.sub{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); letter-spacing:.06em;}
+.header-right{display:flex; align-items:center; gap:14px;}
+.synced{font-family:var(--mono); font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px;}
+.synced .dot{width:6px; height:6px; border-radius:50%; background:var(--outdoor);}
 
-  .reload-btn{
-    display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px;
-    background:var(--panel); border:1px solid var(--line); color:var(--text);
-    padding:8px 14px; border-radius:var(--r-sm); cursor:pointer;
-    transition:border-color .2s var(--ease), background .2s var(--ease), transform .15s var(--ease);
-  }
-  .reload-btn:hover{border-color:var(--red); background:var(--panel-hover);}
-  .reload-btn:active{transform:scale(.97);}
-  .reload-btn:disabled{opacity:.55; cursor:default; transform:none;}
-  .reload-btn svg{transition:transform .5s ease;}
-  .reload-btn.spinning svg{animation:spin 0.8s linear infinite;}
-  @keyframes spin{ to{ transform:rotate(360deg); } }
+.btn{
+  display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px;
+  background:var(--panel); border:1px solid var(--line); color:var(--text);
+  padding:9px 16px; border-radius:100px; cursor:pointer;
+  transition:border-color .2s var(--ease), background .2s var(--ease), transform .15s var(--ease);
+}
+.btn:hover{border-color:var(--line-strong); background:var(--panel-hover);}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.5; cursor:default; transform:none;}
+.btn svg{transition:transform .5s ease;}
+.btn.spinning svg{animation:spin 0.8s linear infinite;}
+@keyframes spin{ to{ transform:rotate(360deg); } }
 
-  /* ---- Filter bar (sticky) ---- */
-  .filters{
-    position:sticky; top:0; z-index:20; background:rgba(8,9,10,.86); backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-    display:flex; flex-wrap:wrap; gap:8px; padding:14px 0 18px; margin-bottom:22px;
-    border-bottom:1px solid var(--line); align-items:center;
-  }
-  .filter-group{display:flex; gap:6px; flex-wrap:wrap;}
-  .chip{
-    font-family:var(--mono); font-size:11.5px; padding:7px 14px; border-radius:20px;
-    border:1px solid var(--line); color:var(--muted); cursor:pointer; white-space:nowrap;
-    background:transparent;
-    transition:background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease), transform .12s var(--ease);
-  }
-  .chip:hover{border-color:var(--muted-2); color:var(--text-dim);}
-  .chip:active{transform:scale(.96);}
-  .chip.active{ background:var(--red); border-color:var(--red); color:#fff; }
-  .chip.active:hover{background:var(--red-2); border-color:var(--red-2);}
-  .filters .sep{width:1px; align-self:stretch; background:var(--line); margin:2px 4px;}
+/* ---- Filter bar ---- */
+.filters{
+  position:sticky; top:0; z-index:20; background:rgba(11,12,13,.82); backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  display:flex; flex-wrap:wrap; gap:10px; padding:16px 0 20px; margin-bottom:26px;
+  border-bottom:1px solid var(--line); align-items:center;
+}
+.filter-group{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+.chip{
+  font-family:var(--mono); font-size:11.5px; padding:8px 15px; border-radius:100px;
+  border:1px solid var(--line); color:var(--muted); cursor:pointer; white-space:nowrap;
+  background:var(--panel);
+  transition:background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease), opacity .18s var(--ease);
+}
+.chip:hover{border-color:var(--line-strong); color:var(--text-dim);}
+.chip.active{ background:var(--text); border-color:var(--text); color:#0b0c0d; font-weight:600; }
+.chip.disabled{opacity:.35; pointer-events:none;}
+.filters .sep{width:1px; align-self:stretch; background:var(--line); margin:2px 6px;}
 
-  .custom-range{
-    display:flex; gap:16px; align-items:center; flex-wrap:wrap;
-    padding:0 0 20px; margin-top:-8px; margin-bottom:14px;
-    font-family:var(--mono); font-size:11.5px; color:var(--muted);
-  }
-  .custom-range label{display:flex; align-items:center; gap:8px;}
-  .custom-range input[type="date"]{
-    background:var(--panel); border:1px solid var(--line); color:var(--text);
-    font-family:var(--mono); font-size:11.5px; padding:6px 10px; border-radius:var(--r-sm);
-    color-scheme:dark;
-  }
-  .custom-range input[type="date"]:focus{border-color:var(--outdoor);}
+.year-select{
+  font-family:var(--mono); font-size:12px; padding:8px 30px 8px 15px; border-radius:100px;
+  border:1px solid var(--line); color:var(--text); background:var(--panel);
+  appearance:none; -webkit-appearance:none; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2386898d' stroke-width='1.4' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 13px center;
+}
+.year-select:hover{border-color:var(--line-strong);}
 
-  /* ---- Hero row ---- */
-  .hero{
-    display:grid; grid-template-columns: 1.3fr 1fr 1fr; gap:16px; margin-bottom:16px;
-    position:relative;
-  }
-  .hero::before{
-    content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
-    background:linear-gradient(100deg, transparent 55%, var(--red) 55.4%, var(--red-2) 56%, transparent 56.4%);
-    opacity:.5; mix-blend-mode:screen;
-  }
-  .hero-main, .stat-tile{position:relative; z-index:1;}
-  .hero-main{
-    background:linear-gradient(150deg, var(--panel-2), var(--panel) 55%);
-    border:1px solid var(--line); border-radius:var(--r-lg); padding:28px;
-    position:relative; overflow:hidden;
-  }
-  .hero-main::after{
-    content:''; position:absolute; right:-10%; top:0; width:65%; height:100%;
-    background:linear-gradient(160deg, var(--red-2) 0%, var(--red) 40%, transparent 42%);
-    clip-path: polygon(55% 0, 100% 0, 100% 100%, 15% 100%);
-    opacity:.28;
-  }
-  .hero-main::before{
-    content:''; position:absolute; left:0; bottom:0; width:100%; height:3px;
-    background:linear-gradient(90deg, var(--red), transparent 70%);
-  }
-  .eyebrow{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; transition:opacity .25s var(--ease);}
-  .big-num{font-size:60px; font-weight:800; letter-spacing:-.03em; line-height:1; transition:opacity .2s var(--ease);}
-  .big-num small{font-size:19px; color:var(--muted); font-weight:600; margin-left:8px; letter-spacing:0;}
-  .hero-sub{font-family:var(--mono); font-size:12.5px; color:var(--outdoor); margin-top:14px; line-height:1.5; transition:opacity .2s var(--ease);}
+.custom-range{
+  display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+  padding:0 0 22px; margin-top:-10px; margin-bottom:16px;
+  font-family:var(--mono); font-size:11.5px; color:var(--muted);
+}
+.custom-range label{display:flex; align-items:center; gap:8px;}
+.custom-range input[type="date"]{
+  background:var(--panel); border:1px solid var(--line); color:var(--text);
+  font-family:var(--mono); font-size:11.5px; padding:7px 11px; border-radius:var(--r-sm);
+  color-scheme:dark;
+}
+.custom-range input[type="date"]:focus{border-color:var(--outdoor);}
 
-  .stat-tile{
-    background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:22px;
-    display:flex; flex-direction:column; justify-content:space-between;
-    transition:border-color .2s var(--ease), background .2s var(--ease);
-  }
-  .stat-tile:hover{border-color:var(--muted-2);}
-  .stat-tile .val{font-size:32px; font-weight:800; font-family:var(--mono); transition:opacity .2s var(--ease);}
-  .stat-tile .lbl{font-size:11px; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:.05em;}
-  .badge{
-    display:inline-block; font-family:var(--mono); font-size:10.5px; padding:4px 10px; border-radius:20px;
-    margin-top:12px; width:fit-content; transition:opacity .2s var(--ease);
-  }
-  .badge.good{background:#2dd4bf1c; color:var(--outdoor);}
-  .badge.warn{background:#f5a24d1c; color:var(--indoor);}
-  .badge.neutral{background:#82868b1c; color:var(--muted);}
+.empty-year{
+  background:var(--panel); border:1px dashed var(--line-strong); border-radius:var(--r-lg);
+  padding:40px 24px; text-align:center; margin-bottom:24px;
+}
+.empty-year .big{font-size:20px; font-weight:600; margin-bottom:8px;}
+.empty-year .small{font-family:var(--mono); font-size:12px; color:var(--muted);}
 
-  /* ---- Section label ---- */
-  .section-lbl{
-    font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
-    color:var(--muted); margin:32px 0 12px; display:flex; align-items:center; gap:10px;
-  }
-  .section-lbl::after{content:''; flex:1; height:1px; background:var(--line);}
-  .section-lbl .note{font-size:9.5px; color:var(--muted-2); text-transform:none; letter-spacing:0; font-style:italic;}
+/* ---- Hero row ---- */
+.hero{
+  display:grid; grid-template-columns: 1.3fr 1fr 1fr; gap:16px; margin-bottom:16px;
+}
+.hero-main{
+  background:var(--panel);
+  border:1px solid var(--line); border-radius:var(--r-lg); padding:32px;
+  position:relative;
+}
+.eyebrow{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:14px; transition:opacity .25s var(--ease);}
+.big-num{font-size:64px; font-weight:700; letter-spacing:-.03em; line-height:1; transition:opacity .2s var(--ease);}
+.big-num small{font-size:19px; color:var(--muted); font-weight:500; margin-left:9px; letter-spacing:0;}
+.hero-sub{font-family:var(--mono); font-size:12.5px; color:var(--outdoor); margin-top:16px; line-height:1.6; transition:opacity .2s var(--ease);}
 
-  /* ---- KPI grid ---- */
-  .grid{
-    display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:4px;
-  }
-  .kpi{
-    background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:18px;
-    transition:border-color .2s var(--ease);
-  }
-  .kpi:hover{border-color:var(--muted-2);}
-  .kpi .lbl{font-family:var(--mono); font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
-  .kpi .val{font-size:25px; font-weight:700; margin-top:7px; transition:opacity .2s var(--ease);}
-  .kpi .delta{font-family:var(--mono); font-size:10.8px; margin-top:5px; transition:opacity .2s var(--ease);}
-  .delta.up{color:var(--outdoor);} .delta.down{color:var(--red-2);} .delta.neutral{color:var(--muted);}
+.stat-tile{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:24px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  transition:border-color .2s var(--ease);
+}
+.stat-tile:hover{border-color:var(--line-strong);}
+.stat-tile .val{font-size:32px; font-weight:700; font-family:var(--mono); transition:opacity .2s var(--ease);}
+.stat-tile .lbl{font-size:11px; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:.05em;}
+.badge{
+  display:inline-block; font-family:var(--mono); font-size:10.5px; padding:5px 11px; border-radius:100px;
+  margin-top:14px; width:fit-content; transition:opacity .2s var(--ease);
+}
+.badge.good{background:#35c9b01a; color:var(--outdoor);}
+.badge.warn{background:#e0a35c1a; color:var(--indoor);}
+.badge.neutral{background:#86898d1a; color:var(--muted);}
 
-  .fade{animation:fadeIn .3s var(--ease);}
-  @keyframes fadeIn{ from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:translateY(0);} }
+/* ---- Section label ---- */
+.section-lbl{
+  font-family:var(--mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--muted); margin:38px 0 14px; display:flex; align-items:center; gap:10px;
+}
+.section-lbl::after{content:''; flex:1; height:1px; background:var(--line);}
+.section-lbl .note{font-size:9.5px; color:var(--muted-2); text-transform:none; letter-spacing:0; font-style:italic;}
 
-  /* ---- Charts ---- */
-  .charts{display:grid; grid-template-columns: 1.4fr 1fr; gap:14px; margin-bottom:4px;}
-  .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:20px;}
-  .panel h3{font-size:11px; font-weight:600; margin-bottom:16px; color:var(--muted); font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em;}
-  .bars{display:flex; align-items:flex-end; gap:8px; height:140px;}
-  .bars .bar-col{flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:8px;}
-  .bars .bar{width:100%; border-radius:3px 3px 1px 1px; transition:height .4s var(--ease), background .3s var(--ease); min-height:3px;}
-  .bars .bar-lbl{font-family:var(--mono); font-size:10px; color:var(--muted);}
-  .heat{display:grid; grid-template-columns: repeat(7,1fr); gap:5px;}
-  .heat-col{display:flex; flex-direction:column; align-items:center; gap:6px;}
-  .heat-cell{width:100%; aspect-ratio:1; border-radius:4px; transition:background .3s var(--ease);}
-  .heat-lbl{font-family:var(--mono); font-size:9.5px; color:var(--muted);}
+/* ---- KPI grid ---- */
+.grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:4px; }
+.kpi{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:20px;
+  transition:border-color .2s var(--ease), transform .15s var(--ease); cursor:pointer;
+}
+.kpi:hover{border-color:var(--line-strong); transform:translateY(-2px);}
+.kpi:active{transform:translateY(0);}
+.kpi .lbl{font-family:var(--mono); font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; display:flex; justify-content:space-between; align-items:center;}
+.kpi .lbl .hint{opacity:0; transition:opacity .2s var(--ease); font-size:13px;}
+.kpi:hover .lbl .hint{opacity:.6;}
+.kpi .val{font-size:26px; font-weight:700; margin-top:8px; transition:opacity .2s var(--ease);}
+.kpi .delta{font-family:var(--mono); font-size:10.8px; margin-top:6px; transition:opacity .2s var(--ease);}
+.delta.up{color:var(--outdoor);} .delta.down{color:var(--accent-2);} .delta.neutral{color:var(--muted);}
 
-  .legend{display:flex; gap:16px; margin-top:14px; font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-wrap:wrap;}
-  .legend span{display:inline-flex; align-items:center; gap:6px;}
-  .legend i{width:8px; height:8px; border-radius:2px; display:inline-block;}
+.fade{animation:fadeIn .3s var(--ease);}
+@keyframes fadeIn{ from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:translateY(0);} }
 
-  footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-align:center; margin-top:32px; padding-top:20px; border-top:1px solid var(--line-soft);}
+/* ---- Charts ---- */
+.charts{display:grid; grid-template-columns: 1.4fr 1fr; gap:14px; margin-bottom:4px;}
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:22px;}
+.panel h3{font-size:11px; font-weight:600; margin-bottom:18px; color:var(--muted); font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em;}
+.bars{display:flex; align-items:flex-end; gap:10px; height:140px;}
+.bars .bar-col{flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:9px; cursor:pointer;}
+.bars .bar{width:100%; border-radius:5px 5px 2px 2px; transition:height .4s var(--ease), background .3s var(--ease), opacity .2s var(--ease); min-height:4px;}
+.bars .bar-lbl{font-family:var(--mono); font-size:10px; color:var(--muted);}
+.heat{display:grid; grid-template-columns: repeat(7,1fr); gap:6px;}
+.heat-col{display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer;}
+.heat-cell{width:100%; aspect-ratio:1; border-radius:6px; transition:background .3s var(--ease), transform .15s var(--ease);}
+.heat-col:hover .heat-cell{transform:scale(1.06);}
+.heat-lbl{font-family:var(--mono); font-size:9.5px; color:var(--muted);}
 
-  /* ---- Goals / Records ---- */
-  .goals{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
-  .goal-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:20px;
-    display:flex; gap:18px; align-items:center;
-    transition:border-color .2s var(--ease);
-  }
-  .goal-card:hover{border-color:var(--muted-2);}
-  .ring{width:64px; height:64px; border-radius:50%; flex-shrink:0; position:relative;
-    background:conic-gradient(var(--ring-color, var(--outdoor)) var(--pct,0%), var(--carbon-hi) 0);
-    display:flex; align-items:center; justify-content:center;
-    transition:background 1s var(--ease);
-  }
-  .ring::before{content:''; position:absolute; inset:6px; border-radius:50%; background:var(--panel);}
-  .ring span{position:relative; font-family:var(--mono); font-size:12px; font-weight:700;}
-  .goal-info .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-family:var(--mono);}
-  .goal-info .row{display:flex; gap:16px; margin-top:9px;}
-  .goal-info .row div span{display:block; font-size:9.5px; color:var(--muted); font-family:var(--mono); text-transform:uppercase;}
-  .goal-info .row div b{font-size:15px; font-weight:700;}
-  .goal-info .plan{font-family:var(--mono); font-size:10.5px; margin-top:7px;}
-  .plan.ahead{color:var(--outdoor);} .plan.behind{color:var(--red-2);}
+.legend{display:flex; gap:16px; margin-top:16px; font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-wrap:wrap;}
+.legend span{display:inline-flex; align-items:center; gap:6px;}
+.legend i{width:8px; height:8px; border-radius:2px; display:inline-block;}
 
-  /* ---- Calendar ---- */
-  .cal-summary{display:flex; gap:36px; margin-bottom:18px; flex-wrap:wrap;}
-  .cal-summary .item .val{font-size:28px; font-weight:800; font-family:var(--mono);}
-  .cal-summary .item .val.accent{color:var(--red-2);}
-  .cal-summary .item .lbl{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:3px;}
-  .cal-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
-  .cal-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:16px; min-height:112px; transition:border-color .2s var(--ease);}
-  .cal-card:hover{border-color:var(--muted-2);}
-  .cal-card.empty{opacity:.3;}
-  .cal-head{display:flex; justify-content:flex-end;}
-  .cal-month{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
-  .cal-hours{font-size:26px; font-weight:800; margin-top:8px;}
-  .cal-hours span{font-size:11px; color:var(--muted); font-weight:600; margin-left:5px;}
-  .cal-bars{display:flex; align-items:flex-end; gap:1.5px; height:36px; margin-top:12px;}
-  .cal-bars div{flex:1; background:var(--outdoor); border-radius:1px; min-height:2px;}
+footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-align:center; margin-top:36px; padding-top:22px; border-top:1px solid var(--line);}
 
-  /* ---- Responsive ---- */
-  @media(max-width:980px){
-    .hero{grid-template-columns:1fr 1fr;}
-    .hero-main{grid-column:1/-1;}
-    .grid{grid-template-columns:repeat(2,1fr);}
-    .charts{grid-template-columns:1fr;}
-    .goals{grid-template-columns:1fr;}
-    .cal-grid{grid-template-columns:repeat(2,1fr);}
-  }
-  @media(max-width:560px){
-    .hero{grid-template-columns:1fr;}
-    .grid{grid-template-columns:repeat(2,1fr);}
-    .big-num{font-size:44px;}
-    .filters{overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;}
-    .filters::-webkit-scrollbar{display:none;}
-    .cal-summary{gap:22px;}
-    .wrap{padding:20px 16px 60px;}
-  }
+/* ---- Goals / Records ---- */
+.goals{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+.goal-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:22px;
+  display:flex; gap:18px; align-items:center;
+  transition:border-color .2s var(--ease), transform .15s var(--ease); cursor:pointer;
+}
+.goal-card:hover{border-color:var(--line-strong); transform:translateY(-2px);}
+.ring{width:64px; height:64px; border-radius:50%; flex-shrink:0; position:relative;
+  background:conic-gradient(var(--ring-color, var(--outdoor)) var(--pct,0%), var(--carbon-hi) 0);
+  display:flex; align-items:center; justify-content:center;
+  transition:background 1s var(--ease);
+}
+.ring::before{content:''; position:absolute; inset:6px; border-radius:50%; background:var(--panel);}
+.ring span{position:relative; font-family:var(--mono); font-size:12px; font-weight:700;}
+.goal-info .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-family:var(--mono);}
+.goal-info .row{display:flex; gap:16px; margin-top:9px;}
+.goal-info .row div span{display:block; font-size:9.5px; color:var(--muted); font-family:var(--mono); text-transform:uppercase;}
+.goal-info .row div b{font-size:15px; font-weight:700;}
+.goal-info .plan{font-family:var(--mono); font-size:10.5px; margin-top:8px;}
+.plan.ahead{color:var(--outdoor);} .plan.behind{color:var(--accent-2);}
 
-  @media(prefers-reduced-motion: reduce){
-    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
-  }
+/* ---- Calendar ---- */
+.cal-summary{display:flex; gap:38px; margin-bottom:20px; flex-wrap:wrap;}
+.cal-summary .item .val{font-size:28px; font-weight:700; font-family:var(--mono);}
+.cal-summary .item .val.accent{color:var(--accent-2);}
+.cal-summary .item .lbl{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:4px;}
+.cal-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+.cal-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:18px; min-height:114px; transition:border-color .2s var(--ease), transform .15s var(--ease); cursor:pointer;}
+.cal-card:hover{border-color:var(--line-strong); transform:translateY(-2px);}
+.cal-card.empty{opacity:.3; cursor:default; pointer-events:none;}
+.cal-head{display:flex; justify-content:flex-end;}
+.cal-month{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+.cal-hours{font-size:26px; font-weight:700; margin-top:9px;}
+.cal-hours span{font-size:11px; color:var(--muted); font-weight:500; margin-left:5px;}
+.cal-bars{display:flex; align-items:flex-end; gap:1.5px; height:36px; margin-top:13px;}
+.cal-bars div{flex:1; background:var(--outdoor); border-radius:1px; min-height:2px;}
+
+/* ---- Detail Drawer ---- */
+.drawer-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(3px);
+  opacity:0; pointer-events:none; transition:opacity .25s var(--ease); z-index:90;
+}
+.drawer-overlay.open{opacity:1; pointer-events:auto;}
+.drawer{
+  position:fixed; right:0; top:0; bottom:0; width:min(440px, 92vw);
+  background:var(--panel-2); border-left:1px solid var(--line);
+  transform:translateX(100%); transition:transform .32s var(--ease); z-index:91;
+  display:flex; flex-direction:column;
+}
+.drawer.open{transform:translateX(0);}
+.drawer-head{padding:26px 26px 18px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
+.drawer-head h4{font-size:18px; font-weight:700; letter-spacing:-.01em;}
+.drawer-head p{font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:6px;}
+.drawer-close{
+  width:30px; height:30px; border-radius:50%; background:var(--panel); border:1px solid var(--line);
+  color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  transition:border-color .2s var(--ease), color .2s var(--ease);
+}
+.drawer-close:hover{border-color:var(--line-strong); color:var(--text);}
+.drawer-list{overflow-y:auto; padding:10px 16px 26px; flex:1;}
+.drawer-item{padding:14px 10px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px;}
+.drawer-item:last-child{border-bottom:none;}
+.drawer-item .di-name{font-size:13.5px; font-weight:600; margin-bottom:4px;}
+.drawer-item .di-date{font-family:var(--mono); font-size:10.5px; color:var(--muted);}
+.drawer-item .di-stats{text-align:right; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); white-space:nowrap; flex-shrink:0;}
+.drawer-item .di-stats .di-main{font-weight:700; color:var(--text); font-size:13px;}
+.drawer-empty{padding:40px 20px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px;}
+
+/* ---- Responsive ---- */
+@media(max-width:980px){
+  .hero{grid-template-columns:1fr 1fr;}
+  .hero-main{grid-column:1/-1;}
+  .grid{grid-template-columns:repeat(2,1fr);}
+  .charts{grid-template-columns:1fr;}
+  .goals{grid-template-columns:1fr;}
+  .cal-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:560px){
+  .hero{grid-template-columns:1fr;}
+  .grid{grid-template-columns:repeat(2,1fr);}
+  .big-num{font-size:46px;}
+  .filters{overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;}
+  .filters::-webkit-scrollbar{display:none;}
+  .cal-summary{gap:24px;}
+  .wrap{padding:22px 16px 70px;}
+  .drawer{width:100vw;}
+}
+
+@media(prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
 </style>
 </head>
 <body>
@@ -270,15 +300,15 @@
 
   <header>
     <div class="brand">
-      <div class="mark"></div>
+      <div class="ring-mark"><div class="arc a1"></div><div class="arc a2"></div><div class="arc a3"></div></div>
       <div class="brand-text">
-        <span class="name">Fersch // Training</span>
-        <span class="sub">Rad · Zwift · Lauf — Saison 2026</span>
+        <span class="name">Fersch Training</span>
+        <span class="sub" id="brandSub">Rad · Zwift · Lauf</span>
       </div>
     </div>
     <div class="header-right">
       <div class="synced" id="syncedText"><span class="dot"></span> Zuletzt synced: gerade eben</div>
-      <button id="reloadBtn" class="reload-btn">
+      <button id="reloadBtn" class="btn">
         <svg id="reloadIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
         Aktualisieren
       </button>
@@ -286,11 +316,18 @@
   </header>
 
   <div class="filters">
+    <select class="year-select" id="yearSelect">
+      <option value="2025">2025</option>
+      <option value="2026" selected>2026</option>
+      <option value="2027">2027</option>
+      <option value="2028">2028</option>
+    </select>
+    <div class="sep"></div>
     <div class="filter-group" id="periodGroup">
       <div class="chip active" data-period="week">Diese Woche</div>
       <div class="chip" data-period="7d">Letzte 7 Tage</div>
       <div class="chip" data-period="30d">Letzte 30 Tage</div>
-      <div class="chip" data-period="ytd">Jahr 2026</div>
+      <div class="chip" data-period="year">Ganzes Jahr</div>
       <div class="chip" data-period="custom">Custom</div>
     </div>
     <div class="sep"></div>
@@ -301,10 +338,17 @@
     </div>
   </div>
   <div class="custom-range" id="customRange" style="display:none;">
-    <label>Von <input type="date" id="dateFrom" min="2026-01-01" max="2026-08-25" value="2026-08-01"></label>
-    <label>Bis <input type="date" id="dateTo" min="2026-01-01" max="2026-08-25" value="2026-08-25"></label>
-    <button id="applyCustom" class="reload-btn" style="padding:7px 16px;">Anwenden</button>
+    <label>Von <input type="date" id="dateFrom"></label>
+    <label>Bis <input type="date" id="dateTo"></label>
+    <button id="applyCustom" class="btn">Anwenden</button>
   </div>
+
+  <div id="emptyYearBanner" class="empty-year" style="display:none;">
+    <div class="big">Noch keine Daten für <span id="emptyYearNum">–</span></div>
+    <div class="small">Sobald du in dieser Saison synced hast, füllt sich diese Ansicht automatisch.</div>
+  </div>
+
+  <div id="mainContent">
 
   <div class="hero">
     <div class="hero-main">
@@ -330,21 +374,21 @@
 
   <div class="section-lbl" id="periodLabel">Kennzahlen</div>
   <div class="grid" id="kpiGrid">
-    <div class="kpi"><div class="lbl">Sessions</div><div class="val" id="kpiSessions">–</div><div class="delta up" id="kpiSessionsSub">–</div></div>
-    <div class="kpi"><div class="lbl">Distanz</div><div class="val" id="kpiDist">–</div><div class="delta up" id="kpiDistSub">–</div></div>
-    <div class="kpi"><div class="lbl">Höhenmeter</div><div class="val" id="kpiElev">–</div><div class="delta up" id="kpiElevSub">–</div></div>
-    <div class="kpi"><div class="lbl">Kalorien</div><div class="val" id="kpiCal">–</div><div class="delta up" id="kpiCalSub">–</div></div>
+    <div class="kpi" data-metric="sessions"><div class="lbl">Sessions <span class="hint">↗</span></div><div class="val" id="kpiSessions">–</div><div class="delta up" id="kpiSessionsSub">–</div></div>
+    <div class="kpi" data-metric="dist"><div class="lbl">Distanz <span class="hint">↗</span></div><div class="val" id="kpiDist">–</div><div class="delta up" id="kpiDistSub">–</div></div>
+    <div class="kpi" data-metric="elev"><div class="lbl">Höhenmeter <span class="hint">↗</span></div><div class="val" id="kpiElev">–</div><div class="delta up" id="kpiElevSub">–</div></div>
+    <div class="kpi" data-metric="cal"><div class="lbl">Kalorien <span class="hint">↗</span></div><div class="val" id="kpiCal">–</div><div class="delta up" id="kpiCalSub">–</div></div>
   </div>
 
   <div class="charts" style="margin-top:16px;">
     <div class="panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:8px;">
         <h3 id="todChartTitle" style="margin-bottom:0;">Effort/Minute nach Tageszeit</h3>
         <div class="filter-group" id="todGroup" style="gap:5px;">
-          <div class="chip active" data-tod="all" style="font-size:10px; padding:4px 10px;">Alle</div>
-          <div class="chip" data-tod="morgen" style="font-size:10px; padding:4px 10px;">Morgen</div>
-          <div class="chip" data-tod="mittag" style="font-size:10px; padding:4px 10px;">Mittag</div>
-          <div class="chip" data-tod="abend" style="font-size:10px; padding:4px 10px;">Abend</div>
+          <div class="chip active" data-tod="all" style="font-size:10px; padding:5px 11px;">Alle</div>
+          <div class="chip" data-tod="morgen" style="font-size:10px; padding:5px 11px;">Morgen</div>
+          <div class="chip" data-tod="mittag" style="font-size:10px; padding:5px 11px;">Mittag</div>
+          <div class="chip" data-tod="abend" style="font-size:10px; padding:5px 11px;">Abend</div>
         </div>
       </div>
       <div class="bars" id="todBars"></div>
@@ -357,23 +401,23 @@
     </div>
   </div>
 
-  <div class="section-lbl">Rekorde in der Auswahl</div>
+  <div class="section-lbl">Rekorde in der Auswahl <span class="note">— zum Aufklappen anklicken</span></div>
   <div class="goals" id="recordsGrid">
-    <div class="goal-card">
+    <div class="goal-card" data-record="longest">
       <div class="goal-info">
         <div class="lbl">Längste Session</div>
         <div class="row"><div><b id="recLongest">–</b></div></div>
         <div class="plan" style="color:var(--muted)" id="recLongestSub">–</div>
       </div>
     </div>
-    <div class="goal-card">
+    <div class="goal-card" data-record="elev">
       <div class="goal-info">
         <div class="lbl">Meiste Höhenmeter</div>
         <div class="row"><div><b id="recElev">–</b></div></div>
         <div class="plan" style="color:var(--muted)" id="recElevSub">–</div>
       </div>
     </div>
-    <div class="goal-card">
+    <div class="goal-card" data-record="indoor">
       <div class="goal-info">
         <div class="lbl">Indoor-Anteil</div>
         <div class="row"><div><b id="recIndoorSessions">–</b></div><div><b id="recIndoorKm">–</b></div></div>
@@ -382,9 +426,9 @@
     </div>
   </div>
 
-  <div class="section-lbl">Ziele <span class="note">(immer aktuelle Kalenderwoche / Jahr, unabhängig vom Filter oben)</span></div>
+  <div class="section-lbl">Ziele <span class="note">(immer aktuelle Kalenderwoche / Jahr · anklicken für Details)</span></div>
   <div class="goals">
-    <div class="goal-card">
+    <div class="goal-card" data-goal="week-ride">
       <div class="ring" style="--pct:47%; --ring-color:var(--outdoor);"><span>47%</span></div>
       <div class="goal-info">
         <div class="lbl">Wochenziel · Rad (180 km)</div>
@@ -394,7 +438,7 @@
         </div>
       </div>
     </div>
-    <div class="goal-card">
+    <div class="goal-card" data-goal="year-ride">
       <div class="ring" style="--pct:75%; --ring-color:var(--outdoor);"><span>75%</span></div>
       <div class="goal-info">
         <div class="lbl">Jahresziel · Rad (10.000 km)</div>
@@ -405,7 +449,7 @@
         <div class="plan ahead">vor Plan</div>
       </div>
     </div>
-    <div class="goal-card">
+    <div class="goal-card" data-goal="year-run">
       <div class="ring" style="--pct:60%; --ring-color:var(--indoor);"><span>60%</span></div>
       <div class="goal-info">
         <div class="lbl">Jahresziel · Lauf (100 km)</div>
@@ -418,44 +462,81 @@
     </div>
   </div>
 
-  <div class="section-lbl">Kalender 2026 <span class="note">(Jahresübersicht, unabhängig vom Filter oben)</span></div>
+  <div class="section-lbl">Kalender <span id="calYearLabel">2026</span> <span class="note">(Jahresübersicht · Monat anklicken für Details)</span></div>
   <div class="cal-summary">
-    <div class="item"><div class="val">275</div><div class="lbl">Stunden</div></div>
-    <div class="item"><div class="val">7.638</div><div class="lbl">Kilometer</div></div>
-    <div class="item"><div class="val accent">1030</div><div class="lbl">Persönliche Rekorde</div></div>
-    <div class="item"><div class="val">261</div><div class="lbl">Aktivitäten</div></div>
+    <div class="item"><div class="val" id="calHours">275</div><div class="lbl">Stunden</div></div>
+    <div class="item"><div class="val" id="calKm">7.638</div><div class="lbl">Kilometer</div></div>
+    <div class="item"><div class="val accent" id="calPR">1030</div><div class="lbl">Persönliche Rekorde</div></div>
+    <div class="item"><div class="val" id="calN">261</div><div class="lbl">Aktivitäten</div></div>
   </div>
   <div class="cal-grid" id="calGrid"></div>
 
+  </div>
+
 </div>
-<footer>Live-Daten aus Strava · Stand 25.08.2026, 261 Aktivitäten YTD</footer>
+<footer id="footerText">Live-Daten aus Strava · Stand 25.08.2026, 261 Aktivitäten YTD</footer>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div>
+      <h4 id="drawerTitle">–</h4>
+      <p id="drawerSub">–</p>
+    </div>
+    <button class="drawer-close" id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-list" id="drawerList"></div>
+</div>
 
 <script id="activity-data" type="application/json">[{"n":"Zwift - Fine and Sandy in Makuri Islands","t":"2026-08-25T06:48:24","s":"VirtualRide","i":true,"d":11.15,"e":82,"c":251,"m":21.9,"r":36,"p":2},{"n":"Zwift - Ocean Lava Cliffside Loop in Wat","t":"2026-08-25T06:09:43","s":"VirtualRide","i":true,"d":20.07,"e":159,"c":437,"m":38.3,"r":42,"p":4},{"n":"Feierabendrunde","t":"2026-08-24T18:01:25","s":"Ride","i":false,"d":54.06,"e":272,"c":1187,"m":110.9,"r":119,"p":50},{"n":"🚴 Zwei Seen, ein Tag 🌊","t":"2026-08-23T12:33:17","s":"Ride","i":false,"d":105.12,"e":652,"c":2175,"m":227.9,"r":361,"p":42},{"n":"Zwift - Flat Route in Watopia","t":"2026-08-21T17:23:04","s":"VirtualRide","i":true,"d":42.15,"e":248,"c":852,"m":69.9,"r":140,"p":8},{"n":"Zwift - Paris Toujours in Paris","t":"2026-08-20T17:39:43","s":"VirtualRide","i":true,"d":70.12,"e":461,"c":1398,"m":135.1,"r":173,"p":7},{"n":"Zwift - Crêpe Escape in Paris","t":"2026-08-20T07:32:58","s":"VirtualRide","i":true,"d":17.05,"e":118,"c":371,"m":32.1,"r":71,"p":4},{"n":"Zwift - Downtown Dolphin in Crit City","t":"2026-08-18T06:46:25","s":"VirtualRide","i":true,"d":4.04,"e":33,"c":81,"m":7.7,"r":14,"p":2},{"n":"Zwift - The 6 Train Reverse in New York","t":"2026-08-18T06:32:52","s":"VirtualRide","i":true,"d":7.04,"e":73,"c":150,"m":13.3,"r":26,"p":1},{"n":"Zwift - LaGuardia Loop in New York","t":"2026-08-18T06:26:54","s":"VirtualRide","i":true,"d":3.08,"e":29,"c":62,"m":5.6,"r":9,"p":1},{"n":"Zwift - ZG25 Climb Champs in London","t":"2026-08-18T06:06:17","s":"VirtualRide","i":true,"d":8.08,"e":161,"c":214,"m":20.1,"r":31,"p":4},{"n":"Zwift - Glasgow Reverse in Scotland","t":"2026-08-18T05:58:26","s":"VirtualRide","i":true,"d":4.03,"e":40,"c":83,"m":7.6,"r":10,"p":2},{"n":"Zwift - Neokyo Crit Course in Makuri Isl","t":"2026-08-18T05:50:38","s":"VirtualRide","i":true,"d":4.1,"e":19,"c":84,"m":7.5,"r":8,"p":1},{"n":"Zwift - Twilight Crit in Makuri Islands","t":"2026-08-18T05:42:15","s":"VirtualRide","i":true,"d":4.22,"e":20,"c":81,"m":7.9,"r":6,"p":0},{"n":"Zwift - Macaron in France","t":"2026-08-18T05:35:47","s":"VirtualRide","i":true,"d":3.12,"e":16,"c":62,"m":5.7,"r":3,"p":0},{"n":"Zwift - Downtown Dolphin in Crit City","t":"2026-08-18T05:29:40","s":"VirtualRide","i":true,"d":3.11,"e":30,"c":61,"m":5.8,"r":2,"p":2},{"n":"Zwift - Tair Dringfa Fechan in Watopia","t":"2026-08-17T05:40:32","s":"VirtualRide","i":true,"d":34.23,"e":380,"c":729,"m":69.2,"r":89,"p":3},{"n":"Radfahren","t":"2026-08-16T20:44:35","s":"Ride","i":false,"d":6.04,"e":21,"c":120,"m":15.3,"r":0,"p":0},{"n":"Radfahren","t":"2026-08-16T16:49:07","s":"Ride","i":false,"d":51.99,"e":235,"c":1139,"m":101.5,"r":165,"p":58},{"n":"Kurze Feiertagstour","t":"2026-08-15T16:02:34","s":"Ride","i":false,"d":67.35,"e":348,"c":1428,"m":135.2,"r":291,"p":6},{"n":"Radfahren","t":"2026-08-14T16:51:55","s":"Ride","i":false,"d":3.13,"e":10,"c":53,"m":9.1,"r":0,"p":0},{"n":"Commute Goals","t":"2026-08-14T07:56:24","s":"Ride","i":false,"d":4.03,"e":18,"c":76,"m":12.9,"r":0,"p":0},{"n":"Zwift - Gentil 8 in France","t":"2026-08-13T05:47:14","s":"VirtualRide","i":true,"d":32.25,"e":300,"c":659,"m":61.4,"r":53,"p":3},{"n":"Zwift - Coast Crusher in Watopia","t":"2026-08-12T05:38:59","s":"VirtualRide","i":true,"d":45.08,"e":216,"c":871,"m":80.8,"r":85,"p":10},{"n":"Zwift - Power Punches in Watopia","t":"2026-08-11T05:45:19","s":"VirtualRide","i":true,"d":31.04,"e":224,"c":632,"m":60.3,"r":78,"p":4},{"n":"Classic Feierabend","t":"2026-08-10T18:57:28","s":"Ride","i":false,"d":33.41,"e":249,"c":728,"m":67.5,"r":66,"p":16},{"n":"Zwift - Serpentine 8 in Watopia","t":"2026-08-10T06:00:35","s":"VirtualRide","i":true,"d":27.11,"e":239,"c":602,"m":61.1,"r":55,"p":5},{"n":"Sonntagsausfahrt ☀️🐗🚴","t":"2026-08-09T13:17:59","s":"Ride","i":false,"d":82.54,"e":505,"c":1737,"m":174.7,"r":390,"p":79},{"n":"Zwift - La Boucle in Paris","t":"2026-08-07T09:16:21","s":"VirtualRide","i":true,"d":32.17,"e":199,"c":640,"m":60.5,"r":93,"p":4},{"n":"Zwift - Double Espresso in Paris","t":"2026-08-07T08:15:35","s":"VirtualRide","i":true,"d":31.06,"e":225,"c":629,"m":59.9,"r":80,"p":12},{"n":"Radfahren","t":"2026-08-05T07:42:18","s":"Ride","i":false,"d":37.23,"e":175,"c":784,"m":74.5,"r":95,"p":21},{"n":"Radfahren","t":"2026-08-04T18:20:21","s":"Ride","i":false,"d":49.97,"e":164,"c":1055,"m":103.9,"r":121,"p":41},{"n":"Lauf am Morgen","t":"2026-08-04T09:53:15","s":"Run","i":false,"d":5.01,"e":17,"c":430,"m":32.5,"r":98,"p":10},{"n":"Easy Holiday Ride to Ludwigshöhe","t":"2026-08-03T17:18:45","s":"Ride","i":false,"d":51.12,"e":489,"c":1175,"m":111.7,"r":131,"p":87},{"n":"Zwift - Danger Noodle in Watopia","t":"2026-08-02T20:41:17","s":"VirtualRide","i":true,"d":33.23,"e":423,"c":670,"m":63.2,"r":70,"p":3},{"n":"Zwift - Ven-Top in France","t":"2026-07-31T17:57:24","s":"VirtualRide","i":true,"d":42.31,"e":1539,"c":1578,"m":154.2,"r":223,"p":0},{"n":"Zwift - Triple Flat Loops in Watopia","t":"2026-07-30T05:56:38","s":"VirtualRide","i":true,"d":34.23,"e":157,"c":687,"m":60.2,"r":105,"p":3},{"n":"Zwift - Hell of the North in France","t":"2026-07-29T05:49:18","s":"VirtualRide","i":true,"d":23.26,"e":243,"c":479,"m":45.6,"r":58,"p":7},{"n":"Feierabendrunde","t":"2026-07-28T18:40:25","s":"Ride","i":false,"d":43.25,"e":245,"c":1003,"m":83.8,"r":147,"p":79},{"n":"Zwift - Fuhgeddaboudit in New York","t":"2026-07-27T17:53:44","s":"VirtualRide","i":true,"d":80.23,"e":856,"c":1580,"m":162.1,"r":338,"p":10},{"n":"Zwift - Three Musketeers in France","t":"2026-07-23T13:03:52","s":"VirtualRide","i":true,"d":36.13,"e":198,"c":762,"m":61.7,"r":184,"p":15},{"n":"Radfahren","t":"2026-07-22T19:01:18","s":"Ride","i":false,"d":34.76,"e":135,"c":755,"m":66.6,"r":96,"p":39},{"n":"Radfahren","t":"2026-07-21T19:14:04","s":"Ride","i":false,"d":40.2,"e":133,"c":909,"m":77.7,"r":117,"p":47},{"n":"Zwift - Crêpe Escape in Paris","t":"2026-07-20T21:43:14","s":"VirtualRide","i":true,"d":17.06,"e":118,"c":350,"m":31.8,"r":58,"p":8},{"n":"Bodensee Tag 2 ☕️","t":"2026-07-19T10:04:39","s":"Ride","i":false,"d":82.01,"e":298,"c":1534,"m":191.0,"r":68,"p":8},{"n":"Bodensee Tag 1","t":"2026-07-18T09:20:07","s":"Ride","i":false,"d":162.32,"e":861,"c":2894,"m":426.8,"r":214,"p":22},{"n":"Easy after work ride mit toller Windscha","t":"2026-07-16T19:07:51","s":"Ride","i":false,"d":34.06,"e":131,"c":719,"m":68.7,"r":76,"p":54},{"n":"Zwift - Road to Sky in Watopia","t":"2026-07-15T05:44:40","s":"VirtualRide","i":true,"d":30.43,"e":1059,"c":1028,"m":104.7,"r":191,"p":5},{"n":"Zwift - Casse-Pattes in France","t":"2026-07-14T05:51:42","s":"VirtualRide","i":true,"d":26.1,"e":155,"c":515,"m":50.3,"r":43,"p":5},{"n":"Zwift - Tropic Rush in Makuri Islands","t":"2026-07-13T12:08:50","s":"VirtualRide","i":true,"d":41.2,"e":329,"c":849,"m":77.3,"r":141,"p":7},{"n":"Spaziergang am Nachmittag","t":"2026-07-11T13:07:38","s":"Walk","i":false,"d":3.9,"e":202,"c":368,"m":55.5,"r":13,"p":0},{"n":"Race around the lake 🏎️","t":"2026-07-11T06:02:12","s":"Ride","i":false,"d":49.82,"e":286,"c":1264,"m":88.0,"r":191,"p":72},{"n":"Zwift - Neon Shore Loop in Makuri Island","t":"2026-07-10T07:34:48","s":"VirtualRide","i":true,"d":34.33,"e":264,"c":709,"m":65.1,"r":97,"p":6},{"n":"Zwift - Tempus Fugit in Watopia","t":"2026-07-09T21:18:08","s":"VirtualRide","i":true,"d":20.05,"e":32,"c":362,"m":34.8,"r":56,"p":2},{"n":"Sundowner 🌅","t":"2026-07-09T19:32:22","s":"Ride","i":false,"d":40.29,"e":164,"c":925,"m":78.8,"r":89,"p":68},{"n":"Zwift - Cirque du Suffer in Paris","t":"2026-07-08T20:12:27","s":"VirtualRide","i":true,"d":25.09,"e":40,"c":428,"m":45.0,"r":95,"p":2},{"n":"Zwift - Loop de loop de loop in Paris","t":"2026-07-08T19:42:00","s":"VirtualRide","i":true,"d":15.05,"e":76,"c":283,"m":27.0,"r":43,"p":7},{"n":"Zwift - Montmartre Mixer in Paris","t":"2026-07-07T05:28:14","s":"VirtualRide","i":true,"d":25.33,"e":189,"c":502,"m":51.0,"r":29,"p":8},{"n":"Zwift - Deca Dash in Watopia","t":"2026-07-05T18:27:18","s":"VirtualRide","i":true,"d":53.11,"e":501,"c":1088,"m":106.3,"r":114,"p":5},{"n":"Frühstück in Lenggries ☕️🥐","t":"2026-07-04T06:33:27","s":"Ride","i":false,"d":103.39,"e":904,"c":2319,"m":238.7,"r":239,"p":39},{"n":"Radfahren","t":"2026-07-03T18:15:42","s":"Ride","i":false,"d":33.74,"e":146,"c":785,"m":65.4,"r":90,"p":89},{"n":"Zwift - Stay Puft Pursuit in New York","t":"2026-07-01T19:06:09","s":"VirtualRide","i":true,"d":33.11,"e":417,"c":703,"m":68.8,"r":71,"p":0},{"n":"Zwift - Prospect Park Loop in New York","t":"2026-06-30T06:35:26","s":"VirtualRide","i":true,"d":6.12,"e":41,"c":119,"m":11.9,"r":14,"p":2},{"n":"Zwift - Volcano Circuit CCW in Watopia","t":"2026-06-30T06:19:54","s":"VirtualRide","i":true,"d":8.13,"e":38,"c":151,"m":15.2,"r":18,"p":0},{"n":"Zwift - The 6 Train in New York","t":"2026-06-30T06:04:08","s":"VirtualRide","i":true,"d":8.08,"e":81,"c":156,"m":15.2,"r":16,"p":0},{"n":"Zwift - Innsbruckring in Innsbruck","t":"2026-06-30T05:43:49","s":"VirtualRide","i":true,"d":10.11,"e":80,"c":198,"m":19.9,"r":10,"p":4},{"n":"Zwift - Downtown Eruption in Watopia","t":"2026-06-29T19:36:58","s":"VirtualRide","i":true,"d":25.09,"e":292,"c":532,"m":50.2,"r":108,"p":3},{"n":"Radfahren","t":"2026-06-27T16:40:34","s":"Ride","i":false,"d":73.33,"e":384,"c":1546,"m":152.9,"r":225,"p":38},{"n":"Radfahren","t":"2026-06-26T09:04:26","s":"Ride","i":false,"d":51.01,"e":491,"c":1157,"m":110.8,"r":121,"p":12},{"n":"Burning Tarmac","t":"2026-06-25T10:23:52","s":"Ride","i":false,"d":72.44,"e":435,"c":1531,"m":155.1,"r":278,"p":27},{"n":"Radfahren","t":"2026-06-24T16:03:34","s":"Ride","i":false,"d":41.61,"e":168,"c":898,"m":86.1,"r":95,"p":40},{"n":"Radfahren","t":"2026-06-23T21:21:29","s":"Ride","i":false,"d":0.78,"e":6,"c":15,"m":2.4,"r":1,"p":0},{"n":"After vacation ride 🌴","t":"2026-06-23T18:56:44","s":"Ride","i":false,"d":41.03,"e":118,"c":909,"m":79.1,"r":85,"p":53},{"n":"Lauf am Nachmittag","t":"2026-06-22T17:01:51","s":"Run","i":true,"d":4.01,"e":0,"c":391,"m":27.6,"r":55,"p":0},{"n":"Lauf am Nachmittag","t":"2026-06-17T17:43:01","s":"Run","i":true,"d":4.0,"e":0,"c":358,"m":26.4,"r":61,"p":0},{"n":"Lauf am Nachmittag","t":"2026-06-16T17:11:07","s":"Run","i":true,"d":5.01,"e":0,"c":461,"m":36.1,"r":67,"p":0},{"n":"Zum Pizzaessen nach Augsburg und zurück ","t":"2026-06-14T09:31:36","s":"Ride","i":false,"d":110.58,"e":617,"c":1991,"m":260.0,"r":102,"p":14},{"n":"Zwift - Tempus Fugit in Watopia","t":"2026-06-13T16:10:48","s":"VirtualRide","i":true,"d":21.07,"e":33,"c":359,"m":36.5,"r":51,"p":2},{"n":"Zwift - Climb Portal: Cote de Pike at 10","t":"2026-06-13T15:44:04","s":"VirtualRide","i":true,"d":9.12,"e":253,"c":281,"m":26.3,"r":35,"p":0},{"n":"Zwift - Road to Ruins in Watopia","t":"2026-06-12T19:44:02","s":"VirtualRide","i":true,"d":30.39,"e":275,"c":689,"m":62.7,"r":91,"p":6},{"n":"Zwift - Watts of the Wild in Watopia","t":"2026-06-12T06:42:36","s":"VirtualRide","i":true,"d":45.13,"e":331,"c":869,"m":85.7,"r":136,"p":4},{"n":"Zwift - Tom Tom Go's Meetup on Itza Part","t":"2026-06-10T20:05:02","s":"VirtualRide","i":true,"d":53.13,"e":691,"c":1163,"m":120.2,"r":109,"p":6},{"n":"Zwift - Two Village Loop in Makuri Islan","t":"2026-06-09T06:17:45","s":"VirtualRide","i":true,"d":21.13,"e":110,"c":427,"m":42.5,"r":90,"p":5},{"n":"Zwift - Rolling Highlands in Scotland","t":"2026-06-09T05:48:03","s":"VirtualRide","i":true,"d":16.14,"e":111,"c":306,"m":29.3,"r":33,"p":3},{"n":"Zwift - Petit Boucle in France","t":"2026-06-08T18:54:08","s":"VirtualRide","i":true,"d":63.11,"e":479,"c":1189,"m":126.7,"r":218,"p":6},{"n":"Sunny Sunday afternoon ride ☀️🚴","t":"2026-06-07T13:23:43","s":"Ride","i":false,"d":40.17,"e":205,"c":895,"m":80.6,"r":113,"p":85},{"n":"Zwift - Canopies and Coastlines in Watop","t":"2026-06-07T07:28:27","s":"VirtualRide","i":true,"d":31.13,"e":259,"c":600,"m":60.2,"r":91,"p":5},{"n":"Zwift - Tom Tom Go's Meetup on Dust In T","t":"2026-06-06T17:05:03","s":"VirtualRide","i":true,"d":57.17,"e":599,"c":1184,"m":117.0,"r":146,"p":6},{"n":"Zwift - Johannes Fersch's Meetup on Tire","t":"2026-06-05T17:35:04","s":"VirtualRide","i":true,"d":68.25,"e":601,"c":1409,"m":139.7,"r":136,"p":8},{"n":"Zwift - Tom Tom Go's Meetup on Three Lit","t":"2026-06-04T20:35:04","s":"VirtualRide","i":true,"d":40.06,"e":445,"c":776,"m":84.1,"r":89,"p":1},{"n":"Zwift - The Epiloch in Scotland","t":"2026-06-02T19:38:08","s":"VirtualRide","i":true,"d":12.1,"e":98,"c":226,"m":22.8,"r":38,"p":4},{"n":"Zwift - Loch Loop in Scotland","t":"2026-06-02T19:05:42","s":"VirtualRide","i":true,"d":16.2,"e":142,"c":318,"m":31.3,"r":51,"p":0},{"n":"Zwift - Queen's Highway in Yorkshire","t":"2026-06-02T18:51:51","s":"VirtualRide","i":true,"d":7.08,"e":91,"c":144,"m":13.6,"r":20,"p":4},{"n":"Zwift - Duchy Estate in Yorkshire","t":"2026-06-02T18:37:23","s":"VirtualRide","i":true,"d":7.05,"e":88,"c":142,"m":13.4,"r":12,"p":4},{"n":"Zwift - Makuri 40 in Makuri Islands","t":"2026-06-01T20:40:53","s":"VirtualRide","i":true,"d":42.04,"e":319,"c":773,"m":89.8,"r":103,"p":4},{"n":"Zwift - The Fan Flats in Richmond","t":"2026-05-31T17:10:18","s":"VirtualRide","i":true,"d":10.14,"e":40,"c":179,"m":18.4,"r":41,"p":0},{"n":"Zwift - London Flat in London","t":"2026-05-31T16:42:42","s":"VirtualRide","i":true,"d":12.26,"e":114,"c":227,"m":26.7,"r":37,"p":1},{"n":"Zwift - Big Foot Hills in Watopia","t":"2026-05-31T14:18:10","s":"VirtualRide","i":true,"d":70.13,"e":714,"c":1344,"m":143.2,"r":162,"p":7},{"n":"Pre-Breakfast PR Haul am Starnberger See","t":"2026-05-30T06:58:34","s":"Ride","i":false,"d":49.96,"e":309,"c":1279,"m":92.6,"r":185,"p":70},{"n":"After work ride","t":"2026-05-29T17:41:38","s":"Ride","i":false,"d":51.54,"e":539,"c":1181,"m":109.9,"r":147,"p":61},{"n":"Zwift - Avon Flyer in New York","t":"2026-05-28T20:04:50","s":"VirtualRide","i":true,"d":4.13,"e":25,"c":74,"m":8.2,"r":16,"p":0},{"n":"Zwift - Issendorf Express in New York","t":"2026-05-28T19:47:21","s":"VirtualRide","i":true,"d":8.23,"e":57,"c":150,"m":16.8,"r":38,"p":0},{"n":"Zwift - Farmland Loop in Makuri Islands","t":"2026-05-28T19:30:48","s":"VirtualRide","i":true,"d":8.16,"e":57,"c":156,"m":15.9,"r":43,"p":0},{"n":"Zwift - Bridges and Boardwalks in Makuri","t":"2026-05-28T19:12:32","s":"VirtualRide","i":true,"d":9.11,"e":69,"c":190,"m":18.0,"r":41,"p":0},{"n":"Zwift - The Classic in Watopia","t":"2026-05-28T19:01:18","s":"VirtualRide","i":true,"d":5.12,"e":49,"c":111,"m":10.1,"r":18,"p":0},{"n":"Zwift - Twilight Harbor in Makuri Island","t":"2026-05-28T18:47:23","s":"VirtualRide","i":true,"d":7.13,"e":35,"c":141,"m":13.2,"r":16,"p":0},{"n":"Zwift - Suki's Playground in Makuri Isla","t":"2026-05-28T05:39:08","s":"VirtualRide","i":true,"d":22.15,"e":162,"c":435,"m":42.2,"r":63,"p":0},{"n":"Zwift - Spinfinity in New York","t":"2026-05-27T05:37:55","s":"VirtualRide","i":true,"d":20.11,"e":163,"c":385,"m":39.5,"r":43,"p":0},{"n":"Zwift - Flat Route in Watopia","t":"2026-05-26T17:55:54","s":"VirtualRide","i":true,"d":11.16,"e":61,"c":213,"m":19.4,"r":46,"p":0},{"n":"Zwift - Race: Queen's Highway After Part","t":"2026-05-26T17:13:17","s":"VirtualRide","i":true,"d":21.22,"e":309,"c":488,"m":42.1,"r":63,"p":0},{"n":"Zwift - Race: Island Hopper","t":"2026-05-24T12:13:38","s":"VirtualRide","i":true,"d":20.22,"e":139,"c":427,"m":39.5,"r":102,"p":0},{"n":"See, Sonne, Seitenwind 🚴‍♂️","t":"2026-05-24T10:12:02","s":"Ride","i":false,"d":49.96,"e":303,"c":1139,"m":97.5,"r":222,"p":0},{"n":"Radfahren","t":"2026-05-23T11:52:36","s":"Ride","i":false,"d":63.53,"e":501,"c":1225,"m":148.4,"r":123,"p":0},{"n":"Gemütlicher after work ride","t":"2026-05-22T18:11:33","s":"Ride","i":false,"d":44.96,"e":286,"c":981,"m":95.8,"r":72,"p":0},{"n":"Zwift - Classique in London","t":"2026-05-20T06:05:16","s":"VirtualRide","i":true,"d":18.11,"e":84,"c":338,"m":33.2,"r":65,"p":0},{"n":"Zwift - Flat Route in Watopia","t":"2026-05-20T05:43:21","s":"VirtualRide","i":true,"d":12.13,"e":64,"c":229,"m":21.7,"r":26,"p":0},{"n":"Zwift - Meetup Tair Dringfa Fechan","t":"2026-05-19T19:35:04","s":"VirtualRide","i":true,"d":40.11,"e":415,"c":810,"m":78.7,"r":107,"p":0},{"n":"Zwift - Castle to Castle","t":"2026-05-19T05:39:40","s":"VirtualRide","i":true,"d":23.11,"e":141,"c":457,"m":44.2,"r":60,"p":0},{"n":"Zwift - Electric Loop","t":"2026-05-18T18:09:04","s":"VirtualRide","i":true,"d":9.12,"e":44,"c":168,"m":17.6,"r":31,"p":0},{"n":"Zwift - Toefield Tornado","t":"2026-05-18T17:48:31","s":"VirtualRide","i":true,"d":11.12,"e":58,"c":223,"m":20.2,"r":41,"p":0},{"n":"Zwift - Sprinter's Playground","t":"2026-05-18T17:24:59","s":"VirtualRide","i":true,"d":13.16,"e":70,"c":270,"m":23.2,"r":38,"p":0},{"n":"Zwift - Volcano Climb","t":"2026-05-18T06:15:50","s":"VirtualRide","i":true,"d":30.2,"e":211,"c":575,"m":60.2,"r":50,"p":0},{"n":"Zwift - Race: Jurassic Coast","t":"2026-05-17T19:13:14","s":"VirtualRide","i":true,"d":20.21,"e":218,"c":457,"m":33.7,"r":119,"p":0},{"n":"Zwift - Whole Lotta Lava","t":"2026-05-17T14:23:42","s":"VirtualRide","i":true,"d":19.18,"e":187,"c":372,"m":37.0,"r":83,"p":0},{"n":"Zwift - Meetup Spiral into the Volcano","t":"2026-05-17T12:30:04","s":"VirtualRide","i":true,"d":61.08,"e":372,"c":1096,"m":110.2,"r":173,"p":0},{"n":"Zwift - Coast to Coast","t":"2026-05-16T09:32:43","s":"VirtualRide","i":true,"d":25.11,"e":157,"c":500,"m":46.2,"r":93,"p":0},{"n":"Zwift - Casse-Pattes in France","t":"2026-05-15T18:12:04","s":"VirtualRide","i":true,"d":25.22,"e":155,"c":532,"m":47.4,"r":70,"p":0},{"n":"Zwift - Zwift Games 2024 Epic","t":"2026-05-14T16:27:43","s":"VirtualRide","i":true,"d":85.24,"e":895,"c":1715,"m":170.7,"r":365,"p":0},{"n":"Zwift - Bon Voyage in France","t":"2026-05-12T05:38:37","s":"VirtualRide","i":true,"d":34.09,"e":163,"c":617,"m":64.8,"r":63,"p":0},{"n":"Zwift - Wandering Flats","t":"2026-05-11T07:55:11","s":"VirtualRide","i":true,"d":26.13,"e":150,"c":486,"m":50.7,"r":40,"p":0},{"n":"Zwift - Croissant in France","t":"2026-05-10T12:52:59","s":"VirtualRide","i":true,"d":13.1,"e":74,"c":226,"m":26.4,"r":28,"p":0},{"n":"Zwift - Going Coastal","t":"2026-05-10T12:13:24","s":"VirtualRide","i":true,"d":20.09,"e":82,"c":320,"m":39.2,"r":28,"p":0},{"n":"Zwift - Standing Skills","t":"2026-05-09T09:50:06","s":"VirtualRide","i":true,"d":24.36,"e":291,"c":502,"m":60.2,"r":53,"p":0},{"n":"Zwift - Cadence Mastery","t":"2026-05-09T09:00:17","s":"VirtualRide","i":true,"d":14.18,"e":286,"c":351,"m":46.7,"r":22,"p":0},{"n":"Zwift - Group Workout Breakthrough","t":"2026-05-08T18:00:00","s":"VirtualRide","i":true,"d":32.17,"e":109,"c":511,"m":60.4,"r":42,"p":0},{"n":"Zwift - Body Control","t":"2026-05-08T07:29:00","s":"VirtualRide","i":true,"d":19.06,"e":221,"c":352,"m":47.7,"r":19,"p":0},{"n":"Zwift - The London Pretzel","t":"2026-05-07T18:19:16","s":"VirtualRide","i":true,"d":60.33,"e":620,"c":1207,"m":132.6,"r":176,"p":0},{"n":"Zwift - Libby Hill After Party","t":"2026-05-06T18:53:26","s":"VirtualRide","i":true,"d":34.01,"e":187,"c":645,"m":62.4,"r":126,"p":0},{"n":"Zwift - Climb Portal Poggio","t":"2026-05-05T19:18:30","s":"VirtualRide","i":true,"d":11.57,"e":148,"c":254,"m":24.2,"r":45,"p":0},{"n":"Zwift - Race Glasgow Reverse","t":"2026-05-05T18:40:36","s":"VirtualRide","i":true,"d":19.13,"e":205,"c":382,"m":36.6,"r":34,"p":0},{"n":"Zwift - Meetup Neon Shore Loop","t":"2026-05-03T20:05:03","s":"VirtualRide","i":true,"d":25.65,"e":172,"c":400,"m":52.8,"r":70,"p":0},{"n":"Fünfseenland Loop – ruhige 2h Einheit","t":"2026-05-03T12:58:18","s":"Ride","i":false,"d":50.47,"e":258,"c":945,"m":127.7,"r":69,"p":0},{"n":"Zwift - Greater London Flat","t":"2026-05-02T09:54:54","s":"VirtualRide","i":true,"d":15.13,"e":66,"c":269,"m":28.9,"r":78,"p":0},{"n":"Zwift - Neon Flats","t":"2026-05-02T09:23:31","s":"VirtualRide","i":true,"d":16.12,"e":77,"c":292,"m":30.5,"r":67,"p":0},{"n":"Zwift - Sleepless City","t":"2026-05-02T09:03:53","s":"VirtualRide","i":true,"d":10.17,"e":43,"c":186,"m":19.2,"r":18,"p":0},{"n":"Zwift - Jarvis Seaside Sprint","t":"2026-05-01T19:37:32","s":"VirtualRide","i":true,"d":12.89,"e":96,"c":232,"m":27.0,"r":54,"p":0},{"n":"Zwift - Loopin Lava","t":"2026-05-01T18:55:22","s":"VirtualRide","i":true,"d":19.04,"e":223,"c":390,"m":40.9,"r":75,"p":0},{"n":"Morning run with a view","t":"2026-05-01T07:10:28","s":"Run","i":false,"d":5.0,"e":23,"c":555,"m":31.0,"r":101,"p":0},{"n":"Run around Samedan airport","t":"2026-04-30T12:09:51","s":"Run","i":false,"d":6.08,"e":20,"c":674,"m":40.8,"r":103,"p":0},{"n":"Zwift - Temple Trek","t":"2026-04-27T06:36:11","s":"VirtualRide","i":true,"d":40.91,"e":165,"c":708,"m":78.2,"r":118,"p":0},{"n":"Zwift - Sacre Bleu in France","t":"2026-04-26T17:49:43","s":"VirtualRide","i":true,"d":72.15,"e":400,"c":1295,"m":141.0,"r":235,"p":0},{"n":"Zwift - Wandering Flats","t":"2026-04-25T21:01:51","s":"VirtualRide","i":true,"d":32.16,"e":161,"c":577,"m":63.4,"r":67,"p":0},{"n":"Radfahren","t":"2026-04-24T15:44:25","s":"Ride","i":false,"d":27.35,"e":148,"c":608,"m":54.5,"r":0,"p":0},{"n":"Radfahren","t":"2026-04-24T15:31:22","s":"Ride","i":false,"d":1.3,"e":16,"c":33,"m":3.8,"r":0,"p":0},{"n":"Radfahren","t":"2026-04-24T15:20:37","s":"Ride","i":false,"d":1.27,"e":15,"c":31,"m":3.6,"r":0,"p":0},{"n":"Radfahren","t":"2026-04-24T15:12:31","s":"Ride","i":false,"d":1.32,"e":34,"c":45,"m":3.8,"r":0,"p":0},{"n":"Zwift - Meetup Temples and Towers","t":"2026-04-21T20:20:03","s":"VirtualRide","i":true,"d":33.62,"e":324,"c":667,"m":70.0,"r":98,"p":0},{"n":"Zwift - Meetup Eastern Eight","t":"2026-04-20T19:15:02","s":"VirtualRide","i":true,"d":53.18,"e":407,"c":955,"m":103.8,"r":135,"p":0},{"n":"Zwift - Knights of the Roundabout","t":"2026-04-14T19:40:06","s":"VirtualRide","i":true,"d":54.52,"e":357,"c":1022,"m":105.4,"r":159,"p":0},{"n":"Zwift - Tempus Fugit","t":"2026-04-13T21:14:31","s":"VirtualRide","i":true,"d":20.05,"e":33,"c":353,"m":34.5,"r":57,"p":0},{"n":"Zwift - Coast Crusher","t":"2026-04-12T14:08:10","s":"VirtualRide","i":true,"d":42.69,"e":209,"c":744,"m":80.3,"r":150,"p":0},{"n":"Zwift - Mech Isle Loop","t":"2026-04-12T13:56:58","s":"VirtualRide","i":true,"d":4.21,"e":43,"c":93,"m":9.8,"r":9,"p":0},{"n":"Zwift - Sugar Cookie","t":"2026-04-11T06:40:52","s":"VirtualRide","i":true,"d":40.28,"e":262,"c":774,"m":79.3,"r":135,"p":0},{"n":"Zwift - Foundations","t":"2026-04-10T05:46:58","s":"VirtualRide","i":true,"d":24.45,"e":202,"c":431,"m":54.6,"r":51,"p":0},{"n":"Zwift - Triple Flat Loops","t":"2026-04-09T19:47:38","s":"VirtualRide","i":true,"d":36.39,"e":157,"c":637,"m":67.2,"r":93,"p":0},{"n":"Zwift - Red Zone Repeats","t":"2026-04-08T17:41:56","s":"VirtualRide","i":true,"d":20.3,"e":93,"c":372,"m":37.6,"r":54,"p":0},{"n":"Zwift - Race Jungle Circuit","t":"2026-04-08T17:14:16","s":"VirtualRide","i":true,"d":13.8,"e":92,"c":313,"m":26.9,"r":39,"p":0},{"n":"Zwift - Volcano Circuit 25 laps","t":"2026-04-07T17:04:06","s":"VirtualRide","i":true,"d":103.57,"e":515,"c":1766,"m":190.9,"r":355,"p":0},{"n":"Zwift - Mend","t":"2026-04-06T08:42:13","s":"VirtualRide","i":true,"d":16.12,"e":178,"c":292,"m":46.2,"r":40,"p":0},{"n":"Zwift - Makuri Madness","t":"2026-04-05T06:59:31","s":"VirtualRide","i":true,"d":16.13,"e":88,"c":275,"m":32.0,"r":17,"p":0},{"n":"Zwift - Triple Twist","t":"2026-04-04T19:29:12","s":"VirtualRide","i":true,"d":25.12,"e":209,"c":479,"m":50.7,"r":57,"p":0},{"n":"Zwift - London Calling","t":"2026-04-03T16:42:07","s":"VirtualRide","i":true,"d":32.61,"e":220,"c":637,"m":62.5,"r":109,"p":0},{"n":"Zwift - Hell of the North","t":"2026-04-02T05:48:35","s":"VirtualRide","i":true,"d":25.15,"e":273,"c":500,"m":51.5,"r":62,"p":0},{"n":"Zwift - Mountain Mash","t":"2026-04-01T19:12:34","s":"VirtualRide","i":true,"d":8.08,"e":377,"c":347,"m":36.1,"r":49,"p":0},{"n":"Zwift - Climb Portal Coll d'Ordino","t":"2026-04-01T18:16:39","s":"VirtualRide","i":true,"d":14.03,"e":522,"c":567,"m":54.0,"r":68,"p":0},{"n":"Zwift - Meetup Navig8","t":"2026-03-31T18:05:04","s":"VirtualRide","i":true,"d":70.12,"e":424,"c":1404,"m":146.0,"r":192,"p":0},{"n":"Zwift - The Big Ring","t":"2026-03-30T17:18:48","s":"VirtualRide","i":true,"d":50.19,"e":270,"c":954,"m":98.3,"r":178,"p":0},{"n":"Zwift - Country to Coastal","t":"2026-03-28T17:05:05","s":"VirtualRide","i":true,"d":33.48,"e":282,"c":721,"m":65.2,"r":147,"p":0},{"n":"Zwift - Spinfinity Ultra","t":"2026-03-27T16:58:37","s":"VirtualRide","i":true,"d":35.52,"e":290,"c":700,"m":67.4,"r":130,"p":0},{"n":"Zwift - Waisted 8","t":"2026-03-26T07:45:47","s":"VirtualRide","i":true,"d":31.22,"e":147,"c":600,"m":60.3,"r":155,"p":0},{"n":"Zwift - Meetup Neokyo All-Nighter","t":"2026-03-25T19:10:00","s":"VirtualRide","i":true,"d":38.09,"e":247,"c":733,"m":72.7,"r":124,"p":0},{"n":"Zwift - Climb Portal Côte de la Redoute ","t":"2026-03-25T18:43:19","s":"VirtualRide","i":true,"d":6.13,"e":203,"c":225,"m":20.4,"r":32,"p":0},{"n":"Zwift - Race Crit Cade","t":"2026-03-25T18:14:20","s":"VirtualRide","i":true,"d":15.79,"e":127,"c":255,"m":27.6,"r":7,"p":0},{"n":"Zwift - Watopia's Waistband","t":"2026-03-24T05:31:32","s":"VirtualRide","i":true,"d":33.24,"e":108,"c":623,"m":60.1,"r":131,"p":0},{"n":"Zwift - Sand And Sequoias","t":"2026-03-21T15:24:47","s":"VirtualRide","i":true,"d":24.61,"e":181,"c":446,"m":45.2,"r":78,"p":0},{"n":"Zwift - Mayan San Remo","t":"2026-03-21T14:38:56","s":"VirtualRide","i":true,"d":21.16,"e":217,"c":445,"m":45.2,"r":45,"p":0},{"n":"Zwift - Meetup Out And Back Again","t":"2026-03-20T18:45:03","s":"VirtualRide","i":true,"d":42.55,"e":335,"c":701,"m":87.9,"r":139,"p":0},{"n":"Zwift - Climb Portal Mont Saint-Michel","t":"2026-03-19T20:20:48","s":"VirtualRide","i":true,"d":3.62,"e":57,"c":86,"m":9.0,"r":22,"p":0},{"n":"Zwift - Climb Portal Mont Saint-Michel 2","t":"2026-03-19T20:11:51","s":"VirtualRide","i":true,"d":2.57,"e":66,"c":85,"m":8.4,"r":25,"p":0},{"n":"Zwift - Climb Portal Mont Saint-Michel 3","t":"2026-03-19T20:03:04","s":"VirtualRide","i":true,"d":2.26,"e":71,"c":88,"m":8.2,"r":23,"p":0},{"n":"Zwift - Climb Portal Mur de Huy","t":"2026-03-19T19:48:46","s":"VirtualRide","i":true,"d":3.04,"e":132,"c":143,"m":13.7,"r":33,"p":0},{"n":"Zwift - Climb Portal Côte de la Redoute","t":"2026-03-19T19:31:13","s":"VirtualRide","i":true,"d":3.38,"e":161,"c":173,"m":16.1,"r":31,"p":0},{"n":"Zwift - Climb Portal Oude Kwaremont","t":"2026-03-19T19:20:35","s":"VirtualRide","i":true,"d":3.38,"e":72,"c":98,"m":10.2,"r":7,"p":0},{"n":"Zwift - Southern Coast Cruise","t":"2026-03-19T05:54:59","s":"VirtualRide","i":true,"d":25.27,"e":147,"c":446,"m":50.2,"r":78,"p":0},{"n":"Zwift - Climb Portal Cipressa","t":"2026-03-18T06:26:20","s":"VirtualRide","i":true,"d":8.15,"e":236,"c":284,"m":30.5,"r":73,"p":0},{"n":"Zwift - Flat Out Fast","t":"2026-03-18T05:45:02","s":"VirtualRide","i":true,"d":22.11,"e":49,"c":412,"m":40.2,"r":65,"p":0},{"n":"Zwift - Climb Portal Poggio","t":"2026-03-17T06:28:28","s":"VirtualRide","i":true,"d":10.1,"e":144,"c":222,"m":25.2,"r":60,"p":0},{"n":"Zwift - Tick Tock","t":"2026-03-17T05:51:02","s":"VirtualRide","i":true,"d":20.1,"e":59,"c":370,"m":36.5,"r":61,"p":0},{"n":"Zwift - The Magnificent 8","t":"2026-03-16T07:36:19","s":"VirtualRide","i":true,"d":31.17,"e":167,"c":564,"m":60.2,"r":116,"p":0},{"n":"Zwift - Watopia's Waistband 2","t":"2026-03-15T08:59:53","s":"VirtualRide","i":true,"d":32.26,"e":108,"c":568,"m":60.6,"r":120,"p":0},{"n":"Zwift - Race Peaky Pave","t":"2026-03-14T16:14:26","s":"VirtualRide","i":true,"d":31.14,"e":387,"c":742,"m":68.1,"r":160,"p":0},{"n":"Zwift - Meetup Double Parked","t":"2026-03-13T20:15:04","s":"VirtualRide","i":true,"d":46.08,"e":351,"c":791,"m":90.5,"r":198,"p":0},{"n":"Zwift - Team Camp Workout 3","t":"2026-03-12T18:37:08","s":"VirtualRide","i":true,"d":46.89,"e":73,"c":698,"m":90.2,"r":141,"p":0},{"n":"Zwift - Team Camp Workout 4","t":"2026-03-11T05:57:02","s":"VirtualRide","i":true,"d":32.04,"e":258,"c":544,"m":78.2,"r":71,"p":0},{"n":"Zwift - Flat Out Fast","t":"2026-03-10T05:59:50","s":"VirtualRide","i":true,"d":30.04,"e":71,"c":502,"m":60.3,"r":33,"p":0},{"n":"Zwift - Meetup Itza Climb Finish","t":"2026-03-08T19:05:04","s":"VirtualRide","i":true,"d":31.17,"e":293,"c":544,"m":76.5,"r":98,"p":0},{"n":"Radfahrt am Mittag","t":"2026-03-08T11:18:43","s":"Ride","i":false,"d":32.06,"e":228,"c":715,"m":73.3,"r":152,"p":0},{"n":"Fahrt am Morgen","t":"2026-03-07T10:48:25","s":"Ride","i":false,"d":24.52,"e":79,"c":446,"m":52.8,"r":95,"p":0},{"n":"Fahrt am Nachmittag","t":"2026-03-06T16:50:24","s":"Ride","i":false,"d":35.86,"e":238,"c":766,"m":80.3,"r":153,"p":0},{"n":"Zwift - Team Camp Workout 2","t":"2026-03-06T12:01:55","s":"VirtualRide","i":true,"d":18.07,"e":236,"c":393,"m":52.2,"r":22,"p":0},{"n":"Zwift - Team Camp Workout 5","t":"2026-03-05T17:13:29","s":"VirtualRide","i":true,"d":30.54,"e":331,"c":560,"m":69.7,"r":60,"p":0},{"n":"Zwift - Team Camp Workout 1","t":"2026-03-04T17:54:32","s":"VirtualRide","i":true,"d":29.45,"e":112,"c":485,"m":60.3,"r":71,"p":0},{"n":"Zwift - Meetup Chasing the Sun","t":"2026-03-03T20:15:04","s":"VirtualRide","i":true,"d":36.25,"e":320,"c":710,"m":78.3,"r":114,"p":0},{"n":"Zwift - Race Cobbled Crown","t":"2026-03-02T19:14:38","s":"VirtualRide","i":true,"d":28.1,"e":305,"c":645,"m":61.0,"r":142,"p":0},{"n":"Zwift - Meetup Three Musketeers","t":"2026-03-01T20:20:04","s":"VirtualRide","i":true,"d":36.44,"e":200,"c":693,"m":74.5,"r":78,"p":0},{"n":"Fahrt am Nachmittag","t":"2026-02-28T14:54:16","s":"Ride","i":false,"d":37.24,"e":212,"c":831,"m":76.4,"r":130,"p":0},{"n":"Erste Ausfahrt draußen","t":"2026-02-27T10:52:51","s":"Ride","i":false,"d":51.21,"e":414,"c":1125,"m":116.0,"r":225,"p":0},{"n":"Zwift - Hudson Hustle","t":"2026-02-26T17:23:42","s":"VirtualRide","i":true,"d":22.91,"e":231,"c":455,"m":45.4,"r":86,"p":0},{"n":"Zwift - Three Step Sisters","t":"2026-02-25T17:16:40","s":"VirtualRide","i":true,"d":48.48,"e":616,"c":1122,"m":120.2,"r":276,"p":0},{"n":"Zwift - Lutece Express","t":"2026-02-24T06:14:05","s":"VirtualRide","i":true,"d":10.15,"e":64,"c":197,"m":22.1,"r":53,"p":0},{"n":"Zwift - Kaze Kicker","t":"2026-02-24T05:34:32","s":"VirtualRide","i":true,"d":17.04,"e":135,"c":337,"m":39.0,"r":43,"p":0},{"n":"Zwift - Cobbled Crown","t":"2026-02-23T20:30:21","s":"VirtualRide","i":true,"d":26.94,"e":303,"c":600,"m":61.6,"r":111,"p":0},{"n":"Zwift - Meetup Empire Elevation","t":"2026-02-22T20:05:04","s":"VirtualRide","i":true,"d":31.2,"e":305,"c":575,"m":70.2,"r":55,"p":0},{"n":"Zwift - Recovery Spin Champs-Élysées","t":"2026-02-21T09:09:00","s":"VirtualRide","i":true,"d":18.35,"e":116,"c":305,"m":50.2,"r":12,"p":0},{"n":"Zwift - Peaky Pavé","t":"2026-02-14T06:58:18","s":"VirtualRide","i":true,"d":30.65,"e":369,"c":665,"m":75.8,"r":106,"p":0},{"n":"Zwift - Triple Loops London","t":"2026-02-13T16:44:41","s":"VirtualRide","i":true,"d":50.43,"e":633,"c":1108,"m":120.3,"r":136,"p":0},{"n":"Zwift - Greatest London Flat","t":"2026-02-13T06:00:07","s":"VirtualRide","i":true,"d":28.3,"e":194,"c":523,"m":60.2,"r":61,"p":0},{"n":"Zwift - Worlds Short Lap Innsbruck","t":"2026-02-12T18:05:04","s":"VirtualRide","i":true,"d":24.55,"e":496,"c":678,"m":70.2,"r":154,"p":0},{"n":"Zwift - Yellow Day Workout","t":"2026-02-11T19:27:49","s":"VirtualRide","i":true,"d":26.26,"e":103,"c":411,"m":60.3,"r":32,"p":0},{"n":"Zwift - Meetup Richmond Rollercoaster","t":"2026-02-08T11:05:03","s":"VirtualRide","i":true,"d":34.87,"e":235,"c":610,"m":68.5,"r":147,"p":0},{"n":"Zwift - Knickerbocker","t":"2026-02-07T10:22:07","s":"VirtualRide","i":true,"d":24.26,"e":390,"c":571,"m":60.2,"r":150,"p":0},{"n":"Zwift - Melange R.G.V.","t":"2026-02-06T18:36:00","s":"VirtualRide","i":true,"d":40.52,"e":178,"c":675,"m":90.2,"r":107,"p":0},{"n":"Zwift - Meetup Turf N Surf","t":"2026-02-05T19:15:03","s":"VirtualRide","i":true,"d":30.18,"e":221,"c":555,"m":60.2,"r":137,"p":0},{"n":"Zwift - Tempo into VO2 Max","t":"2026-02-04T05:21:11","s":"VirtualRide","i":true,"d":28.73,"e":212,"c":522,"m":63.1,"r":82,"p":0},{"n":"Zwift - 40/20s into FTP","t":"2026-02-02T13:13:09","s":"VirtualRide","i":true,"d":27.68,"e":263,"c":600,"m":68.6,"r":102,"p":0},{"n":"Zwift - Figure 8 Reverse","t":"2026-02-01T18:00:29","s":"VirtualRide","i":true,"d":30.15,"e":254,"c":593,"m":62.2,"r":104,"p":0},{"n":"Slopes - St. Moritz Corviglia","t":"2026-01-30T09:28:37","s":"AlpineSki","i":false,"d":30.92,"e":49,"c":0,"m":90.4,"r":0,"p":0},{"n":"Zwift - Sand And Sequoias","t":"2026-01-29T06:08:44","s":"VirtualRide","i":true,"d":29.19,"e":188,"c":531,"m":60.7,"r":79,"p":0},{"n":"Zwift - No Sleep Till Brooklyn","t":"2026-01-27T05:54:35","s":"VirtualRide","i":true,"d":32.1,"e":251,"c":614,"m":68.2,"r":131,"p":0},{"n":"Zwift - Ocean Lava Cliffside Loop","t":"2026-01-26T20:25:00","s":"VirtualRide","i":true,"d":28.02,"e":203,"c":563,"m":60.5,"r":105,"p":0},{"n":"Zwift - Group Ride Coffee Ride","t":"2026-01-24T10:00:04","s":"VirtualRide","i":true,"d":80.17,"e":634,"c":1619,"m":182.2,"r":281,"p":0},{"n":"Zwift - Chasing the Sun","t":"2026-01-23T17:51:59","s":"VirtualRide","i":true,"d":40.33,"e":365,"c":879,"m":91.1,"r":127,"p":0},{"n":"Zwift - Get It Done Douce France","t":"2026-01-22T05:53:18","s":"VirtualRide","i":true,"d":26.03,"e":149,"c":449,"m":60.3,"r":37,"p":0},{"n":"Zwift - Climb Control","t":"2026-01-21T05:29:23","s":"VirtualRide","i":true,"d":23.75,"e":190,"c":550,"m":60.1,"r":107,"p":0},{"n":"Zwift - Zone 2 Chain Chomper","t":"2026-01-20T05:46:36","s":"VirtualRide","i":true,"d":18.35,"e":262,"c":426,"m":60.1,"r":17,"p":0},{"n":"Zwift - The Greenway","t":"2026-01-19T18:52:27","s":"VirtualRide","i":true,"d":37.15,"e":295,"c":711,"m":75.4,"r":110,"p":0},{"n":"Lauf am Morgen","t":"2026-01-18T10:19:53","s":"Run","i":false,"d":5.02,"e":7,"c":459,"m":31.1,"r":100,"p":0},{"n":"Zwift - Endurance London 8","t":"2026-01-16T17:10:30","s":"VirtualRide","i":true,"d":21.26,"e":269,"c":456,"m":60.3,"r":23,"p":0},{"n":"Zwift - Innsbruck KOM After Party","t":"2026-01-15T18:34:47","s":"VirtualRide","i":true,"d":45.14,"e":671,"c":1080,"m":120.2,"r":171,"p":0},{"n":"Zwift - Attack Beach Island Loop","t":"2026-01-14T05:59:09","s":"VirtualRide","i":true,"d":27.05,"e":110,"c":498,"m":62.3,"r":63,"p":0},{"n":"Zwift - Three Musketeers","t":"2026-01-13T20:02:05","s":"VirtualRide","i":true,"d":35.99,"e":198,"c":650,"m":71.5,"r":126,"p":0},{"n":"Zwift - Mighty Metropolitan","t":"2026-01-12T05:34:41","s":"VirtualRide","i":true,"d":20.22,"e":325,"c":461,"m":53.0,"r":20,"p":0},{"n":"Zwift - FTP Ramp Test","t":"2026-01-11T12:37:19","s":"VirtualRide","i":true,"d":15.35,"e":96,"c":261,"m":40.3,"r":15,"p":0},{"n":"Zwift - Meetup Big Flat 8","t":"2026-01-10T09:00:04","s":"VirtualRide","i":true,"d":30.47,"e":104,"c":599,"m":63.9,"r":75,"p":0},{"n":"Mittagsradfahrt","t":"2026-01-09T11:43:56","s":"VirtualRide","i":true,"d":30.63,"e":208,"c":551,"m":60.7,"r":0,"p":0},{"n":"Lauf am Nachmittag","t":"2026-01-07T16:51:08","s":"Run","i":false,"d":3.0,"e":0,"c":377,"m":24.6,"r":63,"p":0},{"n":"Treadmill Run","t":"2026-01-06T16:41:03","s":"Run","i":false,"d":5.53,"e":0,"c":678,"m":45.0,"r":125,"p":0},{"n":"Lauf am Nachmittag","t":"2026-01-05T16:53:57","s":"Run","i":false,"d":4.01,"e":0,"c":485,"m":32.3,"r":75,"p":0},{"n":"Lauf am Morgen","t":"2026-01-04T08:31:19","s":"Run","i":false,"d":4.0,"e":0,"c":446,"m":29.7,"r":79,"p":0},{"n":"Lauf am Morgen","t":"2026-01-02T07:51:18","s":"Run","i":false,"d":4.01,"e":0,"c":441,"m":30.4,"r":70,"p":0},{"n":"Lauf am Morgen","t":"2026-01-01T08:06:28","s":"Run","i":false,"d":5.01,"e":0,"c":541,"m":34.8,"r":97,"p":0}]</script>
 <script>(function(){
   const DATA = JSON.parse(document.getElementById('activity-data').textContent);
-  const NOW = new Date(2026, 7, 25, 10, 40); // 25. Aug 2026, 10:40 (Referenzzeitpunkt "heute")
+  const NOW = new Date(2026, 7, 25, 10, 40); // Referenzzeitpunkt "heute"
+  const CURRENT_YEAR = NOW.getFullYear();
 
   DATA.forEach(a => { a._dt = new Date(a.t); });
+  const dataYears = new Set(DATA.map(a => a._dt.getFullYear()));
 
-  const state = { period: 'week', sport: 'all', tod: 'all', customFrom: new Date(2026,7,1), customTo: new Date(2026,7,25,23,59,59) };
+  const state = { year: CURRENT_YEAR, period: 'week', sport: 'all', tod: 'all', customFrom: null, customTo: null, currentLabel: '' };
 
   function startOfWeek(d){
-    const day = d.getDay(); // 0=So
-    const diff = (day === 0 ? -6 : 1) - day; // Montag als Wochenstart
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
     const monday = new Date(d);
     monday.setDate(d.getDate() + diff);
     monday.setHours(0,0,0,0);
     return monday;
   }
 
+  function yearBounds(y){
+    const from = new Date(y,0,1,0,0,0);
+    const to = (y === CURRENT_YEAR) ? new Date(NOW) : new Date(y,11,31,23,59,59);
+    return {from, to};
+  }
+
+  // Custom-Range initial an aktuelles Jahr binden
+  function resetCustomRangeDefaults(){
+    const {from, to} = yearBounds(state.year);
+    const fromEl = document.getElementById('dateFrom');
+    const toEl = document.getElementById('dateTo');
+    const isoMin = new Date(state.year,0,1).toISOString().slice(0,10);
+    const isoMax = to.toISOString().slice(0,10);
+    fromEl.min = isoMin; fromEl.max = isoMax;
+    toEl.min = isoMin; toEl.max = isoMax;
+    fromEl.value = new Date(Math.max(from, to - 25*86400000)).toISOString().slice(0,10);
+    toEl.value = isoMax;
+    state.customFrom = new Date(fromEl.value + 'T00:00:00');
+    state.customTo = new Date(toEl.value + 'T23:59:59');
+  }
+
   function inPeriod(a){
-    const dt = a._dt;
+    if(a._dt.getFullYear() !== state.year) return false;
     switch(state.period){
-      case 'week': return dt >= startOfWeek(NOW);
-      case '7d': return dt >= new Date(NOW - 7*86400000);
-      case '30d': return dt >= new Date(NOW - 30*86400000);
-      case 'ytd': return dt.getFullYear() === 2026;
-      case 'custom': return dt >= state.customFrom && dt <= state.customTo;
+      case 'week': return state.year === CURRENT_YEAR && a._dt >= startOfWeek(NOW);
+      case '7d': return state.year === CURRENT_YEAR && a._dt >= new Date(NOW - 7*86400000);
+      case '30d': return state.year === CURRENT_YEAR && a._dt >= new Date(NOW - 30*86400000);
+      case 'year': return true;
+      case 'custom': return a._dt >= state.customFrom && a._dt <= state.customTo;
       default: return true;
     }
   }
@@ -471,25 +552,34 @@
     if(h < 16) return 'mittag';
     return 'abend';
   }
+  function weekdayIdx(dt){ const wd = dt.getDay(); return wd === 0 ? 6 : wd - 1; }
 
-  // Tageszeit ist bewusst KEIN globaler Filter mehr (bei kleinen Zeiträumen wie "Diese Woche"
-  // würde das fast immer auf 0 Aktivitäten führen und wirkt wie ein Bug). Stattdessen ist
-  // Morgen/Mittag/Abend nur eine Hervorhebung innerhalb des Tageszeit-Charts.
-  function filtered(){
-    return DATA.filter(a => inPeriod(a) && inSport(a));
-  }
+  function filtered(){ return DATA.filter(a => inPeriod(a) && inSport(a)); }
+  function yearAll(){ return DATA.filter(a => a._dt.getFullYear() === state.year); }
 
   const fmtInt = n => Math.round(n).toLocaleString('de-DE');
   const fmtKm = n => n.toLocaleString('de-DE', {minimumFractionDigits: n < 100 ? 1 : 0, maximumFractionDigits: 1});
-  const fmtDec = n => n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
+  function fmtDuration(min){
+    if(min >= 60) return `${Math.floor(min/60)}h ${Math.round(min%60)}min`;
+    return `${Math.round(min)} min`;
+  }
+  function sportLabel(a){
+    return { VirtualRide:'Zwift', Ride:'Rad', Run:'Lauf', Walk:'Spaziergang', AlpineSki:'Ski' }[a.s] || a.s;
+  }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  const PERIOD_LABELS = { week: 'Diese Woche · Mo–So', '7d': 'Letzte 7 Tage (rollierend)', '30d': 'Letzte 30 Tage (rollierend)', ytd: 'Jahr 2026 (YTD)', custom: 'Custom-Zeitraum' };
+  const PERIOD_LABELS = { week: 'Diese Woche · Mo–So', '7d': 'Letzte 7 Tage (rollierend)', '30d': 'Letzte 30 Tage (rollierend)', custom: 'Custom-Zeitraum' };
   const SPORT_LABELS = { all: '', indoor: ' · Indoor/Zwift', outdoor: ' · Outdoor' };
 
   function customLabel(){
     const f = state.customFrom.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
     const t = state.customTo.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
     return `${f} – ${t}`;
+  }
+  function yearLabel(){ return state.year === CURRENT_YEAR ? `Jahr ${state.year} (YTD)` : `Jahr ${state.year}`; }
+  function periodLabelText(){
+    const base = state.period === 'custom' ? customLabel() : (state.period === 'year' ? yearLabel() : PERIOD_LABELS[state.period]);
+    return base + SPORT_LABELS[state.sport];
   }
 
   function computeStats(arr){
@@ -512,64 +602,103 @@
     };
   }
 
-  // Baseline (ganzes Jahr, ungefiltert außer Zeitraum) für Effort/Min-Vergleich
-  const ytdAll = DATA.filter(a => a._dt.getFullYear() === 2026);
-  const ytdStats = computeStats(ytdAll);
-
   function weekdayEffort(arr){
-    const days = [0,0,0,0,0,0,0]; // Mo..So
-    arr.forEach(a => {
-      let wd = a._dt.getDay(); // 0=So
-      wd = wd === 0 ? 6 : wd - 1; // -> 0=Mo..6=So
-      days[wd] += a.r;
-    });
+    const days = [0,0,0,0,0,0,0];
+    arr.forEach(a => { days[weekdayIdx(a._dt)] += a.r; });
     return days;
   }
-
   function todEffort(arr){
     const b = { morgen: {effort:0, min:0}, mittag: {effort:0, min:0}, abend: {effort:0, min:0} };
-    arr.forEach(a => {
-      const k = todBucket(a._dt);
-      b[k].effort += a.r; b[k].min += a.m;
-    });
+    arr.forEach(a => { const k = todBucket(a._dt); b[k].effort += a.r; b[k].min += a.m; });
     return b;
   }
 
+  // ---------- Drawer ----------
+  const drawerOverlay = document.getElementById('drawerOverlay');
+  const drawerEl = document.getElementById('drawer');
+  const drawerTitle = document.getElementById('drawerTitle');
+  const drawerSub = document.getElementById('drawerSub');
+  const drawerList = document.getElementById('drawerList');
+
+  function openDrawer(title, subtitle, items){
+    drawerTitle.textContent = title;
+    drawerSub.textContent = subtitle;
+    if(!items || items.length === 0){
+      drawerList.innerHTML = '<div class="drawer-empty">Keine Aktivitäten in dieser Auswahl.</div>';
+    } else {
+      drawerList.innerHTML = items.map(a => `
+        <div class="drawer-item">
+          <div>
+            <div class="di-name">${esc(a.n)}</div>
+            <div class="di-date">${a._dt.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'})} · ${sportLabel(a)}</div>
+          </div>
+          <div class="di-stats">
+            <div class="di-main">${fmtKm(a.d)} km</div>
+            <div>${fmtDuration(a.m)} · ${Math.round(a.r)} eff.</div>
+          </div>
+        </div>`).join('');
+    }
+    drawerOverlay.classList.add('open');
+    drawerEl.classList.add('open');
+  }
+  function closeDrawer(){ drawerOverlay.classList.remove('open'); drawerEl.classList.remove('open'); }
+  drawerOverlay.addEventListener('click', closeDrawer);
+  document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
+
+  // ---------- Render ----------
   function render(){
+    const hasData = dataYears.has(state.year);
+    document.getElementById('emptyYearBanner').style.display = hasData ? 'none' : 'block';
+    document.getElementById('emptyYearNum').textContent = state.year;
+    document.getElementById('mainContent').style.display = hasData ? '' : 'none';
+    document.getElementById('brandSub').textContent = `Rad · Zwift · Lauf — Saison ${state.year}`;
+    document.getElementById('calYearLabel').textContent = state.year;
+
+    // Zeitraum-Chips: Woche/7T/30T nur sinnvoll im laufenden Jahr
+    const isCurrentYear = state.year === CURRENT_YEAR;
+    document.querySelectorAll('#periodGroup .chip[data-period="week"], #periodGroup .chip[data-period="7d"], #periodGroup .chip[data-period="30d"]').forEach(c => {
+      c.classList.toggle('disabled', !isCurrentYear);
+    });
+    if(!isCurrentYear && ['week','7d','30d'].includes(state.period)){
+      state.period = 'year';
+      document.querySelectorAll('#periodGroup .chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('#periodGroup .chip[data-period="year"]').classList.add('active');
+    }
+
+    if(!hasData) return;
+
     const arr = filtered();
     const stats = computeStats(arr);
-    const periodLabel = (state.period === 'custom' ? customLabel() : PERIOD_LABELS[state.period]) + SPORT_LABELS[state.sport];
+    const periodLabel = periodLabelText();
+    state.currentLabel = periodLabel;
 
-    // Hero
     const heroLabel = document.getElementById('heroLabel');
     const heroSessions = document.getElementById('heroSessions');
     const heroSub = document.getElementById('heroSub');
-    [heroLabel, heroSessions, heroSub].forEach(el => el.classList.remove('fade'));
-    void heroLabel.offsetWidth;
+    [heroLabel, heroSessions, heroSub].forEach(el => { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); });
     heroLabel.textContent = periodLabel;
     heroSessions.textContent = stats.n;
     heroSub.textContent = stats.n > 0
       ? `${fmtKm(stats.dist)} km · ${fmtInt(stats.elev)} hm · ${stats.hours.toFixed(1).replace('.', ',')} h`
       : 'Keine Aktivitäten in dieser Auswahl';
-    [heroLabel, heroSessions, heroSub].forEach(el => el.classList.add('fade'));
 
-    // Effort/min Stat-Kachel
+    const yAll = yearAll();
+    const yStats = computeStats(yAll);
     const effortEl = document.getElementById('statEffort');
     const effortBadge = document.getElementById('statEffortBadge');
     effortEl.textContent = stats.n > 0 ? stats.effortPerMin.toFixed(2) : '–';
-    if(stats.n > 0){
-      const deltaPct = ((stats.effortPerMin / ytdStats.effortPerMin) - 1) * 100;
+    if(stats.n > 0 && yStats.effortPerMin > 0){
+      const deltaPct = ((stats.effortPerMin / yStats.effortPerMin) - 1) * 100;
       const sign = deltaPct >= 0 ? '+' : '';
-      effortBadge.textContent = `${sign}${deltaPct.toFixed(0)}% vs. Jahresschnitt (${ytdStats.effortPerMin.toFixed(2)})`;
+      effortBadge.textContent = `${sign}${deltaPct.toFixed(0)}% vs. Jahresschnitt (${yStats.effortPerMin.toFixed(2)})`;
       effortBadge.className = 'badge ' + (deltaPct >= 0 ? 'good' : 'warn');
     } else {
       effortBadge.textContent = 'Keine Daten'; effortBadge.className = 'badge neutral';
     }
 
-    // Section label
     document.getElementById('periodLabel').innerHTML = periodLabel + ' <span class="note">Kennzahlen · Charts · Rekorde reagieren auf die Filter oben</span>';
 
-    // KPI grid
     document.getElementById('kpiSessions').textContent = stats.n;
     document.getElementById('kpiSessionsSub').textContent = stats.n > 0 ? `${stats.rideN} Rad · ${stats.runN} Lauf${stats.otherN ? ' · '+stats.otherN+' sonst.' : ''}` : '–';
     document.getElementById('kpiDist').textContent = stats.n > 0 ? fmtKm(stats.dist) + ' km' : '–';
@@ -580,7 +709,7 @@
     document.getElementById('kpiCalSub').textContent = stats.n > 0 ? `Ø ${fmtInt(stats.avgCalPerSession)}/Session` : '–';
     document.querySelectorAll('#kpiGrid .val, #kpiGrid .delta').forEach(el => { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); });
 
-    // Tageszeit-Chart (respektiert Zeitraum+Sport-Filter, ignoriert eigenen Tageszeit-Filter für Vergleichbarkeit sofern "Ganztags" aktiv; bei aktivem tod-Filter zeigt es nur den einen Balken hervorgehoben)
+    // Tageszeit-Chart
     const todBase = DATA.filter(a => inPeriod(a) && inSport(a));
     const tod = todEffort(todBase);
     const buckets = ['morgen','mittag','abend'];
@@ -588,29 +717,26 @@
     const colors = {morgen: 'var(--indoor)', mittag: 'var(--muted)', abend: 'var(--outdoor)'};
     const epm = buckets.map(b => tod[b].min > 0 ? tod[b].effort/tod[b].min : 0);
     const maxEpm = Math.max(...epm, 0.01);
-    const barsEl = document.getElementById('todBars');
-    barsEl.innerHTML = buckets.map((b,i) => {
+    document.getElementById('todBars').innerHTML = buckets.map((b,i) => {
       const dimmed = (state.tod !== 'all' && state.tod !== b);
-      return `<div class="bar-col"><div class="bar" style="height:${Math.max(4, epm[i]/maxEpm*100)}%; background:${colors[b]}; opacity:${dimmed?0.3:1}"></div><div class="bar-lbl">${labels[b]}</div></div>`;
+      return `<div class="bar-col" data-tod="${b}"><div class="bar" style="height:${Math.max(4, epm[i]/maxEpm*100)}%; background:${colors[b]}; opacity:${dimmed?0.3:1}"></div><div class="bar-lbl">${labels[b]}</div></div>`;
     }).join('');
-    document.getElementById('todLegend').innerHTML = buckets.map(b =>
-      `<span><i style="background:${colors[b]}"></i>${labels[b]} · ${epm[buckets.indexOf(b)].toFixed(2)}</span>`
+    document.getElementById('todLegend').innerHTML = buckets.map((b,i) =>
+      `<span><i style="background:${colors[b]}"></i>${labels[b]} · ${epm[i].toFixed(2)}</span>`
     ).join('');
-    document.getElementById('todChartTitle').textContent = 'Effort/Minute nach Tageszeit — ' + (state.period === 'custom' ? customLabel() : PERIOD_LABELS[state.period]);
+    document.getElementById('todChartTitle').textContent = 'Effort/Minute nach Tageszeit — ' + periodLabel;
 
-    // Wochentag-Heatmap (Zeitraum+Sport+Tageszeit-Filter, wie Haupt-Auswahl)
-    const wd = weekdayEffort(arr.length ? arr : []);
+    // Wochentag-Heatmap
+    const wd = weekdayEffort(arr);
     const wdLabels = ['Mo','Di','Mi','Do','Fr','Sa','So'];
     const maxWd = Math.max(...wd, 1);
-    const heatEl = document.getElementById('weekdayHeat');
-    heatEl.innerHTML = wd.map((v,i) => {
-      const alpha = Math.round((v/maxWd)*210 + 30);
+    document.getElementById('weekdayHeat').innerHTML = wd.map((v,i) => {
+      const alpha = Math.round((v/maxWd)*200 + 30);
       const isPeak = v === maxWd && v > 0;
-      const bg = isPeak ? 'var(--red-2)' : `rgba(45,212,191,${(alpha/255).toFixed(2)})`;
-      return `<div class="heat-col"><div class="heat-cell" style="background:${bg}" title="${wdLabels[i]}: ${Math.round(v)}"></div><div class="heat-lbl">${wdLabels[i]}</div></div>`;
+      const bg = isPeak ? 'var(--accent-2)' : `rgba(53,201,176,${(alpha/255).toFixed(2)})`;
+      return `<div class="heat-col" data-day="${i}"><div class="heat-cell" style="background:${bg}" title="${wdLabels[i]}: ${Math.round(v)}"></div><div class="heat-lbl">${wdLabels[i]}</div></div>`;
     }).join('');
     const peakIdx = wd.indexOf(Math.max(...wd));
-    const lowIdx = wd.indexOf(Math.min(...wd.filter(v=>true)));
     document.getElementById('weekdayLegend').innerHTML = stats.n > 0
       ? `<span>Peak: ${wdLabels[peakIdx]} (${Math.round(wd[peakIdx])})</span>`
       : `<span>Keine Daten in dieser Auswahl</span>`;
@@ -640,16 +766,23 @@
     chip.classList.add('active');
   }
 
+  // ---------- Filter-Interaktionen ----------
   const customRangeEl = document.getElementById('customRange');
-  const dateFromEl = document.getElementById('dateFrom');
-  const dateToEl = document.getElementById('dateTo');
+  const yearSelectEl = document.getElementById('yearSelect');
+
+  yearSelectEl.addEventListener('change', () => {
+    state.year = parseInt(yearSelectEl.value, 10);
+    resetCustomRangeDefaults();
+    if(state.period === 'custom') customRangeEl.style.display = 'flex';
+    render();
+  });
 
   document.querySelectorAll('#periodGroup .chip').forEach(chip => {
     chip.addEventListener('click', () => {
+      if(chip.classList.contains('disabled')) return;
       state.period = chip.dataset.period;
       setActive('#periodGroup', chip);
       customRangeEl.style.display = (state.period === 'custom') ? 'flex' : 'none';
-      if(state.period === 'custom') applyCustomDates();
       render();
     });
   });
@@ -660,54 +793,135 @@
     chip.addEventListener('click', () => { state.tod = chip.dataset.tod; setActive('#todGroup', chip); render(); });
   });
 
-  function applyCustomDates(){
-    const from = new Date(dateFromEl.value + 'T00:00:00');
-    const to = new Date(dateToEl.value + 'T23:59:59');
+  document.getElementById('applyCustom').addEventListener('click', () => {
+    const fromEl = document.getElementById('dateFrom');
+    const toEl = document.getElementById('dateTo');
+    const from = new Date(fromEl.value + 'T00:00:00');
+    const to = new Date(toEl.value + 'T23:59:59');
     if(from > to){ alert('„Von“ muss vor „Bis“ liegen.'); return; }
     state.customFrom = from; state.customTo = to;
     render();
-  }
-  document.getElementById('applyCustom').addEventListener('click', applyCustomDates);
+  });
 
-  // Kalender-Jahresübersicht (statisch, YTD, unabhängig vom Filter)
+  // ---------- Klick-Interaktionen für Drilldown ----------
+  document.getElementById('kpiGrid').addEventListener('click', e => {
+    const kpi = e.target.closest('.kpi'); if(!kpi) return;
+    const metric = kpi.dataset.metric;
+    const arr = filtered();
+    let sorted, title;
+    if(metric === 'sessions'){ sorted = [...arr].sort((a,b) => b._dt - a._dt); title = 'Alle Sessions'; }
+    else if(metric === 'dist'){ sorted = [...arr].sort((a,b) => b.d - a.d).slice(0,12); title = 'Top nach Distanz'; }
+    else if(metric === 'elev'){ sorted = [...arr].sort((a,b) => b.e - a.e).slice(0,12); title = 'Top nach Höhenmetern'; }
+    else if(metric === 'cal'){ sorted = [...arr].sort((a,b) => b.c - a.c).slice(0,12); title = 'Top nach Kalorien'; }
+    openDrawer(title, state.currentLabel, sorted);
+  });
+
+  document.getElementById('weekdayHeat').addEventListener('click', e => {
+    const col = e.target.closest('.heat-col'); if(!col) return;
+    const dayIdx = parseInt(col.dataset.day, 10);
+    const wdLabels = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+    const items = filtered().filter(a => weekdayIdx(a._dt) === dayIdx).sort((a,b) => b._dt - a._dt);
+    openDrawer(`Sessions am ${wdLabels[dayIdx]}`, state.currentLabel, items);
+  });
+
+  document.getElementById('todBars').addEventListener('click', e => {
+    const col = e.target.closest('.bar-col'); if(!col) return;
+    const bucket = col.dataset.tod;
+    state.tod = bucket;
+    document.querySelectorAll('#todGroup .chip').forEach(c => c.classList.toggle('active', c.dataset.tod === bucket));
+    render();
+    const labels = {morgen:'morgens (< 10 Uhr)', mittag:'mittags (10–16 Uhr)', abend:'abends (≥ 16 Uhr)'};
+    const items = DATA.filter(a => inPeriod(a) && inSport(a) && todBucket(a._dt) === bucket).sort((a,b) => b._dt - a._dt);
+    openDrawer(`Sessions ${labels[bucket]}`, state.currentLabel, items);
+  });
+
+  document.getElementById('recordsGrid').addEventListener('click', e => {
+    const card = e.target.closest('.goal-card'); if(!card) return;
+    const type = card.dataset.record;
+    const arr = filtered();
+    if(type === 'longest'){
+      openDrawer('Top 5 · Längste Sessions', state.currentLabel, [...arr].sort((a,b) => b.d - a.d).slice(0,5));
+    } else if(type === 'elev'){
+      openDrawer('Top 5 · Meiste Höhenmeter', state.currentLabel, [...arr].sort((a,b) => b.e - a.e).slice(0,5));
+    } else if(type === 'indoor'){
+      openDrawer('Indoor vs. Outdoor', state.currentLabel, [...arr].sort((a,b) => b._dt - a._dt).slice(0,15));
+    }
+  });
+
+  document.querySelectorAll('.goals')[1] ? null : null; // no-op guard
+  document.querySelectorAll('[data-goal]').forEach(card => {
+    card.addEventListener('click', () => {
+      const type = card.dataset.goal;
+      if(type === 'week-ride'){
+        const items = DATA.filter(a => (a.s === 'Ride' || a.s === 'VirtualRide') && a._dt.getFullYear() === CURRENT_YEAR && a._dt >= startOfWeek(NOW)).sort((a,b) => b._dt - a._dt);
+        openDrawer('Wochenziel Rad — Sessions', 'Diese Woche · Mo–So', items);
+      } else if(type === 'year-ride'){
+        const items = DATA.filter(a => a._dt.getFullYear() === CURRENT_YEAR && (a.s === 'Ride' || a.s === 'VirtualRide')).sort((a,b) => b.d - a.d).slice(0,12);
+        openDrawer('Jahresziel Rad — Top nach Distanz', `Jahr ${CURRENT_YEAR}`, items);
+      } else if(type === 'year-run'){
+        const items = DATA.filter(a => a._dt.getFullYear() === CURRENT_YEAR && a.s === 'Run').sort((a,b) => b._dt - a._dt);
+        openDrawer('Jahresziel Lauf — alle Läufe', `Jahr ${CURRENT_YEAR}`, items);
+      }
+    });
+  });
+
+  // ---------- Kalender ----------
   const MONTH_NAMES = ['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sept.','Okt.','Nov.','Dez.'];
   function buildCalendar(){
+    const y = state.year;
+    const yAll = DATA.filter(a => a._dt.getFullYear() === y);
+    const lastMonthWithData = yAll.length ? Math.max(...yAll.map(a => a._dt.getMonth())) : -1;
     const byMonth = {};
     for(let m=0;m<12;m++) byMonth[m] = {};
-    ytdAll.forEach(a => {
-      const m = a._dt.getMonth();
-      const d = a._dt.getDate();
+    yAll.forEach(a => {
+      const m = a._dt.getMonth(); const d = a._dt.getDate();
       byMonth[m][d] = (byMonth[m][d]||0) + a.m;
     });
-    const daysInMonth = m => new Date(2026, m+1, 0).getDate();
+    const daysInMonth = m => new Date(y, m+1, 0).getDate();
     let maxVal = 1;
-    for(let m=0;m<8;m++){ Object.values(byMonth[m]).forEach(v => { if(v>maxVal) maxVal=v; }); }
+    for(let m=0;m<=lastMonthWithData;m++){ Object.values(byMonth[m]).forEach(v => { if(v>maxVal) maxVal=v; }); }
 
-    const calGrid = document.getElementById('calGrid');
     let html = '';
     for(let m=0;m<12;m++){
-      const hasData = m <= 7;
+      const hasData = m <= lastMonthWithData && Object.keys(byMonth[m]).length > 0;
       const hours = hasData ? Object.values(byMonth[m]).reduce((s,v)=>s+v,0)/60 : 0;
       let bars = '';
       if(hasData){
-        const dim = daysInMonth(m);
-        for(let d=1; d<=dim; d++){
+        for(let d=1; d<=daysInMonth(m); d++){
           const v = byMonth[m][d] || 0;
           bars += `<div style="height:${Math.max(4, Math.round(v/maxVal*100))}%"></div>`;
         }
       }
-      html += `<div class="cal-card ${hasData?'':'empty'}">
+      html += `<div class="cal-card ${hasData?'':'empty'}" data-month="${m}">
         <div class="cal-head"><span class="cal-month">${MONTH_NAMES[m]}</span></div>
         ${hasData ? `<div class="cal-hours">${Math.round(hours)}<span>Std.</span></div><div class="cal-bars">${bars}</div>` : ''}
       </div>`;
     }
-    calGrid.innerHTML = html;
+    document.getElementById('calGrid').innerHTML = html;
+
+    const totalHours = yAll.reduce((s,a) => s + a.m, 0) / 60;
+    const totalKm = yAll.reduce((s,a) => s + a.d, 0);
+    const totalPR = yAll.reduce((s,a) => s + (a.p||0), 0);
+    document.getElementById('calHours').textContent = fmtInt(totalHours);
+    document.getElementById('calKm').textContent = fmtKm(totalKm);
+    document.getElementById('calPR').textContent = totalPR || '–';
+    document.getElementById('calN').textContent = yAll.length;
   }
 
+  document.getElementById('calGrid').addEventListener('click', e => {
+    const card = e.target.closest('.cal-card'); if(!card || card.classList.contains('empty')) return;
+    const m = parseInt(card.dataset.month, 10);
+    const items = DATA.filter(a => a._dt.getFullYear() === state.year && a._dt.getMonth() === m).sort((a,b) => b._dt - a._dt);
+    openDrawer(`${MONTH_NAMES[m]} ${state.year}`, `${items.length} Aktivitäten`, items);
+  });
+
+  // ---------- Init ----------
+  resetCustomRangeDefaults();
   buildCalendar();
   render();
 
-  // Reload-Button
+  yearSelectEl.addEventListener('change', buildCalendar);
+
   const btn = document.getElementById('reloadBtn');
   const synced = document.getElementById('syncedText');
   btn.addEventListener('click', async () => {
