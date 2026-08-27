@@ -361,6 +361,39 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .map-note{font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:10px;}
 .leaflet-container{background:var(--panel-2) !important; font-family:var(--sans) !important;}
 
+/* ---- Fitness & Form (CTL/ATL/TSB) ---- */
+.form-panel{
+  background:linear-gradient(150deg, var(--panel-2), var(--panel));
+  border:1px solid var(--line); border-radius:var(--r-lg); padding:26px;
+  box-shadow:var(--shadow-lg); position:relative; overflow:hidden;
+}
+.form-head{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:20px;}
+.form-status{display:flex; align-items:center; gap:14px;}
+.form-badge{
+  font-family:var(--mono); font-size:11px; padding:6px 14px; border-radius:100px; font-weight:600;
+}
+.form-badge.fresh{background:#35c9b022; color:var(--outdoor);}
+.form-badge.balanced{background:#7c5cff22; color:var(--glow-a);}
+.form-badge.tired{background:#e0a35c22; color:var(--indoor);}
+.form-badge.overreach{background:var(--accent-soft); color:var(--accent-2);}
+.form-metrics{display:flex; gap:28px; flex-wrap:wrap;}
+.form-metric .fm-val{font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;}
+.form-metric .fm-lbl{font-family:var(--mono); font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-top:2px;}
+.form-metric.fitness .fm-val{color:var(--glow-a);}
+.form-metric.fatigue .fm-val{color:var(--accent-2);}
+.form-metric.form .fm-val{color:var(--outdoor);}
+.form-explain{font-family:var(--mono); font-size:11.5px; color:var(--text-dim); line-height:1.6; max-width:520px; margin-bottom:18px;}
+.form-chart-wrap{position:relative;}
+#formChart{width:100%; height:180px; display:block;}
+.form-legend{display:flex; gap:18px; margin-top:10px; font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-wrap:wrap;}
+.form-legend span{display:inline-flex; align-items:center; gap:6px;}
+.form-legend i{width:14px; height:3px; border-radius:2px; display:inline-block;}
+.form-learn{
+  display:inline-flex; align-items:center; gap:6px; margin-top:16px; font-family:var(--mono); font-size:10.5px;
+  color:var(--muted); cursor:pointer; padding:6px 0; border:none; background:none;
+}
+.form-learn:hover{color:var(--text-dim);}
+
 /* ---- Rekorde Showcase ---- */
 .records-hero{
   background:linear-gradient(135deg, var(--panel-2), var(--panel));
@@ -526,6 +559,29 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       </div>
       <div class="badge good">Referenzwert für Trainingszonen</div>
     </div>
+  </div>
+
+  <div class="section-lbl">Fitness & Form <span class="note">— dein Trainingszustand, live aus der gesamten Historie berechnet</span></div>
+  <div class="form-panel">
+    <div class="form-head">
+      <div class="form-status">
+        <div class="form-badge" id="formBadge">–</div>
+      </div>
+      <div class="form-metrics">
+        <div class="form-metric fitness"><div class="fm-val" id="fmFitness">–</div><div class="fm-lbl">Fitness (Aufbau)</div></div>
+        <div class="form-metric fatigue"><div class="fm-val" id="fmFatigue">–</div><div class="fm-lbl">Ermüdung (akut)</div></div>
+        <div class="form-metric form"><div class="fm-val" id="fmForm">–</div><div class="fm-lbl">Form (Frische)</div></div>
+      </div>
+    </div>
+    <div class="form-explain" id="formExplain">Wird berechnet…</div>
+    <div class="form-chart-wrap">
+      <svg id="formChart" viewBox="0 0 1000 180" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="form-legend">
+      <span><i style="background:var(--glow-a)"></i>Fitness (42-Tage-Trend)</span>
+      <span><i style="background:var(--accent-2)"></i>Ermüdung (7-Tage-Trend)</span>
+    </div>
+    <button class="form-learn" id="formLearnBtn">Was bedeutet das? →</button>
   </div>
 
   <div class="section-lbl">Wetter · Percha / München <span class="note">— nächste 7 Tage, live</span></div>
@@ -1393,11 +1449,112 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     });
   });
 
+  // ---------- Fitness & Form (CTL/ATL/TSB) ----------
+  // Wissenschaftliches Modell aus dem Leistungssport (Banister Impulse-Response, bekannt aus
+  // TrainingPeaks): Fitness (CTL) = langfristiger 42-Tage-Trend der täglichen Trainingslast,
+  // Ermüdung (ATL) = kurzfristiger 7-Tage-Trend, Form (TSB) = Fitness minus Ermüdung.
+  // Strava zeigt das nur im teuren Abo — hier läuft's automatisch aus der eigenen Historie.
+  function computeFitnessForm(){
+    const sorted = [...DATA].sort((a,b) => a._dt - b._dt);
+    const firstDate = new Date(sorted[0]._dt.getFullYear(), sorted[0]._dt.getMonth(), sorted[0]._dt.getDate());
+    const today = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+
+    const dailyLoad = {};
+    DATA.forEach(a => {
+      const key = a._dt.toISOString().slice(0,10);
+      dailyLoad[key] = (dailyLoad[key] || 0) + (a.r || 0);
+    });
+
+    const ctlK = 1 - Math.exp(-1/42);
+    const atlK = 1 - Math.exp(-1/7);
+    let ctl = 0, atl = 0;
+    const series = [];
+    for(let d = new Date(firstDate); d <= today; d.setDate(d.getDate()+1)){
+      const key = d.toISOString().slice(0,10);
+      const load = dailyLoad[key] || 0;
+      ctl += (load - ctl) * ctlK;
+      atl += (load - atl) * atlK;
+      series.push({ date: new Date(d), load, ctl, atl, tsb: ctl - atl });
+    }
+    return series;
+  }
+
+  function formStatusFor(tsb){
+    if(tsb > 5) return { badge:'fresh', label:'Frisch', text:'Du bist gut erholt — ein guter Tag für eine intensive Einheit.' };
+    if(tsb > -10) return { badge:'balanced', label:'Ausgeglichen', text:'Solider, nachhaltiger Trainingszustand — weiter so im aktuellen Rhythmus.' };
+    if(tsb > -25) return { badge:'tired', label:'Ermüdet', text:'Die letzten Tage waren fordernd. Eine lockere oder freie Einheit würde jetzt guttun.' };
+    return { badge:'overreach', label:'Stark ermüdet', text:'Deutlich erhöhtes Übertrainings-Risiko — plane bewusst Regeneration ein.' };
+  }
+
+  function renderFormChart(series){
+    const recent = series.slice(-120);
+    const svg = document.getElementById('formChart');
+    const W = 1000, H = 180, pad = 8;
+    const allVals = recent.flatMap(s => [s.ctl, s.atl]);
+    const maxV = Math.max(...allVals, 1) * 1.1;
+    const n = recent.length;
+    const x = i => pad + (i/(n-1)) * (W - pad*2);
+    const y = v => H - pad - (v/maxV) * (H - pad*2);
+
+    const pathFor = key => recent.map((s,i) => `${i===0?'M':'L'}${x(i).toFixed(1)},${y(s[key]).toFixed(1)}`).join(' ');
+    const ctlPath = pathFor('ctl');
+    const atlPath = pathFor('atl');
+    const areaPath = `${ctlPath} L${x(n-1).toFixed(1)},${H-pad} L${x(0).toFixed(1)},${H-pad} Z`;
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="fitFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#7c5cff" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#7c5cff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaPath}" fill="url(#fitFade)" stroke="none"/>
+      <path d="${atlPath}" fill="none" stroke="var(--accent-2)" stroke-width="2" opacity="0.85"/>
+      <path d="${ctlPath}" fill="none" stroke="var(--glow-a)" stroke-width="2.5"/>
+      <circle cx="${x(n-1)}" cy="${y(recent[n-1].ctl)}" r="4" fill="var(--glow-a)"/>
+      <circle cx="${x(n-1)}" cy="${y(recent[n-1].atl)}" r="4" fill="var(--accent-2)"/>
+    `;
+  }
+
+  function updateFitnessForm(){
+    const series = computeFitnessForm();
+    const last = series[series.length - 1];
+    const status = formStatusFor(last.tsb);
+    document.getElementById('fmFitness').textContent = Math.round(last.ctl);
+    document.getElementById('fmFatigue').textContent = Math.round(last.atl);
+    document.getElementById('fmForm').textContent = (last.tsb >= 0 ? '+' : '') + Math.round(last.tsb);
+    const badgeEl = document.getElementById('formBadge');
+    badgeEl.textContent = status.label;
+    badgeEl.className = 'form-badge ' + status.badge;
+    document.getElementById('formExplain').textContent = status.text;
+    renderFormChart(series);
+
+    document.querySelector('.form-panel').style.cursor = 'pointer';
+    document.querySelector('.form-panel').onclick = (e) => {
+      if(e.target.id === 'formLearnBtn') return;
+      const hardest = [...DATA].sort((a,b) => b.r - a.r).slice(0,10);
+      openDrawer('Deine 10 belastendsten Sessions', 'Diese prägen deine aktuelle Ermüdung am stärksten', hardest);
+    };
+    document.getElementById('formLearnBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openDrawer('Was bedeutet Fitness, Ermüdung, Form?',
+        'Kurz erklärt', []);
+      document.getElementById('drawerList').innerHTML = `
+        <div style="padding:18px 10px; font-size:13px; line-height:1.7; color:var(--text-dim);">
+          <p style="margin-bottom:14px;"><b style="color:var(--glow-a);">Fitness</b> zeigt, wie viel Substanz du dir über die letzten Wochen (42-Tage-Trend) aufgebaut hast. Steigt langsam und stetig mit regelmäßigem Training.</p>
+          <p style="margin-bottom:14px;"><b style="color:var(--accent-2);">Ermüdung</b> zeigt die kurzfristige Belastung der letzten Tage (7-Tage-Trend). Steigt schnell nach harten Einheiten, sinkt schnell bei Pausen.</p>
+          <p style="margin-bottom:14px;"><b style="color:var(--outdoor);">Form</b> ist die Differenz aus beidem — deine aktuelle Frische. Positiv = erholt und leistungsbereit. Deutlich negativ = du trainierst gerade auf Substanz, was zeitweise gewollt sein kann, aber Erholung braucht.</p>
+          <p style="color:var(--muted); font-family:var(--mono); font-size:11px;">Basiert auf dem Trainingslast-Modell, das auch professionelle Tools wie TrainingPeaks verwenden — hier berechnet aus deiner kompletten Strava-Historie seit Juli 2025.</p>
+        </div>`;
+    });
+  }
+
   // ---------- Init ----------
   resetCustomRangeDefaults();
   buildCalendar();
   updateGoalDeltas();
   updateRunsBadge();
+  updateFitnessForm();
   loadWeather();
   initMap();
   render();
