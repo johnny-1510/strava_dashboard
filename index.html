@@ -635,7 +635,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="cal-summary">
     <div class="item"><div class="val" id="calHours">275</div><div class="lbl">Stunden</div></div>
     <div class="item"><div class="val" id="calKm">7.638</div><div class="lbl">Kilometer</div></div>
-    <div class="item"><div class="val accent" id="calPR">1030</div><div class="lbl">Persönliche Rekorde</div></div>
+    <div class="item"><div class="val accent" id="calPR">1030</div><div class="lbl">Persönliche Rekorde<br><span style="font-size:8.5px; opacity:.7; text-transform:none;">auf Streckenabschnitten, kumulativ</span></div></div>
     <div class="item"><div class="val" id="calN">261</div><div class="lbl">Aktivitäten</div></div>
   </div>
   <div class="cal-grid" id="calGrid"></div>
@@ -660,7 +660,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="rb-icon">🏃</div>
   <div>
     <div class="rb-num" id="runsNum">–</div>
-    <div class="rb-lbl">Läufe: Bahn / Strecke</div>
+    <div class="rb-lbl">Läufe: Laufband / draußen</div>
   </div>
 </div>
 
@@ -813,7 +813,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     return { text: 'Lockere Einheit', cls: 'neutral' };
   }
 
-  const PERIOD_LABELS = { week: 'Diese Woche · Mo–So', '7d': 'Letzte 7 Tage (rollierend)', '30d': 'Letzte 30 Tage (rollierend)', custom: 'Custom-Zeitraum' };
+  const PERIOD_LABELS = { week: 'Diese Woche · Mo–So', '7d': 'Letzte 7 Tage (bis heute)', '30d': 'Letzte 30 Tage (bis heute)', custom: 'Custom-Zeitraum' };
   const SPORT_LABELS = { all: '', indoor: ' · Indoor/Zwift', outdoor: ' · Outdoor' };
 
   function customLabel(){
@@ -1250,7 +1250,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   }
   document.getElementById('runsBadge').addEventListener('click', () => {
     const runs = [...DATA.filter(a => a.s === 'Run')].sort((a,b) => b._dt - a._dt);
-    openDrawer('Alle Läufe', `${runs.length} gesamt · Bahn/Laufband vs. Strecke draußen`, runs);
+    openDrawer('Alle Läufe', `${runs.length} gesamt · Laufband vs. draußen`, runs);
   });
 
   // ---------- Wetter (live, Open-Meteo, Percha/München) ----------
