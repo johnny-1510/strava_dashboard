@@ -230,6 +230,19 @@ html[data-theme="light"] .custom-range input[type="date"]{ color-scheme:light; }
 .section-lbl::after{content:''; flex:1; height:1px; background:var(--line);}
 .section-lbl .note{font-size:9.5px; color:var(--muted-2); text-transform:none; letter-spacing:0; font-style:italic;}
 
+/* ---- Ein-/Ausklappbare Sektionen ---- */
+.section-lbl.collapsible{cursor:pointer; user-select:none; transition:color .15s var(--ease);}
+.section-lbl.collapsible:hover{color:var(--text-dim);}
+.section-lbl .chevron{
+  width:9px; height:9px; border-right:1.5px solid var(--muted); border-bottom:1.5px solid var(--muted);
+  transform:rotate(45deg); transition:transform .25s var(--ease); flex-shrink:0; margin-left:2px;
+}
+.section-lbl.collapsed .chevron{transform:rotate(-45deg);}
+.collapse-body{overflow:hidden;}
+.collapse-body.collapsed{display:none;}
+.collapse-body:not(.collapsed){animation:collapseIn .3s var(--ease);}
+@keyframes collapseIn{ from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+
 /* ---- KPI grid ---- */
 .grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:4px; }
 .kpi{
@@ -561,7 +574,16 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     </div>
   </div>
 
-  <div class="section-lbl">Fitness & Form <span class="note">— dein Trainingszustand, live aus der gesamten Historie berechnet</span></div>
+  <div class="section-lbl" id="periodLabel">Kennzahlen</div>
+  <div class="grid" id="kpiGrid">
+    <div class="kpi" data-metric="sessions"><div class="lbl">Sessions <span class="hint">↗</span></div><div class="val" id="kpiSessions">–</div><div class="delta up" id="kpiSessionsSub">–</div></div>
+    <div class="kpi" data-metric="dist"><div class="lbl">Distanz <span class="hint">↗</span></div><div class="val" id="kpiDist">–</div><div class="delta up" id="kpiDistSub">–</div></div>
+    <div class="kpi" data-metric="elev"><div class="lbl">Höhenmeter <span class="hint">↗</span></div><div class="val" id="kpiElev">–</div><div class="delta up" id="kpiElevSub">–</div></div>
+    <div class="kpi" data-metric="cal"><div class="lbl">Kalorien <span class="hint">↗</span></div><div class="val" id="kpiCal">–</div><div class="delta up" id="kpiCalSub">–</div></div>
+  </div>
+
+  <div class="section-lbl collapsible" data-collapse-head="fitness"><span>Fitness & Form</span> <span class="note">— dein Trainingszustand, live berechnet</span><div class="chevron"></div></div>
+  <div class="collapse-body" data-collapse-body="fitness">
   <div class="form-panel">
     <div class="form-head">
       <div class="form-status">
@@ -583,74 +605,10 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     </div>
     <button class="form-learn" id="formLearnBtn">Was bedeutet das? →</button>
   </div>
-
-  <div class="section-lbl">Wetter · Percha / München <span class="note">— nächste 7 Tage, live</span></div>
-  <div class="weather-strip" id="weatherStrip"><div class="wx-loading">Lade aktuelle Vorhersage…</div></div>
-
-  <div class="section-lbl" id="periodLabel">Kennzahlen</div>
-  <div class="grid" id="kpiGrid">
-    <div class="kpi" data-metric="sessions"><div class="lbl">Sessions <span class="hint">↗</span></div><div class="val" id="kpiSessions">–</div><div class="delta up" id="kpiSessionsSub">–</div></div>
-    <div class="kpi" data-metric="dist"><div class="lbl">Distanz <span class="hint">↗</span></div><div class="val" id="kpiDist">–</div><div class="delta up" id="kpiDistSub">–</div></div>
-    <div class="kpi" data-metric="elev"><div class="lbl">Höhenmeter <span class="hint">↗</span></div><div class="val" id="kpiElev">–</div><div class="delta up" id="kpiElevSub">–</div></div>
-    <div class="kpi" data-metric="cal"><div class="lbl">Kalorien <span class="hint">↗</span></div><div class="val" id="kpiCal">–</div><div class="delta up" id="kpiCalSub">–</div></div>
   </div>
 
-  <div class="charts" style="margin-top:16px;">
-    <div class="panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:8px;">
-        <h3 id="todChartTitle" style="margin-bottom:0;">Trainingsintensität nach Tageszeit</h3>
-        <div class="filter-group" id="todGroup" style="gap:5px;">
-          <div class="chip active" data-tod="all" style="font-size:10px; padding:5px 11px;">Alle</div>
-          <div class="chip" data-tod="morgen" style="font-size:10px; padding:5px 11px;">Morgen</div>
-          <div class="chip" data-tod="mittag" style="font-size:10px; padding:5px 11px;">Mittag</div>
-          <div class="chip" data-tod="abend" style="font-size:10px; padding:5px 11px;">Abend</div>
-        </div>
-      </div>
-      <div class="bars" id="todBars"></div>
-      <div class="legend" id="todLegend"></div>
-    </div>
-    <div class="panel">
-      <h3>Wochentag-Heatmap · Effort</h3>
-      <div class="heat" id="weekdayHeat"></div>
-      <div class="legend" id="weekdayLegend"></div>
-    </div>
-  </div>
-
-  <div class="section-lbl">Rekorde in der Auswahl <span class="note">— zum Aufklappen anklicken</span></div>
-  <div class="records-hero" id="recordsHero">
-    <div>
-      <div class="rh-label">Deine intensivste Session</div>
-      <div class="rh-val" id="rhVal">–</div>
-      <div class="rh-sub" id="rhSub">–</div>
-      <div class="rh-compare" id="rhCompare">–</div>
-    </div>
-    <div class="rh-sparkline" id="rhSparkline"></div>
-  </div>
-  <div class="goals" id="recordsGrid">
-    <div class="goal-card" data-record="longest">
-      <div class="goal-info">
-        <div class="lbl">Längste Session</div>
-        <div class="row"><div><b id="recLongest">–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recLongestSub">–</div>
-      </div>
-    </div>
-    <div class="goal-card" data-record="elev">
-      <div class="goal-info">
-        <div class="lbl">Meiste Höhenmeter</div>
-        <div class="row"><div><b id="recElev">–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recElevSub">–</div>
-      </div>
-    </div>
-    <div class="goal-card" data-record="indoor">
-      <div class="goal-info">
-        <div class="lbl">Indoor-Anteil</div>
-        <div class="row"><div><b id="recIndoorSessions">–</b></div><div><b id="recIndoorKm">–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recIndoorSub">–</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-lbl">Ziele <span class="note">(immer aktuelle Kalenderwoche / Jahr · anklicken für Details)</span></div>
+  <div class="section-lbl collapsible" data-collapse-head="ziele"><span>Ziele</span> <span class="note">(aktuelle Kalenderwoche / Jahr · anklicken für Details)</span><div class="chevron"></div></div>
+  <div class="collapse-body" data-collapse-body="ziele">
   <div class="goals">
     <div class="goal-card" data-goal="week-ride">
       <div class="ring" style="--pct:47%; --ring-color:var(--outdoor);"><span>47%</span></div>
@@ -686,8 +644,75 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       </div>
     </div>
   </div>
+  </div>
 
-  <div class="section-lbl">Kalender <span id="calYearLabel">2026</span> <span class="note">(Jahresübersicht · Monat anklicken für Details)</span></div>
+  <div class="section-lbl collapsible" data-collapse-head="charts"><span>Trainingsmuster</span> <span class="note">— Tageszeit & Wochentag reagieren auf Filter oben</span><div class="chevron"></div></div>
+  <div class="collapse-body collapsed" data-collapse-body="charts">
+  <div class="charts">
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:8px;">
+        <h3 id="todChartTitle" style="margin-bottom:0;">Trainingsintensität nach Tageszeit</h3>
+        <div class="filter-group" id="todGroup" style="gap:5px;">
+          <div class="chip active" data-tod="all" style="font-size:10px; padding:5px 11px;">Alle</div>
+          <div class="chip" data-tod="morgen" style="font-size:10px; padding:5px 11px;">Morgen</div>
+          <div class="chip" data-tod="mittag" style="font-size:10px; padding:5px 11px;">Mittag</div>
+          <div class="chip" data-tod="abend" style="font-size:10px; padding:5px 11px;">Abend</div>
+        </div>
+      </div>
+      <div class="bars" id="todBars"></div>
+      <div class="legend" id="todLegend"></div>
+    </div>
+    <div class="panel">
+      <h3>Wochentag-Heatmap · Effort</h3>
+      <div class="heat" id="weekdayHeat"></div>
+      <div class="legend" id="weekdayLegend"></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="section-lbl collapsible" data-collapse-head="wetter"><span>Wetter · Percha / München</span> <span class="note">— nächste 7 Tage, live</span><div class="chevron"></div></div>
+  <div class="collapse-body" data-collapse-body="wetter">
+  <div class="weather-strip" id="weatherStrip"><div class="wx-loading">Lade aktuelle Vorhersage…</div></div>
+  </div>
+
+  <div class="section-lbl collapsible" data-collapse-head="rekorde"><span>Rekorde in der Auswahl</span> <span class="note">— zum Aufklappen anklicken</span><div class="chevron"></div></div>
+  <div class="collapse-body collapsed" data-collapse-body="rekorde">
+  <div class="records-hero" id="recordsHero">
+    <div>
+      <div class="rh-label">Deine intensivste Session</div>
+      <div class="rh-val" id="rhVal">–</div>
+      <div class="rh-sub" id="rhSub">–</div>
+      <div class="rh-compare" id="rhCompare">–</div>
+    </div>
+    <div class="rh-sparkline" id="rhSparkline"></div>
+  </div>
+  <div class="goals" id="recordsGrid">
+    <div class="goal-card" data-record="longest">
+      <div class="goal-info">
+        <div class="lbl">Längste Session</div>
+        <div class="row"><div><b id="recLongest">–</b></div></div>
+        <div class="plan" style="color:var(--muted)" id="recLongestSub">–</div>
+      </div>
+    </div>
+    <div class="goal-card" data-record="elev">
+      <div class="goal-info">
+        <div class="lbl">Meiste Höhenmeter</div>
+        <div class="row"><div><b id="recElev">–</b></div></div>
+        <div class="plan" style="color:var(--muted)" id="recElevSub">–</div>
+      </div>
+    </div>
+    <div class="goal-card" data-record="indoor">
+      <div class="goal-info">
+        <div class="lbl">Indoor-Anteil</div>
+        <div class="row"><div><b id="recIndoorSessions">–</b></div><div><b id="recIndoorKm">–</b></div></div>
+        <div class="plan" style="color:var(--muted)" id="recIndoorSub">–</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="section-lbl collapsible" data-collapse-head="kalender"><span>Kalender <span id="calYearLabel">2026</span></span> <span class="note">(Jahresübersicht · Monat anklicken für Details)</span><div class="chevron"></div></div>
+  <div class="collapse-body collapsed" data-collapse-body="kalender">
   <div class="cal-summary">
     <div class="item"><div class="val" id="calHours">275</div><div class="lbl">Stunden</div></div>
     <div class="item"><div class="val" id="calKm">7.638</div><div class="lbl">Kilometer</div></div>
@@ -695,8 +720,10 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     <div class="item"><div class="val" id="calN">261</div><div class="lbl">Aktivitäten</div></div>
   </div>
   <div class="cal-grid" id="calGrid"></div>
+  </div>
 
-  <div class="section-lbl">Strecken & Heatmap <span class="note">— reagiert auf Zeitraum-Filter oben, nur echte GPS-Aktivitäten</span></div>
+  <div class="section-lbl collapsible" data-collapse-head="karte"><span>Strecken & Heatmap</span> <span class="note">— reagiert auf Zeitraum-Filter oben, nur echte GPS-Aktivitäten</span><div class="chevron"></div></div>
+  <div class="collapse-body collapsed" data-collapse-body="karte">
   <div class="map-controls">
     <div class="map-modes">
       <div class="chip active" data-mapmode="route">Einzelstrecke</div>
@@ -706,6 +733,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
   <div id="routeMap"></div>
   <div class="map-note" id="mapNote">–</div>
+  </div>
 
   </div>
 
@@ -999,7 +1027,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       effortBadge.textContent = 'Keine Daten'; effortBadge.className = 'badge neutral';
     }
 
-    document.getElementById('periodLabel').innerHTML = periodLabel + ' <span class="note">Kennzahlen · Charts · Rekorde reagieren auf die Filter oben</span>';
+    document.getElementById('periodLabel').innerHTML = periodLabel + ' <span class="note">reagiert auf die Filter oben</span>';
 
     document.getElementById('kpiSessions').textContent = stats.n;
     document.getElementById('kpiSessionsSub').textContent = stats.n > 0 ? `${stats.rideN} Rad · ${stats.runN} Lauf${stats.otherN ? ' · '+stats.otherN+' sonst.' : ''}` : '–';
@@ -1549,6 +1577,49 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     });
   }
 
+  // ---------- Ein-/Ausklappbare Sektionen ----------
+  // Merkt sich die Präferenz pro Sektion (localStorage), damit das Board beim nächsten
+  // Besuch genau so aussieht, wie der Nutzer es zuletzt eingerichtet hat.
+  const SECTION_DEFAULTS = {
+    fitness: true,   // USP-Feature, standardmäßig offen
+    ziele: true,     // wird häufig gecheckt
+    charts: false,   // Detail-Analyse, seltener gebraucht
+    wetter: true,    // kompakt, nützlich für Planung
+    rekorde: false,  // nice-to-have, kein Tagesgeschäft
+    kalender: false, // Jahresrückblick, selten gebraucht
+    karte: false      // explorativ, zusätzlich: Karte wird erst bei Öffnen geladen (Performance)
+  };
+  function initCollapsible(id, defaultOpen){
+    const head = document.querySelector(`[data-collapse-head="${id}"]`);
+    const body = document.querySelector(`[data-collapse-body="${id}"]`);
+    if(!head || !body) return;
+    const storageKey = 'collapse-' + id;
+    const stored = localStorage.getItem(storageKey);
+    let isOpen = stored !== null ? stored === '1' : defaultOpen;
+
+    function apply(){
+      body.classList.toggle('collapsed', !isOpen);
+      head.classList.toggle('collapsed', !isOpen);
+      head.setAttribute('aria-expanded', String(isOpen));
+    }
+    apply();
+    if(isOpen && id === 'karte') initMap();
+
+    function toggle(){
+      isOpen = !isOpen;
+      apply();
+      localStorage.setItem(storageKey, isOpen ? '1' : '0');
+      if(isOpen && id === 'karte'){
+        if(!leafletMap) initMap();
+        setTimeout(() => { if(leafletMap){ leafletMap.invalidateSize(); updateMap(); } }, 60);
+      }
+    }
+    head.setAttribute('role', 'button');
+    head.setAttribute('tabindex', '0');
+    head.addEventListener('click', toggle);
+    head.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); } });
+  }
+
   // ---------- Init ----------
   resetCustomRangeDefaults();
   buildCalendar();
@@ -1556,7 +1627,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   updateRunsBadge();
   updateFitnessForm();
   loadWeather();
-  initMap();
+  Object.keys(SECTION_DEFAULTS).forEach(id => initCollapsible(id, SECTION_DEFAULTS[id]));
   render();
 
   yearSelectEl.addEventListener('change', buildCalendar);
