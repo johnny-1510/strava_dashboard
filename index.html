@@ -34,6 +34,10 @@
   --r-sm: 10px;
   --r-md: 14px;
   --r-lg: 20px;
+  --shadow-sm: 0 6px 18px -12px rgba(0,0,0,.45);
+  --shadow-md: 0 8px 24px -14px rgba(0,0,0,.45);
+  --shadow-lg: 0 12px 32px -16px rgba(0,0,0,.5);
+  --shadow-hover: 0 14px 28px -12px rgba(0,0,0,.55);
 }
 html[data-theme="light"]{
   --bg: #f5f5f6;
@@ -52,6 +56,10 @@ html[data-theme="light"]{
   --accent-soft: #c8102e14;
   --indoor: #b3711a;
   --outdoor: #0f9d86;
+  --shadow-sm: 0 4px 14px -8px rgba(30,41,59,.1);
+  --shadow-md: 0 6px 18px -10px rgba(30,41,59,.12);
+  --shadow-lg: 0 10px 26px -12px rgba(30,41,59,.14);
+  --shadow-hover: 0 10px 22px -8px rgba(30,41,59,.16);
 }
 html{background:var(--bg); transition:background .25s var(--ease);}
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -164,6 +172,7 @@ header{
   font-family:var(--mono); font-size:11.5px; padding:7px 11px; border-radius:var(--r-sm);
   color-scheme:dark;
 }
+html[data-theme="light"] .custom-range input[type="date"]{ color-scheme:light; }
 .custom-range input[type="date"]:focus{border-color:var(--outdoor);}
 
 .empty-year{
@@ -181,7 +190,7 @@ header{
   background:var(--panel);
   border:1px solid var(--line); border-radius:var(--r-lg); padding:32px;
   position:relative; overflow:hidden;
-  box-shadow:0 12px 32px -16px rgba(0,0,0,.4);
+  box-shadow:var(--shadow-lg);
 }
 .hero-main::before{
   content:''; position:absolute; inset:0; border-radius:var(--r-lg); padding:1px;
@@ -192,7 +201,7 @@ header{
 }
 .eyebrow{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:14px; transition:opacity .25s var(--ease);}
 .big-num{font-size:64px; font-weight:700; letter-spacing:-.03em; line-height:1; transition:opacity .2s var(--ease);
-  background:var(--glow-grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  color:var(--glow-a); background:var(--glow-grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
 .big-num small{font-size:19px; color:var(--muted); font-weight:500; margin-left:9px; letter-spacing:0; -webkit-text-fill-color:var(--muted); background:none;}
 .hero-sub{font-family:var(--mono); font-size:12.5px; color:var(--outdoor); margin-top:16px; line-height:1.6; transition:opacity .2s var(--ease);}
 
@@ -200,9 +209,9 @@ header{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:24px;
   display:flex; flex-direction:column; justify-content:space-between;
   transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
-  box-shadow:0 8px 24px -14px rgba(0,0,0,.35);
+  box-shadow:var(--shadow-md);
 }
-.stat-tile:hover{border-color:var(--line-strong); box-shadow:0 12px 28px -12px rgba(0,0,0,.45);}
+.stat-tile:hover{border-color:var(--line-strong); box-shadow:var(--shadow-hover);}
 .stat-tile .val{font-size:32px; font-weight:700; font-family:var(--mono); transition:opacity .2s var(--ease);}
 .stat-tile .lbl{font-size:11px; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:.05em;}
 .badge{
@@ -226,9 +235,9 @@ header{
 .kpi{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:20px;
   transition:border-color .2s var(--ease), transform .15s var(--ease), box-shadow .2s var(--ease); cursor:pointer;
-  box-shadow:0 6px 18px -12px rgba(0,0,0,.3);
+  box-shadow:var(--shadow-sm);
 }
-.kpi:hover{border-color:var(--line-strong); transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,0,0,.4);}
+.kpi:hover{border-color:var(--line-strong); transform:translateY(-2px); box-shadow:var(--shadow-hover);}
 .kpi:active{transform:translateY(0);}
 .kpi .lbl{font-family:var(--mono); font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; display:flex; justify-content:space-between; align-items:center;}
 .kpi .lbl .hint{opacity:0; transition:opacity .2s var(--ease); font-size:13px;}
@@ -242,7 +251,7 @@ header{
 
 /* ---- Charts ---- */
 .charts{display:grid; grid-template-columns: 1.4fr 1fr; gap:14px; margin-bottom:4px;}
-.panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:22px; box-shadow:0 8px 24px -16px rgba(0,0,0,.35);}
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:22px; box-shadow:var(--shadow-md);}
 .panel h3{font-size:11px; font-weight:600; margin-bottom:18px; color:var(--muted); font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em;}
 .bars{display:flex; align-items:flex-end; gap:10px; height:140px;}
 .bars .bar-col{flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:9px; cursor:pointer;}
@@ -266,9 +275,9 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:22px;
   display:flex; gap:18px; align-items:center;
   transition:border-color .2s var(--ease), transform .15s var(--ease), box-shadow .2s var(--ease); cursor:pointer;
-  box-shadow:0 6px 18px -12px rgba(0,0,0,.3);
+  box-shadow:var(--shadow-sm);
 }
-.goal-card:hover{border-color:var(--line-strong); transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,0,0,.4);}
+.goal-card:hover{border-color:var(--line-strong); transform:translateY(-2px); box-shadow:var(--shadow-hover);}
 .ring{width:64px; height:64px; border-radius:50%; flex-shrink:0; position:relative;
   background:conic-gradient(var(--ring-color, var(--outdoor)) var(--pct,0%), var(--carbon-hi) 0);
   display:flex; align-items:center; justify-content:center;
@@ -281,6 +290,13 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .goal-info .row div span{display:block; font-size:9.5px; color:var(--muted); font-family:var(--mono); text-transform:uppercase;}
 .goal-info .row div b{font-size:15px; font-weight:700;}
 .goal-info .plan{font-family:var(--mono); font-size:10.5px; margin-top:8px;}
+
+.stretch-goals{margin-top:12px; display:flex; flex-direction:column; gap:7px;}
+.stretch-goal{display:flex; align-items:center; gap:8px;}
+.stretch-goal .sg-label{font-family:var(--mono); font-size:9.5px; color:var(--muted); width:74px; flex-shrink:0;}
+.stretch-goal .sg-track{flex:1; height:5px; background:var(--carbon-hi); border-radius:3px; overflow:hidden;}
+.stretch-goal .sg-fill{height:100%; background:var(--glow-grad); border-radius:3px; transition:width .6s var(--ease);}
+.stretch-goal .sg-pct{font-family:var(--mono); font-size:9.5px; color:var(--text-dim); width:34px; text-align:right; flex-shrink:0;}
 .plan.ahead{color:var(--outdoor);} .plan.behind{color:var(--accent-2);}
 
 /* ---- Calendar ---- */
@@ -289,8 +305,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .cal-summary .item .val.accent{color:var(--accent-2);}
 .cal-summary .item .lbl{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:4px;}
 .cal-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
-.cal-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:18px; min-height:114px; transition:border-color .2s var(--ease), transform .15s var(--ease), box-shadow .2s var(--ease); cursor:pointer; box-shadow:0 6px 18px -12px rgba(0,0,0,.3);}
-.cal-card:hover{border-color:var(--line-strong); transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(0,0,0,.4);}
+.cal-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:18px; min-height:114px; transition:border-color .2s var(--ease), transform .15s var(--ease), box-shadow .2s var(--ease); cursor:pointer; box-shadow:var(--shadow-sm);}
+.cal-card:hover{border-color:var(--line-strong); transform:translateY(-2px); box-shadow:var(--shadow-hover);}
 .cal-card.empty{opacity:.3; cursor:default; pointer-events:none;}
 .cal-head{display:flex; justify-content:flex-end;}
 .cal-month{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
@@ -320,7 +336,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   position:fixed; left:20px; bottom:20px; z-index:15;
   background:var(--panel); border:1px solid var(--line); border-radius:100px;
   padding:10px 16px 10px 10px; display:flex; align-items:center; gap:10px;
-  box-shadow:0 8px 24px -8px #00000080; cursor:pointer;
+  box-shadow:var(--shadow-lg); cursor:pointer;
   transition:border-color .2s var(--ease), transform .15s var(--ease);
   font-family:var(--mono);
 }
@@ -359,7 +375,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   background:radial-gradient(circle, #7c5cff22, transparent 70%);
 }
 .records-hero .rh-label{font-family:var(--mono); font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
-.records-hero .rh-val{font-size:42px; font-weight:700; margin-top:8px; background:var(--glow-grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+.records-hero .rh-val{font-size:42px; font-weight:700; margin-top:8px; color:var(--glow-a); background:var(--glow-grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
 .records-hero .rh-sub{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-top:8px;}
 .records-hero .rh-compare{font-family:var(--mono); font-size:11px; color:var(--outdoor); margin-top:6px;}
 .rh-sparkline{display:flex; align-items:flex-end; gap:3px; height:70px; z-index:1;}
@@ -498,17 +514,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     </div>
     <div class="stat-tile">
       <div>
-        <div class="lbl">Effort / Min (Auswahl)</div>
+        <div class="lbl">Trainingsintensität</div>
         <div class="val" id="statEffort">–</div>
       </div>
       <div class="badge" id="statEffortBadge">–</div>
     </div>
     <div class="stat-tile">
       <div>
-        <div class="lbl">FTP (geschätzt)</div>
+        <div class="lbl">Leistungsfähigkeit (FTP)</div>
         <div class="val">253 W</div>
       </div>
-      <div class="badge good">Power-Zonen aktiv</div>
+      <div class="badge good">Referenzwert für Trainingszonen</div>
     </div>
   </div>
 
@@ -526,7 +542,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="charts" style="margin-top:16px;">
     <div class="panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:8px;">
-        <h3 id="todChartTitle" style="margin-bottom:0;">Effort/Minute nach Tageszeit</h3>
+        <h3 id="todChartTitle" style="margin-bottom:0;">Trainingsintensität nach Tageszeit</h3>
         <div class="filter-group" id="todGroup" style="gap:5px;">
           <div class="chip active" data-tod="all" style="font-size:10px; padding:5px 11px;">Alle</div>
           <div class="chip" data-tod="morgen" style="font-size:10px; padding:5px 11px;">Morgen</div>
@@ -547,7 +563,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="section-lbl">Rekorde in der Auswahl <span class="note">— zum Aufklappen anklicken</span></div>
   <div class="records-hero" id="recordsHero">
     <div>
-      <div class="rh-label">Größte Leistung in der Auswahl</div>
+      <div class="rh-label">Deine intensivste Session</div>
       <div class="rh-val" id="rhVal">–</div>
       <div class="rh-sub" id="rhSub">–</div>
       <div class="rh-compare" id="rhCompare">–</div>
@@ -599,6 +615,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
           <div><span>Fehlen</span><b>2.457 km</b></div>
         </div>
         <div class="plan ahead">vor Plan</div>
+        <div class="stretch-goals" id="stretchGoals"></div>
       </div>
     </div>
     <div class="goal-card" data-goal="year-run">
@@ -776,6 +793,26 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   }
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+  // ---------- Effort verständlich machen ----------
+  // Strava's "Effort-Punkte" (relative_effort) sind ein hausinterner, unitless Wert –
+  // ohne Kontext kann niemand einordnen, ob z.B. "119" viel oder wenig ist.
+  // Wir bilden daher eine persönliche Skala aus der eigenen Historie (Perzentile).
+  const _effortPool = DATA.map(a => a.r).filter(r => r > 0).sort((a,b) => a-b);
+  function _percentileRank(v){
+    if(_effortPool.length === 0) return 0.5;
+    let lo = 0, hi = _effortPool.length;
+    while(lo < hi){ const mid = (lo+hi)>>1; if(_effortPool[mid] < v) lo = mid+1; else hi = mid; }
+    return lo / _effortPool.length;
+  }
+  function effortLabel(r){
+    if(!r || r <= 0) return { text: 'Erholung', cls: 'neutral' };
+    const p = _percentileRank(r);
+    if(p >= 0.9) return { text: 'Maximale Anstrengung', cls: 'down' };
+    if(p >= 0.7) return { text: 'Hohe Anstrengung', cls: 'warn2' };
+    if(p >= 0.35) return { text: 'Moderate Anstrengung', cls: 'up' };
+    return { text: 'Lockere Einheit', cls: 'neutral' };
+  }
+
   const PERIOD_LABELS = { week: 'Diese Woche · Mo–So', '7d': 'Letzte 7 Tage (rollierend)', '30d': 'Letzte 30 Tage (rollierend)', custom: 'Custom-Zeitraum' };
   const SPORT_LABELS = { all: '', indoor: ' · Indoor/Zwift', outdoor: ' · Outdoor' };
 
@@ -842,7 +879,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
           </div>
           <div class="di-stats">
             <div class="di-main">${fmtKm(a.d)} km</div>
-            <div>${fmtDuration(a.m)} · ${Math.round(a.r)} eff.</div>
+            <div>${fmtDuration(a.m)} · ${effortLabel(a.r).text}</div>
           </div>
         </div>`).join('');
     }
@@ -895,13 +932,14 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const yStats = computeStats(yAll);
     const effortEl = document.getElementById('statEffort');
     const effortBadge = document.getElementById('statEffortBadge');
-    effortEl.textContent = stats.n > 0 ? stats.effortPerMin.toFixed(2) : '–';
     if(stats.n > 0 && yStats.effortPerMin > 0){
       const deltaPct = ((stats.effortPerMin / yStats.effortPerMin) - 1) * 100;
       const sign = deltaPct >= 0 ? '+' : '';
-      effortBadge.textContent = `${sign}${deltaPct.toFixed(0)}% vs. Jahresschnitt (${yStats.effortPerMin.toFixed(2)})`;
+      effortEl.textContent = `${sign}${deltaPct.toFixed(0)}%`;
+      effortBadge.textContent = deltaPct >= 0 ? 'intensiver als dein Jahresschnitt' : 'lockerer als dein Jahresschnitt';
       effortBadge.className = 'badge ' + (deltaPct >= 0 ? 'good' : 'warn');
     } else {
+      effortEl.textContent = '–';
       effortBadge.textContent = 'Keine Daten'; effortBadge.className = 'badge neutral';
     }
 
@@ -931,9 +969,9 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       return `<div class="bar-col" data-tod="${b}"><div class="bar" style="height:${Math.max(4, epm[i]/maxEpm*100)}%; background:${barColor}; opacity:${dimmed?0.35:(isMax?1:0.65)}"></div><div class="bar-lbl">${labels[b]}</div></div>`;
     }).join('');
     document.getElementById('todLegend').innerHTML = buckets.map((b,i) =>
-      `<span><i style="background:var(--outdoor)"></i>${labels[b]} · ${epm[i].toFixed(2)}</span>`
+      `<span><i style="background:var(--outdoor)"></i>${labels[b]} · ${Math.round(epm[i]/maxEpm*100)}%</span>`
     ).join('');
-    document.getElementById('todChartTitle').textContent = 'Effort/Minute nach Tageszeit — ' + periodLabel;
+    document.getElementById('todChartTitle').textContent = 'Trainingsintensität nach Tageszeit — ' + periodLabel;
 
     // Wochentag-Heatmap
     const wd = weekdayEffort(arr);
@@ -948,7 +986,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     }).join('');
     const peakIdx = wd.indexOf(Math.max(...wd));
     document.getElementById('weekdayLegend').innerHTML = stats.n > 0
-      ? `<span>Peak: ${wdLabels[peakIdx]} (${Math.round(wd[peakIdx])})</span>`
+      ? `<span>Anstrengendster Tag: ${wdLabels[peakIdx]}</span>`
       : `<span>Keine Daten in dieser Auswahl</span>`;
 
     // Rekorde
@@ -965,18 +1003,21 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       document.getElementById('recIndoorKm').textContent = indoorPctKm.toFixed(0) + '% km';
       document.getElementById('recIndoorSub').textContent = `${stats.indoorN} Indoor · ${stats.n - stats.indoorN} Outdoor`;
 
-      // Records-Hero-Showcase: Top 8 nach Effort als Sparkline, größte Leistung hervorgehoben
+      // Records-Hero-Showcase: 8 intensivste Sessions, verständlich statt als Rohwert
       const byEffort = [...arr].sort((a,b) => b.r - a.r).slice(0,8);
       const top = byEffort[0];
       const maxR = Math.max(...byEffort.map(a=>a.r), 1);
-      document.getElementById('rhVal').textContent = fmtInt(top.r) + ' Effort-Punkte';
-      document.getElementById('rhSub').textContent = `${top.n} · ${top._dt.toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})} · ${fmtKm(top.d)} km`;
+      const topLabel = effortLabel(top.r);
+      document.getElementById('rhVal').textContent = topLabel.text;
+      document.getElementById('rhSub').textContent = `${top.n} · ${top._dt.toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})} · ${fmtKm(top.d)} km · ${fmtDuration(top.m)}`;
       const avgR = stats.n > 0 ? arr.reduce((s,a)=>s+a.r,0)/stats.n : 0;
-      document.getElementById('rhCompare').textContent = avgR > 0 ? `${(top.r/avgR).toFixed(1)}× dein Schnitt in dieser Auswahl` : '–';
+      document.getElementById('rhCompare').textContent = avgR > 0
+        ? `${(top.r/avgR).toFixed(1)}× intensiver als eine durchschnittliche Session in dieser Auswahl`
+        : 'Deine intensivste Session in dieser Auswahl';
       document.getElementById('rhSparkline').innerHTML = byEffort.map((a,i) =>
-        `<div class="${i===0?'top':''}" style="height:${Math.max(6, a.r/maxR*100)}%" title="${esc(a.n)}: ${Math.round(a.r)}"></div>`
+        `<div class="${i===0?'top':''}" style="height:${Math.max(6, a.r/maxR*100)}%" title="${esc(a.n)}: ${effortLabel(a.r).text}"></div>`
       ).join('');
-      document.getElementById('recordsHero').onclick = () => openDrawer('Top 8 nach Effort', periodLabel, byEffort);
+      document.getElementById('recordsHero').onclick = () => openDrawer('Deine 8 intensivsten Sessions', periodLabel, byEffort);
     } else {
       ['recLongest','recElev','recIndoorSessions','recIndoorKm'].forEach(id => document.getElementById(id).textContent = '–');
       ['recLongestSub','recElevSub','recIndoorSub'].forEach(id => document.getElementById(id).textContent = 'Keine Aktivitäten in dieser Auswahl');
@@ -1167,6 +1208,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const yearRidePct = Math.min(100, Math.round(yearRideKm / 10000 * 100));
     setGoalCard('year-ride', yearRidePct, fmtKm(yearRideKm) + ' km', fmtKm(Math.max(0,10000-yearRideKm)) + ' km',
       yearRideDelta >= 0 ? `+${fmtKm(yearRideDelta)} km vor Plan` : `${fmtKm(Math.abs(yearRideDelta))} km hinter Plan`, yearRideDelta >= 0);
+
+    // Optionale Stretch-Ziele: 11.000 und 12.000 km (10.000 war das eigentliche Ziel, aber sportlich mehr drin)
+    const stretchTargets = [11000, 12000];
+    document.getElementById('stretchGoals').innerHTML = stretchTargets.map(target => {
+      const pct = Math.min(100, Math.round(yearRideKm / target * 100));
+      return `<div class="stretch-goal">
+        <div class="sg-label">${fmtInt(target/1000)}.000 km</div>
+        <div class="sg-track"><div class="sg-fill" style="width:${pct}%"></div></div>
+        <div class="sg-pct">${pct}%</div>
+      </div>`;
+    }).join('');
 
     // Jahresziel Lauf (100 km)
     const yearRunKm = yAll.filter(a => a.s === 'Run').reduce((s,a) => s + a.d, 0);
