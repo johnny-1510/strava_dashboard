@@ -340,6 +340,14 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .timeline-legend span{display:inline-flex; align-items:center; gap:6px;}
 .timeline-legend i{width:14px; height:2px; border-radius:2px; display:inline-block;}
 .timeline-legend i.dashed{background-image:repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px); background-color:transparent; color:var(--muted-2);}
+.tl-tooltip{
+  position:absolute; top:8px; transform:translateX(-50%);
+  background:var(--panel-2); border:1px solid var(--line-strong); border-radius:8px;
+  padding:7px 11px; font-family:var(--mono); font-size:11px; color:var(--text);
+  white-space:nowrap; pointer-events:none; display:none; box-shadow:var(--shadow-md); z-index:2;
+}
+.tl-tooltip i{color:var(--outdoor); font-style:normal;}
+#timelineChart{cursor:crosshair;}
 
 /* ---- Calendar ---- */
 .cal-summary{display:flex; gap:38px; margin-bottom:20px; flex-wrap:wrap;}
@@ -354,6 +362,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .cal-month{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
 .cal-hours{font-size:26px; font-weight:700; margin-top:9px;}
 .cal-hours span{font-size:11px; color:var(--muted); font-weight:500; margin-left:5px;}
+.cal-km{font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:2px;}
 .cal-bars{display:flex; align-items:flex-end; gap:1.5px; height:36px; margin-top:13px;}
 .cal-bars div{flex:1; background:var(--outdoor); border-radius:1px; min-height:2px;}
 
@@ -820,6 +829,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 <script>(function(){
   // Muss ganz oben stehen, da updateMapTheme() bereits beim Theme-Init (unten) darauf zugreift
   let leafletMap = null, currentLayer = null, tileLayerRef = null;
+  let timelineState = null;
 
   // ---------- Theme (Hell/Dunkel/System) ----------
   (function themeInit(){
@@ -1280,10 +1290,12 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const yAll = DATA.filter(a => a._dt.getFullYear() === y);
     const lastMonthWithData = yAll.length ? Math.max(...yAll.map(a => a._dt.getMonth())) : -1;
     const byMonth = {};
-    for(let m=0;m<12;m++) byMonth[m] = {};
+    const kmByMonth = {};
+    for(let m=0;m<12;m++){ byMonth[m] = {}; kmByMonth[m] = 0; }
     yAll.forEach(a => {
       const m = a._dt.getMonth(); const d = a._dt.getDate();
       byMonth[m][d] = (byMonth[m][d]||0) + a.m;
+      kmByMonth[m] += a.d;
     });
     const daysInMonth = m => new Date(y, m+1, 0).getDate();
     let maxVal = 1;
@@ -1302,7 +1314,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       }
       html += `<div class="cal-card ${hasData?'':'empty'}" data-month="${m}">
         <div class="cal-head"><span class="cal-month">${MONTH_NAMES[m]}</span></div>
-        ${hasData ? `<div class="cal-hours">${Math.round(hours)}<span>Std.</span></div><div class="cal-bars">${bars}</div>` : ''}
+        ${hasData ? `<div class="cal-hours">${Math.round(hours)}<span>Std.</span></div><div class="cal-km">${fmtKm(kmByMonth[m])} km</div><div class="cal-bars">${bars}</div>` : ''}
       </div>`;
     }
     document.getElementById('calGrid').innerHTML = html;
@@ -1429,6 +1441,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
     const todayX = x(dayOfYear), todayY = y(todayKm);
 
+    timelineState = { W, H, padL, padR, padT, padB, chartW, chartH, maxY, dayOfYear, points, todayKm, projectedEnd };
+
     const svg = document.getElementById('timelineChart');
     svg.innerHTML = `
       <defs>
@@ -1480,6 +1494,81 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     } else {
       projEl.textContent = `Bei aktuellem Tempo: ${fmtInt(projectedEnd)} km — Tempo müsste noch anziehen fürs 10k-Ziel`;
     }
+  }
+
+  // ---------- Interaktiver Scrubber für die Ziel-Timeline ----------
+  function showScrubAt(day){
+    const st = timelineState;
+    if(!st) return;
+    day = Math.max(0, Math.min(365, day));
+    const svg = document.getElementById('timelineChart');
+    const px = st.padL + (day/365) * st.chartW;
+    let km, isProjected = false;
+    if(day <= st.dayOfYear){
+      km = st.points[day];
+    } else {
+      const t = (day - st.dayOfYear) / (365 - st.dayOfYear || 1);
+      km = st.todayKm + t * (st.projectedEnd - st.todayKm);
+      isProjected = true;
+    }
+    const py = st.padT + st.chartH - (km/st.maxY) * st.chartH;
+
+    let line = document.getElementById('tlScrubLine');
+    let dot = document.getElementById('tlScrubDot');
+    if(!line){
+      line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.id = 'tlScrubLine';
+      line.setAttribute('stroke','var(--text-dim)'); line.setAttribute('stroke-width','1'); line.setAttribute('stroke-dasharray','3 3');
+      svg.appendChild(line);
+      dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.id = 'tlScrubDot'; dot.setAttribute('r','5.5'); dot.setAttribute('fill','#fff'); dot.setAttribute('stroke','var(--bg)'); dot.setAttribute('stroke-width','2');
+      svg.appendChild(dot);
+    }
+    line.setAttribute('x1', px); line.setAttribute('x2', px);
+    line.setAttribute('y1', st.padT); line.setAttribute('y2', st.H - st.padB);
+    line.style.display = '';
+    dot.setAttribute('cx', px); dot.setAttribute('cy', py);
+    dot.style.display = '';
+
+    const dateObj = new Date(CURRENT_YEAR,0,1); dateObj.setDate(dateObj.getDate() + day);
+    const dateStr = dateObj.toLocaleDateString('de-DE', {day:'2-digit', month:'long'});
+
+    let tip = document.getElementById('tlTooltip');
+    if(!tip){
+      tip = document.createElement('div'); tip.id = 'tlTooltip'; tip.className = 'tl-tooltip';
+      document.querySelector('.timeline-panel').appendChild(tip);
+    }
+    tip.innerHTML = `<b>${dateStr}</b><br>${fmtKm(km)} km${isProjected ? ' <i>(Projektion)</i>' : ''}`;
+    const pctLeft = Math.min(88, Math.max(4, px / st.W * 100));
+    tip.style.left = pctLeft + '%';
+    tip.style.display = 'block';
+  }
+  function hideScrub(){
+    const line = document.getElementById('tlScrubLine');
+    const dot = document.getElementById('tlScrubDot');
+    const tip = document.getElementById('tlTooltip');
+    if(line) line.style.display = 'none';
+    if(dot) dot.style.display = 'none';
+    if(tip) tip.style.display = 'none';
+  }
+  function initTimelineScrub(){
+    const svg = document.getElementById('timelineChart');
+    if(!svg) return;
+    svg.style.touchAction = 'none';
+    let dragging = false;
+    function updateFromEvent(e){
+      if(!timelineState) return;
+      const rect = svg.getBoundingClientRect();
+      if(rect.width === 0) return;
+      const relX = (e.clientX - rect.left) / rect.width;
+      const svgX = relX * timelineState.W;
+      const day = Math.round(((svgX - timelineState.padL) / timelineState.chartW) * 365);
+      showScrubAt(day);
+    }
+    svg.addEventListener('pointerdown', e => { dragging = true; try{ svg.setPointerCapture(e.pointerId); }catch(err){} updateFromEvent(e); });
+    svg.addEventListener('pointermove', e => { if(e.pointerType === 'mouse' || dragging) updateFromEvent(e); });
+    svg.addEventListener('pointerup', () => { dragging = false; hideScrub(); });
+    svg.addEventListener('pointerleave', () => { if(!dragging) hideScrub(); });
   }
   function setGoalCard(goalKey, pct, current, remaining, planText, ahead){
     const card = document.querySelector(`[data-goal="${goalKey}"]`);
@@ -1890,6 +1979,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   updateGoalDeltas();
   updateRunsBadge();
   updateFitnessForm();
+  initTimelineScrub();
   loadWeather();
   Object.keys(SECTION_DEFAULTS).forEach(id => initCollapsible(id, SECTION_DEFAULTS[id]));
   render();
