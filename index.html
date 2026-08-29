@@ -322,6 +322,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .stretch-goal .sg-pct{font-family:var(--mono); font-size:9.5px; color:var(--text-dim); width:34px; text-align:right; flex-shrink:0;}
 .plan.ahead{color:var(--outdoor);} .plan.behind{color:var(--accent-2);}
 
+/* ---- Jahresvergleich ---- */
+.compare-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+.compare-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:18px; box-shadow:var(--shadow-sm);}
+.compare-card .cc-lbl{font-family:var(--mono); font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+.compare-row{display:flex; justify-content:space-between; align-items:baseline; margin-top:10px;}
+.compare-row .cc-year{font-family:var(--mono); font-size:10px; color:var(--muted-2);}
+.compare-row .cc-val{font-size:19px; font-weight:700;}
+.compare-row.current .cc-val{color:var(--glow-a);}
+.compare-delta{font-family:var(--mono); font-size:11px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line);}
+@media(max-width:768px){ .compare-grid{grid-template-columns:repeat(2,1fr);} }
+
 /* ---- Ziel-Timeline (Herzstück) ---- */
 .timeline-panel{
   background:linear-gradient(150deg, var(--panel-2), var(--panel));
@@ -770,6 +781,11 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       </div>
     </div>
   </div>
+  </div>
+
+  <div class="section-lbl collapsible" data-collapse-head="vergleich"><span>Jahresvergleich</span> <span class="note">— 2025 vs. 2026, gleicher Zeitraum (bis heutigem Tag im Jahr)</span><div class="chevron"></div></div>
+  <div class="collapse-body collapsed" data-collapse-body="vergleich">
+  <div class="compare-grid" id="compareGrid"></div>
   </div>
 
   <div class="section-lbl collapsible" data-collapse-head="kalender"><span>Kalender <span id="calYearLabel">2026</span></span> <span class="note">(Jahresübersicht · Monat anklicken für Details)</span><div class="chevron"></div></div>
@@ -1379,6 +1395,63 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       yearRunDelta >= 0 ? `+${fmtKm(yearRunDelta)} km vor Plan` : `${fmtKm(Math.abs(yearRunDelta))} km hinter Plan`, yearRunDelta >= 0);
 
     renderGoalTimeline(yAll.filter(isRide), dayOfYear);
+    renderYearComparison(dayOfYear);
+  }
+
+  // ---------- Jahresvergleich 2025 vs 2026 ----------
+  function renderYearComparison(dayOfYear){
+    const container = document.getElementById('compareGrid');
+    if(!container) return;
+    const prevYear = CURRENT_YEAR - 1;
+    const hasPrevData = DATA.some(a => a._dt.getFullYear() === prevYear);
+    if(!hasPrevData){
+      container.innerHTML = `<div class="compare-card" style="grid-column:1/-1; text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px;">Noch keine Daten für ${prevYear} zum Vergleich.</div>`;
+      return;
+    }
+    // Beide Jahre auf denselben Tag-des-Jahres begrenzen -> fairer Vergleich
+    const curSet = DATA.filter(a => a._dt.getFullYear() === CURRENT_YEAR &&
+      Math.floor((a._dt - new Date(CURRENT_YEAR,0,0))/86400000) <= dayOfYear);
+    const prevSet = DATA.filter(a => a._dt.getFullYear() === prevYear &&
+      Math.floor((a._dt - new Date(prevYear,0,0))/86400000) <= dayOfYear);
+
+    function stats(arr){
+      return {
+        n: arr.length,
+        dist: arr.reduce((s,a)=>s+a.d,0),
+        elev: arr.reduce((s,a)=>s+a.e,0),
+        hours: arr.reduce((s,a)=>s+a.m,0)/60
+      };
+    }
+    const cur = stats(curSet), prev = stats(prevSet);
+
+    // Hinweis, falls das Vorjahr erst spät im Jahr Strava-Daten hat (verzerrt sonst den Vergleich)
+    const prevYearAll = DATA.filter(a => a._dt.getFullYear() === prevYear);
+    const prevFirstDoy = prevYearAll.length ? Math.min(...prevYearAll.map(a => Math.floor((a._dt - new Date(prevYear,0,0))/86400000))) : 0;
+    let noteHtml = '';
+    if(prevFirstDoy > 30){
+      const firstDate = new Date(prevYear,0,1); firstDate.setDate(firstDate.getDate() + prevFirstDoy);
+      noteHtml = `<div class="compare-card" style="grid-column:1/-1; font-family:var(--mono); font-size:10.5px; color:var(--muted); background:none; border-style:dashed; box-shadow:none;">
+        ⚠️ Deine Strava-Historie beginnt erst am ${firstDate.toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})} — ${prevYear} ist dadurch nicht das ganze Jahr über vergleichbar, die Prozentwerte unten wirken entsprechend groß.
+      </div>`;
+    }
+
+    function card(label, curVal, prevVal, unit, fmt){
+      const delta = prevVal > 0 ? ((curVal/prevVal)-1)*100 : (curVal > 0 ? 100 : 0);
+      const sign = delta >= 0 ? '+' : '';
+      const cls = delta >= 0 ? 'up' : 'down';
+      return `<div class="compare-card">
+        <div class="cc-lbl">${label}</div>
+        <div class="compare-row current"><span class="cc-year">${CURRENT_YEAR}</span><span class="cc-val">${fmt(curVal)}${unit}</span></div>
+        <div class="compare-row"><span class="cc-year">${prevYear}</span><span class="cc-val">${fmt(prevVal)}${unit}</span></div>
+        <div class="compare-delta delta ${cls}">${sign}${delta.toFixed(0)}% ggü. Vorjahr (Tag ${dayOfYear})</div>
+      </div>`;
+    }
+
+    container.innerHTML = noteHtml +
+      card('Sessions', cur.n, prev.n, '', v => fmtInt(v)) +
+      card('Distanz', cur.dist, prev.dist, ' km', v => fmtKm(v)) +
+      card('Höhenmeter', cur.elev, prev.elev, ' m', v => fmtInt(v)) +
+      card('Stunden', cur.hours, prev.hours, ' h', v => fmtInt(v));
   }
 
   // ---------- Ziel-Timeline: das visuelle Herzstück ----------
@@ -1939,6 +2012,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     charts: false,   // Detail-Analyse, seltener gebraucht
     wetter: true,    // kompakt, nützlich für Planung
     rekorde: false,  // nice-to-have, kein Tagesgeschäft
+    vergleich: false, // interessant, aber kein Tagesgeschäft
     kalender: false, // Jahresrückblick, selten gebraucht
     karte: false      // explorativ, zusätzlich: Karte wird erst bei Öffnen geladen (Performance)
   };
@@ -1986,15 +2060,55 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
   yearSelectEl.addEventListener('change', buildCalendar);
 
+  // Sobald der Cloudflare Worker steht: hier die Worker-URL eintragen, z.B.
+  // const WORKER_URL = "https://strava-sync.dein-name.workers.dev";
+  const WORKER_URL = null;
+
+  function mergeNewActivities(fresh){
+    const existingTimes = new Set(DATA.map(a => a.t));
+    let added = 0;
+    fresh.forEach(a => {
+      if(!existingTimes.has(a.t)){
+        a._dt = new Date(a.t);
+        DATA.push(a);
+        existingTimes.add(a.t);
+        added++;
+        if(a.poly && !ROUTES.some(r => r.t === a.t)){
+          const routeEntry = { id: a.t, n: a.n, t: a.t, d: a.d, poly: a.poly };
+          routeEntry._dt = new Date(a.t);
+          ROUTES.push(routeEntry);
+        }
+      }
+    });
+    return added;
+  }
+
   const btn = document.getElementById('reloadBtn');
   const synced = document.getElementById('syncedText');
   btn.addEventListener('click', async () => {
     btn.disabled = true; btn.classList.add('spinning');
-    // TODO: hier später fetch('/data/latest.json') oder GitHub Action per repository_dispatch triggern
-    await new Promise(r => setTimeout(r, 900));
-    synced.innerHTML = '<span class="dot"></span> Zuletzt synced: gerade eben';
+    try{
+      if(WORKER_URL){
+        const res = await fetch(WORKER_URL);
+        if(!res.ok) throw new Error('Worker antwortete mit ' + res.status);
+        const fresh = await res.json();
+        const added = mergeNewActivities(fresh);
+        buildCalendar();
+        updateGoalDeltas();
+        updateRunsBadge();
+        updateFitnessForm();
+        render();
+        synced.innerHTML = `<span class="dot"></span> Synced · ${added} neue Aktivität${added!==1?'en':''}`;
+      } else {
+        // Demo-Modus ohne konfigurierten Worker: nur kurzes Feedback, keine echten neuen Daten
+        await new Promise(r => setTimeout(r, 700));
+        synced.innerHTML = '<span class="dot"></span> Zuletzt synced: gerade eben (Worker noch nicht eingerichtet)';
+      }
+    } catch(err){
+      synced.innerHTML = '<span class="dot" style="background:var(--accent-2)"></span> Sync fehlgeschlagen';
+      console.error('Strava-Sync-Fehler:', err);
+    }
     btn.classList.remove('spinning'); btn.disabled = false;
-    render();
   });
 })();
 </script>
