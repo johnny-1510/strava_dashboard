@@ -4,9 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Johannes' Sports Dashboard</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+<!-- Favicon: dieselben drei Ringe wie das Logo im Header, als Inline-SVG (kein separates Bild nötig) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2308090c'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23fa114f' stroke-width='7' stroke-dasharray='163 204' stroke-linecap='round' transform='rotate(-90 32 32)'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%2392e82a' stroke-width='6.5' stroke-dasharray='109 130' stroke-linecap='round' transform='rotate(-90 32 32)'/%3E%3Ccircle cx='32' cy='32' r='12.5' fill='none' stroke='%2300d4ff' stroke-width='6' stroke-dasharray='41 88' stroke-linecap='round' transform='rotate(-90 32 32)'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308090c'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23fa114f' stroke-width='7' stroke-dasharray='163 204' stroke-linecap='round' transform='rotate(-90 32 32)'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%2392e82a' stroke-width='6.5' stroke-dasharray='109 130' stroke-linecap='round' transform='rotate(-90 32 32)'/%3E%3Ccircle cx='32' cy='32' r='12.5' fill='none' stroke='%2300d4ff' stroke-width='6' stroke-dasharray='41 88' stroke-linecap='round' transform='rotate(-90 32 32)'/%3E%3C/svg%3E">
+
+<!-- Wirkt beim Speichern aufs Homescreen (iOS/Android) wie eine echte App statt einem Browser-Tab -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sports Dashboard">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#08090c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f5f6" media="(prefers-color-scheme: light)">
+
 <style>
 :root{
   --bg: #08090c;
@@ -150,7 +160,7 @@ header{
   transition:background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease), opacity .18s var(--ease);
 }
 .chip:hover{border-color:var(--line-strong); color:var(--text-dim);}
-.chip.active{ background:var(--glow-grad); border-color:transparent; color:#fff; font-weight:600; box-shadow:0 0 16px -4px #7c5cff80; }
+.chip.active{ background:var(--glow-grad); border-color:transparent; color:#fff; font-weight:600; }
 .chip.disabled{opacity:.35; pointer-events:none;}
 .filters .sep{width:1px; align-self:stretch; background:var(--line); margin:2px 6px;}
 
@@ -223,6 +233,16 @@ html[data-theme="light"] .custom-range input[type="date"]{ color-scheme:light; }
 .badge.good{background:#35c9b01a; color:var(--outdoor);}
 .badge.warn{background:#e0a35c1a; color:var(--indoor);}
 .badge.neutral{background:#86898d1a; color:var(--muted);}
+
+/* ---- Skeleton-Ladezustand (statt "–" beim ersten Rendern) ---- */
+body:not(.app-ready) [data-skel]{
+  color:transparent !important; -webkit-text-fill-color:transparent !important;
+  background:linear-gradient(90deg, var(--carbon-hi) 25%, var(--line-strong) 50%, var(--carbon-hi) 75%);
+  background-size:400% 100%; animation:skeletonShine 1.3s ease-in-out infinite;
+  border-radius:5px; display:inline-block; min-width:2.4em;
+  box-shadow:none;
+}
+@keyframes skeletonShine{ 0%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
 
 /* ---- Motivations-Banner ---- */
 .motivation-banner{
@@ -608,15 +628,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="hero">
     <div class="hero-main">
       <div class="eyebrow" id="heroLabel">Diese Woche</div>
-      <div class="big-num"><span id="heroSessions">–</span><small>Sessions</small></div>
-      <div class="hero-sub" id="heroSub">–</div>
+      <div class="big-num"><span id="heroSessions" data-skel>–</span><small>Sessions</small></div>
+      <div class="hero-sub" id="heroSub" data-skel>–</div>
     </div>
     <div class="stat-tile">
       <div>
         <div class="lbl">Trainingsintensität</div>
-        <div class="val" id="statEffort">–</div>
+        <div class="val" id="statEffort" data-skel>–</div>
       </div>
-      <div class="badge" id="statEffortBadge">–</div>
+      <div class="badge" id="statEffortBadge" data-skel>–</div>
     </div>
     <div class="stat-tile">
       <div>
@@ -629,15 +649,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
   <div class="motivation-banner" id="motivationBanner">
     <span class="mb-icon">⚡</span>
-    <span class="mb-text" id="motivationText">Wird berechnet…</span>
+    <span class="mb-text" id="motivationText" data-skel>Wird berechnet…</span>
   </div>
 
   <div class="section-lbl" id="periodLabel">Kennzahlen</div>
   <div class="grid" id="kpiGrid">
-    <div class="kpi" data-metric="sessions"><div class="lbl">Sessions <span class="hint">↗</span></div><div class="val" id="kpiSessions">–</div><div class="delta up" id="kpiSessionsSub">–</div></div>
-    <div class="kpi" data-metric="dist"><div class="lbl">Distanz <span class="hint">↗</span></div><div class="val" id="kpiDist">–</div><div class="delta up" id="kpiDistSub">–</div></div>
-    <div class="kpi" data-metric="elev"><div class="lbl">Höhenmeter <span class="hint">↗</span></div><div class="val" id="kpiElev">–</div><div class="delta up" id="kpiElevSub">–</div></div>
-    <div class="kpi" data-metric="cal"><div class="lbl">Kalorien <span class="hint">↗</span></div><div class="val" id="kpiCal">–</div><div class="delta up" id="kpiCalSub">–</div></div>
+    <div class="kpi" data-metric="sessions"><div class="lbl">Sessions <span class="hint">↗</span></div><div class="val" id="kpiSessions" data-skel>–</div><div class="delta up" id="kpiSessionsSub" data-skel>–</div></div>
+    <div class="kpi" data-metric="dist"><div class="lbl">Distanz <span class="hint">↗</span></div><div class="val" id="kpiDist" data-skel>–</div><div class="delta up" id="kpiDistSub" data-skel>–</div></div>
+    <div class="kpi" data-metric="elev"><div class="lbl">Höhenmeter <span class="hint">↗</span></div><div class="val" id="kpiElev" data-skel>–</div><div class="delta up" id="kpiElevSub" data-skel>–</div></div>
+    <div class="kpi" data-metric="cal"><div class="lbl">Kalorien <span class="hint">↗</span></div><div class="val" id="kpiCal" data-skel>–</div><div class="delta up" id="kpiCalSub" data-skel>–</div></div>
   </div>
 
   <div class="section-lbl collapsible" data-collapse-head="fitness"><span>Fitness & Form</span> <span class="note">— dein Trainingszustand, live berechnet</span><div class="chevron"></div></div>
@@ -645,15 +665,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="form-panel">
     <div class="form-head">
       <div class="form-status">
-        <div class="form-badge" id="formBadge">–</div>
+        <div class="form-badge" id="formBadge" data-skel>–</div>
       </div>
       <div class="form-metrics">
-        <div class="form-metric fitness"><div class="fm-val" id="fmFitness">–</div><div class="fm-lbl">Fitness (Aufbau)</div></div>
-        <div class="form-metric fatigue"><div class="fm-val" id="fmFatigue">–</div><div class="fm-lbl">Ermüdung (akut)</div></div>
-        <div class="form-metric form"><div class="fm-val" id="fmForm">–</div><div class="fm-lbl">Form (Frische)</div></div>
+        <div class="form-metric fitness"><div class="fm-val" id="fmFitness" data-skel>–</div><div class="fm-lbl">Fitness (Aufbau)</div></div>
+        <div class="form-metric fatigue"><div class="fm-val" id="fmFatigue" data-skel>–</div><div class="fm-lbl">Ermüdung (akut)</div></div>
+        <div class="form-metric form"><div class="fm-val" id="fmForm" data-skel>–</div><div class="fm-lbl">Form (Frische)</div></div>
       </div>
     </div>
-    <div class="form-explain" id="formExplain">Wird berechnet…</div>
+    <div class="form-explain" id="formExplain" data-skel>Wird berechnet…</div>
     <div class="form-chart-wrap">
       <svg id="formChart" viewBox="0 0 1000 180" preserveAspectRatio="none"></svg>
     </div>
@@ -709,7 +729,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
         <h3>Weg zum Jahresziel</h3>
         <div class="th-note" id="timelineNote">Kumulative Rad-Distanz 2026 vs. 10k/11k/12k-Ziellinien</div>
       </div>
-      <div class="timeline-projection" id="timelineProjection">Projektion wird berechnet…</div>
+      <div class="timeline-projection" id="timelineProjection" data-skel>Projektion wird berechnet…</div>
     </div>
     <svg id="timelineChart" viewBox="0 0 1000 290" preserveAspectRatio="none"></svg>
     <div class="timeline-legend">
@@ -754,9 +774,9 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="records-hero" id="recordsHero">
     <div>
       <div class="rh-label">Deine intensivste Session</div>
-      <div class="rh-val" id="rhVal">–</div>
-      <div class="rh-sub" id="rhSub">–</div>
-      <div class="rh-compare" id="rhCompare">–</div>
+      <div class="rh-val" id="rhVal" data-skel>–</div>
+      <div class="rh-sub" id="rhSub" data-skel>–</div>
+      <div class="rh-compare" id="rhCompare" data-skel>–</div>
     </div>
     <div class="rh-sparkline" id="rhSparkline"></div>
   </div>
@@ -764,22 +784,22 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     <div class="goal-card" data-record="longest">
       <div class="goal-info">
         <div class="lbl">Längste Session</div>
-        <div class="row"><div><b id="recLongest">–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recLongestSub">–</div>
+        <div class="row"><div><b id="recLongest" data-skel>–</b></div></div>
+        <div class="plan" style="color:var(--muted)" id="recLongestSub" data-skel>–</div>
       </div>
     </div>
     <div class="goal-card" data-record="elev">
       <div class="goal-info">
         <div class="lbl">Meiste Höhenmeter</div>
-        <div class="row"><div><b id="recElev">–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recElevSub">–</div>
+        <div class="row"><div><b id="recElev" data-skel>–</b></div></div>
+        <div class="plan" style="color:var(--muted)" id="recElevSub" data-skel>–</div>
       </div>
     </div>
     <div class="goal-card" data-record="indoor">
       <div class="goal-info">
         <div class="lbl">Indoor-Anteil</div>
-        <div class="row"><div><b id="recIndoorSessions">–</b></div><div><b id="recIndoorKm">–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recIndoorSub">–</div>
+        <div class="row"><div><b id="recIndoorSessions" data-skel>–</b></div><div><b id="recIndoorKm" data-skel>–</b></div></div>
+        <div class="plan" style="color:var(--muted)" id="recIndoorSub" data-skel>–</div>
       </div>
     </div>
   </div>
@@ -793,10 +813,10 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="section-lbl collapsible" data-collapse-head="kalender"><span>Kalender <span id="calYearLabel">2026</span></span> <span class="note">(Jahresübersicht · Monat anklicken für Details)</span><div class="chevron"></div></div>
   <div class="collapse-body collapsed" data-collapse-body="kalender">
   <div class="cal-summary">
-    <div class="item"><div class="val" id="calHours">275</div><div class="lbl">Stunden</div></div>
-    <div class="item"><div class="val" id="calKm">7.638</div><div class="lbl">Kilometer</div></div>
-    <div class="item"><div class="val accent" id="calPR">1030</div><div class="lbl">Persönliche Rekorde<br><span style="font-size:8.5px; opacity:.7; text-transform:none;">auf Streckenabschnitten, kumulativ</span></div></div>
-    <div class="item"><div class="val" id="calN">261</div><div class="lbl">Aktivitäten</div></div>
+    <div class="item"><div class="val" id="calHours" data-skel>275</div><div class="lbl">Stunden</div></div>
+    <div class="item"><div class="val" id="calKm" data-skel>7.638</div><div class="lbl">Kilometer</div></div>
+    <div class="item"><div class="val accent" id="calPR" data-skel>1030</div><div class="lbl">Persönliche Rekorde<br><span style="font-size:8.5px; opacity:.7; text-transform:none;">auf Streckenabschnitten, kumulativ</span></div></div>
+    <div class="item"><div class="val" id="calN" data-skel>261</div><div class="lbl">Aktivitäten</div></div>
   </div>
   <div class="cal-grid" id="calGrid"></div>
   </div>
@@ -1529,17 +1549,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
           <stop offset="0%" stop-color="#7c5cff" stop-opacity="0.28"/>
           <stop offset="100%" stop-color="#7c5cff" stop-opacity="0"/>
         </linearGradient>
-        <filter id="tlGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="5" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
       </defs>
       ${monthTicks}
       ${targetLines}
       <path d="${areaPath}" fill="url(#tlAreaGrad)" stroke="none"/>
       <path d="${projPath}" fill="none" stroke="var(--outdoor)" stroke-width="2" stroke-dasharray="5 5" opacity="0.8"/>
-      <path id="tlActualPath" d="${actualPath}" fill="none" stroke="url(#tlLineGrad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#tlGlow)"/>
-      <circle cx="${todayX}" cy="${todayY}" r="5.5" fill="#fff" filter="url(#tlGlow)"/>
+      <path d="${actualPath}" fill="none" stroke="#7c5cff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.16"/>
+      <path id="tlActualPath" d="${actualPath}" fill="none" stroke="url(#tlLineGrad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${todayX}" cy="${todayY}" r="10" fill="#7c5cff" opacity="0.22"/>
+      <circle cx="${todayX}" cy="${todayY}" r="5.5" fill="#fff"/>
       <circle cx="${todayX}" cy="${todayY}" r="5.5" fill="url(#tlLineGrad)"/>
       <circle cx="${x(365)}" cy="${y(projectedEnd)}" r="4.5" fill="var(--outdoor)" opacity="0.9"/>
       ${targetLabels}
@@ -1777,6 +1795,37 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
   let mapMode = 'route';
   const PERCHA = [47.9968, 11.3823];
+  let leafletLoadPromise = null;
+
+  // Lädt Leaflet + Heatmap-Plugin erst bei Bedarf nach (spart Ladezeit, solange die
+  // Karten-Sektion nie geöffnet wird). Wird nur einmal tatsächlich ausgeführt, auch
+  // wenn die Sektion mehrfach auf-/zugeklappt wird.
+  function ensureLeafletLoaded(){
+    if(leafletLoadPromise) return leafletLoadPromise;
+    leafletLoadPromise = new Promise((resolve, reject) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+      link.crossOrigin = '';
+      document.head.appendChild(link);
+
+      const s1 = document.createElement('script');
+      s1.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s1.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+      s1.crossOrigin = '';
+      s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js';
+        s2.onload = () => resolve();
+        s2.onerror = () => reject(new Error('leaflet.heat konnte nicht geladen werden'));
+        document.head.appendChild(s2);
+      };
+      s1.onerror = () => reject(new Error('leaflet.js konnte nicht geladen werden'));
+      document.head.appendChild(s1);
+    });
+    return leafletLoadPromise;
+  }
 
   function currentMapTheme(){
     return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
@@ -1786,12 +1835,21 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     if(el) el.classList.toggle('dark-tiles', currentMapTheme() === 'dark');
   }
   function initMap(){
-    if(typeof L === 'undefined') return;
-    leafletMap = L.map('routeMap', { scrollWheelZoom:false }).setView(PERCHA, 10);
-    tileLayerRef = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors', maxZoom: 19, subdomains:'abc'
-    }).addTo(leafletMap);
-    applyMapFilter();
+    if(leafletMap) return; // bereits initialisiert
+    ensureLeafletLoaded().then(() => {
+      if(typeof L === 'undefined') return;
+      leafletMap = L.map('routeMap', { scrollWheelZoom:false }).setView(PERCHA, 10);
+      tileLayerRef = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors', maxZoom: 19, subdomains:'abc'
+      }).addTo(leafletMap);
+      applyMapFilter();
+      leafletMap.invalidateSize();
+      updateMap();
+    }).catch(err => {
+      const note = document.getElementById('mapNote');
+      if(note) note.textContent = 'Karte konnte nicht geladen werden (offline?).';
+      console.error('Leaflet-Ladefehler:', err);
+    });
   }
   function updateMapTheme(){
     if(!leafletMap) return;
@@ -2059,6 +2117,10 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   loadWeather();
   Object.keys(SECTION_DEFAULTS).forEach(id => initCollapsible(id, SECTION_DEFAULTS[id]));
   render();
+
+  // Skeleton-Ladezustand beenden: alle Kernwerte sind jetzt berechnet und im DOM.
+  // Kleine Verzögerung, damit der Shimmer-Effekt kurz sichtbar ist statt einfach zu "poppen".
+  requestAnimationFrame(() => { document.body.classList.add('app-ready'); });
 
   yearSelectEl.addEventListener('change', buildCalendar);
 
