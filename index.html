@@ -294,6 +294,15 @@ body:not(.app-ready) [data-skel]{
 .fade{animation:fadeIn .3s var(--ease);}
 @keyframes fadeIn{ from{opacity:0; transform:translateY(3px);} to{opacity:1; transform:translateY(0);} }
 
+/* ---- Erkenntnis-Zeile ---- */
+.pattern-insight{
+  display:flex; align-items:flex-start; gap:10px; margin-bottom:14px;
+  background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--glow-a);
+  border-radius:var(--r-sm); padding:14px 18px; font-size:13.5px; line-height:1.55; color:var(--text-dim);
+}
+.pattern-insight .pi-icon{flex-shrink:0; font-size:15px;}
+.pattern-insight b{color:var(--text); font-weight:700;}
+
 /* ---- Charts ---- */
 .charts{display:grid; grid-template-columns: 1.4fr 1fr; gap:14px; margin-bottom:4px;}
 .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:22px; box-shadow:var(--shadow-md);}
@@ -742,6 +751,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
   <div class="section-lbl collapsible" data-collapse-head="charts"><span>Trainingsmuster</span> <span class="note">— Tageszeit & Wochentag reagieren auf Filter oben</span><div class="chevron"></div></div>
   <div class="collapse-body collapsed" data-collapse-body="charts">
+  <div class="pattern-insight" id="patternInsight">💡 Wird berechnet…</div>
   <div class="charts">
     <div class="panel">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:8px;">
@@ -1038,10 +1048,59 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     arr.forEach(a => { days[weekdayIdx(a._dt)] += a.r; });
     return days;
   }
+  function weekdayStats(arr){
+    const days = Array.from({length:7}, () => ({sum:0, min:0, n:0}));
+    arr.forEach(a => { const i = weekdayIdx(a._dt); days[i].sum += a.r; days[i].min += a.m; days[i].n += 1; });
+    return days.map(d => ({ ...d, epm: d.min > 0 ? d.sum/d.min : 0 }));
+  }
   function todEffort(arr){
     const b = { morgen: {effort:0, min:0}, mittag: {effort:0, min:0}, abend: {effort:0, min:0} };
     arr.forEach(a => { const k = todBucket(a._dt); b[k].effort += a.r; b[k].min += a.m; });
     return b;
+  }
+
+  // ---------- Erkenntnis-Zeile für "Trainingsmuster" ----------
+  // Übersetzt die Rohdaten in einen konkreten, verständlichen Satz statt nur Balken/Farben zu zeigen.
+  function renderPatternInsight(arr, tod, buckets, labels, epm, wdStats, wdLabels){
+    const el = document.getElementById('patternInsight');
+    if(!el) return;
+
+    if(arr.length < 4){
+      el.innerHTML = `<span class="pi-icon">💡</span><span>Noch zu wenige Sessions in dieser Auswahl für eine verlässliche Muster-Analyse (mind. 4 nötig).</span>`;
+      return;
+    }
+
+    // Tageszeit: bester/schwächster Zeitblock mit ausreichend Daten
+    const validTod = buckets.map((b,i) => ({b, label:labels[b], epm:epm[i], min:tod[b].min})).filter(x => x.min >= 20);
+    let todSentence = '';
+    if(validTod.length >= 2){
+      const best = validTod.reduce((a,b) => b.epm > a.epm ? b : a);
+      const worst = validTod.reduce((a,b) => b.epm < a.epm ? b : a);
+      if(best.b !== worst.b && worst.epm > 0){
+        const pct = Math.round(((best.epm/worst.epm)-1)*100);
+        if(pct >= 5){
+          todSentence = `Du trainierst <b>${best.label.toLowerCase()}s ${pct}% intensiver</b> als ${worst.label.toLowerCase()}s.`;
+        }
+      }
+    }
+
+    // Wochentag: stärkster/ruhigster Tag mit ausreichend Daten (min. 2 Sessions)
+    const validDays = wdStats.map((d,i) => ({i, epm:d.epm, n:d.n})).filter(d => d.n >= 2 && d.epm > 0);
+    let daySentence = '';
+    if(validDays.length >= 2){
+      const bestDay = validDays.reduce((a,b) => b.epm > a.epm ? b : a);
+      const worstDay = validDays.reduce((a,b) => b.epm < a.epm ? b : a);
+      if(bestDay.i !== worstDay.i){
+        daySentence = `<b>${wdLabels[bestDay.i]}</b> ist dein stärkster Trainingstag, <b>${wdLabels[worstDay.i]}</b> dein ruhigster.`;
+      }
+    }
+
+    const parts = [todSentence, daySentence].filter(Boolean);
+    if(parts.length === 0){
+      el.innerHTML = `<span class="pi-icon">💡</span><span>Deine Sessions verteilen sich noch zu gleichmäßig für ein klares Muster — je mehr Daten, desto deutlicher wird's.</span>`;
+    } else {
+      el.innerHTML = `<span class="pi-icon">💡</span><span>${parts.join(' ')}</span>`;
+    }
   }
 
   // ---------- Drawer ----------
@@ -1161,6 +1220,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
     // Wochentag-Heatmap
     const wd = weekdayEffort(arr);
+    const wdStats = weekdayStats(arr);
     const wdLabels = ['Mo','Di','Mi','Do','Fr','Sa','So'];
     const maxWd = Math.max(...wd, 1);
     document.getElementById('weekdayHeat').innerHTML = wd.map((v,i) => {
@@ -1174,6 +1234,9 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     document.getElementById('weekdayLegend').innerHTML = stats.n > 0
       ? `<span>Anstrengendster Tag: ${wdLabels[peakIdx]}</span>`
       : `<span>Keine Daten in dieser Auswahl</span>`;
+
+    // Erkenntnis-Zeile: sagt konkret, was die Zahlen bedeuten, statt nur Balken zu zeigen
+    renderPatternInsight(arr, tod, buckets, labels, epm, wdStats, wdLabels);
 
     // Rekorde
     if(arr.length > 0){
