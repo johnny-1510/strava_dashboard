@@ -733,7 +733,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
   </div>
 
-  <div class="section-lbl collapsible" data-collapse-head="recovery"><span>Recovery & Schlaf</span> <span class="note">— aus deinem Apple-Health-Export vom 31.08.2026 · aktualisiert sich nicht automatisch, nur bei neuem Export</span><div class="chevron"></div></div>
+  <div class="section-lbl collapsible" data-collapse-head="recovery"><span>Recovery & Schlaf</span> <span class="note">— reagiert auf Zeitraum/Jahr oben (Indoor/Outdoor ausgenommen) · Snapshot aus Apple-Health-Export vom 31.08.2026, kein Live-Feed</span><div class="chevron"></div></div>
   <div class="collapse-body" data-collapse-body="recovery">
   <div class="recovery-panel">
     <div class="recovery-head">
@@ -1321,6 +1321,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     renderPatternInsight(arr, tod, buckets, labels, epm, wdStats, wdLabels);
     renderPowerCurve(arr);
     renderHrSessions(arr);
+    renderRecovery();
 
     // Rekorde
     if(arr.length > 0){
@@ -2316,10 +2317,45 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     return { label:'Rot · Erholung priorisieren', color:'var(--accent-2)' };
   }
 
+  // Gleiche Zeitraum-Logik wie inPeriod() für Strava-Aktivitäten, hier auf die
+  // "YYYY-MM-DD"-Nacht-Daten der Recovery-Reihe angewendet. Der Sportart-Filter
+  // (Indoor/Outdoor) ergibt hier keinen Sinn und wird bewusst ignoriert.
+  function inRecoveryPeriod(dateStr){
+    const d = new Date(dateStr + 'T12:00:00');
+    if(d.getFullYear() !== state.year) return false;
+    switch(state.period){
+      case 'week': return d >= startOfWeek(NOW);
+      case '7d': return d >= new Date(NOW - 7*86400000);
+      case '30d': return d >= new Date(NOW - 30*86400000);
+      case 'year': return true;
+      case 'custom': return d >= state.customFrom && d <= state.customTo;
+      default: return true;
+    }
+  }
+
   function renderRecovery(){
-    const withScore = RECOVERY_DATA.filter(d => d.r !== null);
-    if(withScore.length === 0) return;
-    const latest = withScore[withScore.length - 1];
+    const panel = document.querySelector('.recovery-panel');
+    const emptyMsg = document.getElementById('recoveryEmpty');
+    const filtered = RECOVERY_DATA.filter(d => d.r !== null && inRecoveryPeriod(d.d));
+
+    if(filtered.length === 0){
+      panel.style.display = 'none';
+      if(emptyMsg){
+        emptyMsg.style.display = 'block';
+      } else {
+        const div = document.createElement('div');
+        div.id = 'recoveryEmpty';
+        div.className = 'recovery-note';
+        div.style.padding = '20px 0';
+        div.textContent = 'Keine Apple-Health-Daten in dieser Auswahl (Export deckt nur 31.03.–30.08.2026 ab).';
+        panel.parentElement.insertBefore(div, panel);
+      }
+      return;
+    }
+    if(emptyMsg) emptyMsg.style.display = 'none';
+    panel.style.display = '';
+
+    const latest = filtered[filtered.length - 1];
     const band = recoveryBand(latest.r);
 
     document.getElementById('recoveryNum').textContent = latest.r;
@@ -2327,7 +2363,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     ring.style.setProperty('--pct', latest.r + '%');
     ring.style.setProperty('--ring-color', band.color);
 
-    // HRV/RHR vs. 14-Tage-Basislinie der letzten Werte davor
+    // HRV/RHR-Basislinie bewusst aus der VOLLEN Historie (nicht dem Filter) berechnet —
+    // eine Baseline aus z.B. nur 3 gefilterten Tagen wäre statistisch unbrauchbar.
     const idx = RECOVERY_DATA.indexOf(latest);
     const priorWindow = RECOVERY_DATA.slice(Math.max(0, idx-14), idx).filter(d => d.hrv);
     const hrvBase = priorWindow.length ? priorWindow.reduce((s,d)=>s+d.hrv,0)/priorWindow.length : null;
@@ -2352,7 +2389,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     }
     document.getElementById('sleepTimes').textContent = `${latest.bt} – ${latest.wt} Uhr`;
 
-    renderRecoveryChart(withScore);
+    renderRecoveryChart(filtered);
   }
 
   function renderRecoveryChart(withScore){
