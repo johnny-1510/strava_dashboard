@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Johannes' Sports Dashboard</title>
 
 <!-- Favicon: dieselben drei Ringe wie das Logo im Header, als Inline-SVG (kein separates Bild nötig) -->
@@ -91,7 +91,14 @@ body{
 a{color:inherit;}
 :focus-visible{outline:2px solid var(--outdoor); outline-offset:2px; border-radius:4px;}
 button{font:inherit;}
-.wrap{max-width:1240px; margin:0 auto; padding:32px 24px 90px;}
+.wrap{
+  max-width:1240px; margin:0 auto;
+  padding:32px 24px 90px;
+  padding-top:max(32px, env(safe-area-inset-top));
+  padding-left:max(24px, env(safe-area-inset-left));
+  padding-right:max(24px, env(safe-area-inset-right));
+  padding-bottom:max(90px, env(safe-area-inset-bottom) + 70px);
+}
 
 /* ---- Header ---- */
 header{
@@ -147,7 +154,7 @@ header{
 
 /* ---- Filter bar ---- */
 .filters{
-  position:sticky; top:0; z-index:20; background:rgba(var(--bg-rgb), .82); backdrop-filter:blur(14px);
+  position:sticky; top:env(safe-area-inset-top); z-index:20; background:rgba(var(--bg-rgb), .82); backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
   display:flex; flex-wrap:wrap; gap:10px; padding:16px 0 20px; margin-bottom:26px;
   border-bottom:1px solid var(--line); align-items:center;
@@ -160,6 +167,7 @@ header{
   transition:background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease), opacity .18s var(--ease);
 }
 .chip:hover{border-color:var(--line-strong); color:var(--text-dim);}
+.chip:focus-visible{outline:2px solid var(--outdoor); outline-offset:2px;}
 .chip.active{ background:var(--glow-grad); border-color:transparent; color:#fff; font-weight:600; }
 .chip.disabled{opacity:.35; pointer-events:none;}
 .filters .sep{width:1px; align-self:stretch; background:var(--line); margin:2px 6px;}
@@ -257,6 +265,14 @@ html[data-theme="light"] .custom-range input[type="date"]{ color-scheme:light; }
 #recoveryChart{width:100%; height:140px; display:block; margin-top:18px;}
 .recovery-note{font-family:var(--mono); font-size:10.5px; color:var(--muted); margin-top:14px; line-height:1.5;}
 
+/* ---- Bento-Paarung (weniger Scrollen auf breiten Screens) ---- */
+.bento-pair{display:block;}
+.bento-col .section-lbl{margin-top:38px;}
+@media(min-width:1025px){
+  .bento-pair{display:grid; grid-template-columns:1fr 1fr; gap:0 24px; align-items:start;}
+  .bento-col:first-child .section-lbl{margin-top:38px;}
+}
+
 /* ---- Herzfrequenz & Power Curve ---- */
 .hrpower-panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:26px; box-shadow:var(--shadow-lg);}
 .hrpower-sub{font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:16px; line-height:1.5;}
@@ -269,7 +285,7 @@ html[data-theme="light"] .custom-range input[type="date"]{ color-scheme:light; }
 .hr-row .hr-vals{font-family:var(--mono); font-size:11.5px; color:var(--text-dim); white-space:nowrap; text-align:right;}
 .hr-row .hr-vals b{color:var(--accent-2); font-weight:700;}
 .hrpower-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:20px;}
-@media(max-width:900px){ .hrpower-grid{grid-template-columns:1fr;} }
+@media(max-width:1024px){ .hrpower-grid{grid-template-columns:1fr;} }
 
 /* ---- Skeleton-Ladezustand (statt "–" beim ersten Rendern) ---- */
 body:not(.app-ready) [data-skel]{
@@ -289,7 +305,7 @@ body:not(.app-ready) [data-skel]{
 }
 .motivation-banner .mb-icon{font-size:17px; flex-shrink:0;}
 .motivation-banner .mb-text{color:#fff; font-weight:600; font-size:13.5px; line-height:1.4;}
-@media(max-width:560px){ .motivation-banner{padding:13px 16px; border-radius:var(--r-md);} .motivation-banner .mb-text{font-size:12.5px;} }
+@media(max-width:640px){ .motivation-banner{padding:13px 16px; border-radius:var(--r-md);} .motivation-banner .mb-text{font-size:12.5px;} }
 
 /* ---- Section label ---- */
 .section-lbl{
@@ -399,7 +415,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .compare-row .cc-val{font-size:19px; font-weight:700;}
 .compare-row.current .cc-val{color:var(--glow-a);}
 .compare-delta{font-family:var(--mono); font-size:11px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line);}
-@media(max-width:768px){ .compare-grid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:1024px){ .compare-grid{grid-template-columns:repeat(2,1fr);} }
 
 /* ---- Ziel-Timeline (Herzstück) ---- */
 .timeline-panel{
@@ -464,7 +480,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
 /* ---- Läufe-Badge (Ecke) ---- */
 .runs-badge{
-  position:fixed; left:20px; bottom:20px; z-index:15;
+  position:fixed; left:20px; z-index:15;
+  bottom:max(20px, calc(env(safe-area-inset-bottom) + 12px));
   background:var(--panel); border:1px solid var(--line); border-radius:100px;
   padding:10px 16px 10px 10px; display:flex; align-items:center; gap:10px;
   box-shadow:var(--shadow-lg); cursor:pointer;
@@ -478,7 +495,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 }
 .runs-badge .rb-num{font-size:15px; font-weight:700;}
 .runs-badge .rb-lbl{font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
-@media(max-width:768px){ .runs-badge{left:12px; bottom:12px; padding:8px 12px 8px 8px;} .runs-badge .rb-lbl{display:none;} }
+@media(max-width:640px){ .runs-badge{left:12px; bottom:max(12px, calc(env(safe-area-inset-bottom) + 12px)); padding:8px 12px 8px 8px;} .runs-badge .rb-lbl{display:none;} }
 
 /* ---- Karte & Heatmap ---- */
 .map-controls{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
@@ -578,28 +595,46 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .drawer-item .di-stats .di-main{font-weight:700; color:var(--text); font-size:13px;}
 .drawer-empty{padding:40px 20px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px;}
 
-/* ---- Responsive ---- */
-@media(max-width:980px){
+/* ---- Responsive ----
+   Einheitliches System: 1024px = Tablet/kleines Notebook, 640px = Phone.
+   Jedes Multi-Spalten-Grid bekommt eine echte Tablet-Zwischenstufe statt direkt auf 1 Spalte zu springen. */
+@media(max-width:1024px){
   .hero{grid-template-columns:1fr 1fr;}
   .hero-main{grid-column:1/-1;}
   .grid{grid-template-columns:repeat(2,1fr);}
   .charts{grid-template-columns:1fr;}
-  .goals{grid-template-columns:1fr;}
+  .goals{grid-template-columns:repeat(2,1fr);}
   .cal-grid{grid-template-columns:repeat(2,1fr);}
+  .bento-pair{display:block;} /* Bento-Paarung erst ab Desktop-Breite, auf Tablet gestapelt für genug Platz pro Chart */
 }
-@media(max-width:560px){
+@media(max-width:640px){
   .hero{grid-template-columns:1fr;}
   .grid{grid-template-columns:repeat(2,1fr);}
-  .big-num{font-size:46px;}
+  .goals{grid-template-columns:1fr;}
+  .big-num{font-size:44px;}
+  .hero-main{padding:24px;}
   .filters{overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;}
   .filters::-webkit-scrollbar{display:none;}
-  .cal-summary{gap:24px;}
-  .wrap{padding:22px 16px 70px;}
+  .cal-summary{gap:20px;}
+  .wrap{padding:20px 16px 70px;}
   .drawer{width:100vw;}
+  .recovery-head{grid-template-columns:1fr; justify-items:center; text-align:center;}
+  .recovery-metrics{grid-template-columns:repeat(3,1fr); gap:10px; width:100%;}
+  #routeMap{height:320px;}
 }
 
 @media(prefers-reduced-motion: reduce){
   *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
+/* Echte Touch-Geräte erkennen (Phone UND Tablet), statt nur über Bildschirmbreite zu raten —
+   ein iPad im Querformat ist z.B. breiter als 1024px, aber trotzdem ein reines Touch-Gerät. */
+@media (hover:none) and (pointer:coarse){
+  .chip{padding:11px 16px;}
+  .btn{padding:12px 18px;}
+  .theme-toggle button{width:34px; height:34px;}
+  .drawer-close{width:36px; height:36px;}
+  .wx-day, .cal-card, .goal-card, .kpi{padding:18px;}
 }
 
 </style>
@@ -706,6 +741,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     <div class="kpi" data-metric="cal"><div class="lbl">Kalorien <span class="hint">↗</span></div><div class="val" id="kpiCal" data-skel>–</div><div class="delta up" id="kpiCalSub" data-skel>–</div></div>
   </div>
 
+  <div class="bento-pair">
+  <div class="bento-col">
   <div class="section-lbl collapsible" data-collapse-head="fitness"><span>Fitness & Form</span> <span class="note">— dein Trainingszustand, immer aus der gesamten Historie (unabhängig vom Filter oben)</span><div class="chevron"></div></div>
   <div class="collapse-body" data-collapse-body="fitness">
   <div class="form-panel">
@@ -732,19 +769,21 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     <button class="form-learn" id="formLearnBtn">Was bedeutet das? →</button>
   </div>
   </div>
+  </div>
 
-  <div class="section-lbl collapsible" data-collapse-head="recovery"><span>Recovery & Schlaf</span> <span class="note">— reagiert auf Zeitraum/Jahr oben (Indoor/Outdoor ausgenommen) · Snapshot aus Apple-Health-Export vom 31.08.2026, kein Live-Feed</span><div class="chevron"></div></div>
+  <div class="bento-col">
+  <div class="section-lbl collapsible" data-collapse-head="recovery"><span>Recovery & Schlaf</span> <span class="note">— reagiert auf Zeitraum/Jahr oben · Apple-Health-Export vom 31.08.2026, Daten bis Nacht 29./30.08. · kein Live-Feed</span><div class="chevron"></div></div>
   <div class="collapse-body" data-collapse-body="recovery">
   <div class="recovery-panel">
     <div class="recovery-head">
       <div class="recovery-ring-wrap">
         <div class="ring" id="recoveryRing" style="width:110px; height:110px; --pct:0%; --ring-color:var(--outdoor);"></div>
-        <div class="rr-val"><div class="rr-num" id="recoveryNum">–</div><div class="rr-pct">Recovery</div></div>
+        <div class="rr-val"><div class="rr-num" id="recoveryNum" data-skel>–</div><div class="rr-pct">Recovery</div></div>
       </div>
       <div class="recovery-metrics">
-        <div class="rm-item"><div class="rm-lbl">HRV</div><div class="rm-val" id="rmHrv">–</div><div class="rm-sub" id="rmHrvSub">–</div></div>
-        <div class="rm-item"><div class="rm-lbl">Ruhepuls</div><div class="rm-val" id="rmRhr">–</div><div class="rm-sub" id="rmRhrSub">–</div></div>
-        <div class="rm-item"><div class="rm-lbl">Schlaf</div><div class="rm-val" id="rmSleep">–</div><div class="rm-sub" id="rmSleepSub">–</div></div>
+        <div class="rm-item"><div class="rm-lbl">HRV</div><div class="rm-val" id="rmHrv" data-skel>–</div><div class="rm-sub" id="rmHrvSub" data-skel>–</div></div>
+        <div class="rm-item"><div class="rm-lbl">Ruhepuls</div><div class="rm-val" id="rmRhr" data-skel>–</div><div class="rm-sub" id="rmRhrSub" data-skel>–</div></div>
+        <div class="rm-item"><div class="rm-lbl">Schlaf</div><div class="rm-val" id="rmSleep" data-skel>–</div><div class="rm-sub" id="rmSleepSub" data-skel>–</div></div>
       </div>
     </div>
     <div class="sleep-stages" id="sleepStages"></div>
@@ -756,6 +795,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     </div>
     <svg id="recoveryChart" viewBox="0 0 1000 140" preserveAspectRatio="none"></svg>
     <div class="recovery-note">Recovery Score = gewichtete Kombination aus HRV & Ruhepuls (je vs. eigener 14-Tage-Basislinie) und Schlafdauer/-effizienz der letzten Nacht — dasselbe Prinzip wie bei Whoop/Oura. Basis: 153 Nächte aus deinem Export.</div>
+  </div>
+  </div>
   </div>
   </div>
 
@@ -930,7 +971,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
 
 </div>
-<footer id="footerText">Live-Daten aus Strava · Stand 31.08.2026 · Vollständige Historie seit 17.07.2025</footer>
+<footer id="footerText">Live-Daten aus Strava · letzte Aktivität synced: 31.08.2026 · Vollständige Historie seit 17.07.2025</footer>
 
 <div class="runs-badge" id="runsBadge">
   <div class="rb-icon">🏃</div>
@@ -947,7 +988,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <h4 id="drawerTitle">–</h4>
       <p id="drawerSub">–</p>
     </div>
-    <button class="drawer-close" id="drawerClose">✕</button>
+    <button class="drawer-close" id="drawerClose" aria-label="Schließen">✕</button>
   </div>
   <div class="drawer-list" id="drawerList"></div>
 </div>
@@ -2439,7 +2480,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       const hardest = [...DATA].sort((a,b) => b.r - a.r).slice(0,10);
       openDrawer('Deine 10 belastendsten Sessions', 'Diese prägen deine aktuelle Ermüdung am stärksten', hardest);
     };
-    document.getElementById('formLearnBtn').addEventListener('click', (e) => {
+    document.getElementById('formLearnBtn').onclick = (e) => {
       e.stopPropagation();
       openDrawer('Was bedeutet Fitness, Ermüdung, Form?',
         'Kurz erklärt', []);
@@ -2450,7 +2491,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
           <p style="margin-bottom:14px;"><b style="color:var(--outdoor);">Form</b> ist die Differenz aus beidem — deine aktuelle Frische. Positiv = erholt und leistungsbereit. Deutlich negativ = du trainierst gerade auf Substanz, was zeitweise gewollt sein kann, aber Erholung braucht.</p>
           <p style="color:var(--muted); font-family:var(--mono); font-size:11px;">Basiert auf dem Trainingslast-Modell, das auch professionelle Tools wie TrainingPeaks verwenden — hier berechnet aus deiner kompletten Strava-Historie seit Juli 2025.</p>
         </div>`;
-    });
+    };
   }
 
   // ---------- Ein-/Ausklappbare Sektionen ----------
@@ -2498,6 +2539,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     head.addEventListener('click', toggle);
     head.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); } });
   }
+
+  // ---------- Tastatur-Zugänglichkeit für Chips ----------
+  // Chips sind aus Design-Gründen <div>-Elemente, nicht <button> — ohne das hier wären sie
+  // für Tastatur-/Trackpad-Navigation (Tab-Taste) komplett unerreichbar.
+  document.querySelectorAll('.chip').forEach(chip => {
+    if(!chip.hasAttribute('tabindex')) chip.setAttribute('tabindex', '0');
+    chip.setAttribute('role', 'button');
+    chip.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); chip.click(); }
+    });
+  });
 
   // ---------- Init ----------
   resetCustomRangeDefaults();
