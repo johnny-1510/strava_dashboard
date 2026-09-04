@@ -154,12 +154,28 @@ header{
 
 /* ---- Filter bar ---- */
 .filters{
-  position:sticky; top:env(safe-area-inset-top); z-index:20; background:rgba(var(--bg-rgb), .82); backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  position:sticky; top:env(safe-area-inset-top); z-index:20; background:rgba(var(--bg-rgb), .72); backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
   display:flex; flex-wrap:wrap; gap:10px; padding:16px 0 20px; margin-bottom:26px;
   border-bottom:1px solid var(--line); align-items:center;
 }
 .filter-group{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+.filter-group.segmented{
+  position:relative; background:rgba(127,127,127,.1); border:1px solid var(--line);
+  border-radius:100px; padding:3px; gap:0; flex-wrap:nowrap;
+}
+.segmented-highlight{
+  position:absolute; top:3px; bottom:3px; left:3px; width:0;
+  background:var(--glow-grad); border-radius:100px;
+  box-shadow:0 2px 8px -2px rgba(0,0,0,.35), 0 0 0 .5px rgba(255,255,255,.06) inset;
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1), width .4s cubic-bezier(.34,1.56,.64,1);
+  z-index:0; pointer-events:none;
+}
+.segmented .chip{
+  position:relative; z-index:1; background:transparent !important; border:none !important; color:var(--muted);
+}
+.segmented .chip.active{ background:transparent !important; color:#fff; }
+.segmented .chip:hover{ color:var(--text-dim); }
 .chip{
   font-family:var(--mono); font-size:11.5px; padding:8px 15px; border-radius:100px;
   border:1px solid var(--line); color:var(--muted); cursor:pointer; white-space:nowrap;
@@ -403,12 +419,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .goal-info .row div b{font-size:15px; font-weight:700;}
 .goal-info .plan{font-family:var(--mono); font-size:10.5px; margin-top:8px;}
 
-.stretch-goals{margin-top:12px; display:flex; flex-direction:column; gap:7px;}
-.stretch-goal{display:flex; align-items:center; gap:8px;}
+.stretch-goals{margin-top:12px; display:flex; flex-direction:column; gap:10px;}
+.stretch-goal{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 .stretch-goal .sg-label{font-family:var(--mono); font-size:9.5px; color:var(--muted); width:74px; flex-shrink:0;}
 .stretch-goal .sg-track{flex:1; height:5px; background:var(--carbon-hi); border-radius:3px; overflow:hidden;}
 .stretch-goal .sg-fill{height:100%; background:var(--glow-grad); border-radius:3px; transition:width .6s var(--ease);}
 .stretch-goal .sg-pct{font-family:var(--mono); font-size:9.5px; color:var(--text-dim); width:34px; text-align:right; flex-shrink:0;}
+.stretch-goal .sg-delta{font-family:var(--mono); font-size:9.5px; width:100%; padding-left:82px;}
+.stretch-goal .sg-delta.ahead{color:var(--outdoor);}
+.stretch-goal .sg-delta.behind{color:var(--accent-2);}
 .plan.ahead{color:var(--outdoor);} .plan.behind{color:var(--accent-2);}
 
 /* ---- Jahresvergleich ---- */
@@ -577,7 +596,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .drawer-overlay.open{opacity:1; pointer-events:auto;}
 .drawer{
   position:fixed; right:0; top:0; bottom:0; width:min(440px, 92vw);
-  background:var(--panel-2); border-left:1px solid var(--line);
+  background:rgba(var(--bg-rgb), .78); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-left:1px solid var(--line);
   transform:translateX(100%); transition:transform .32s var(--ease); z-index:91;
   display:flex; flex-direction:column;
 }
@@ -684,7 +704,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <option value="2028">2028</option>
     </select>
     <div class="sep"></div>
-    <div class="filter-group" id="periodGroup">
+    <div class="filter-group segmented" id="periodGroup">
+      <div class="segmented-highlight"></div>
       <div class="chip active" data-period="week">Diese Woche</div>
       <div class="chip" data-period="7d">Letzte 7 Tage</div>
       <div class="chip" data-period="30d">Letzte 30 Tage</div>
@@ -692,7 +713,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <div class="chip" data-period="custom">Custom</div>
     </div>
     <div class="sep"></div>
-    <div class="filter-group" id="sportGroup">
+    <div class="filter-group segmented" id="sportGroup">
+      <div class="segmented-highlight"></div>
       <div class="chip active" data-sport="all">Alle</div>
       <div class="chip" data-sport="indoor">Indoor</div>
       <div class="chip" data-sport="outdoor">Outdoor</div>
@@ -967,8 +989,11 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="collapse-body collapsed" data-collapse-body="karte">
   <div class="map-controls">
     <div class="map-modes">
-      <div class="chip active" data-mapmode="route">Einzelstrecke</div>
-      <div class="chip" data-mapmode="heat">Heatmap</div>
+      <div class="filter-group segmented" id="mapModeGroup">
+        <div class="segmented-highlight"></div>
+        <div class="chip active" data-mapmode="route">Einzelstrecke</div>
+        <div class="chip" data-mapmode="heat">Heatmap</div>
+      </div>
       <div class="sep"></div>
       <div class="chip" id="mapAllTimeToggle" title="Zeigt alle Strecken seit 17.07.2025, unabhängig vom Filter oben">Gesamte Historie</div>
     </div>
@@ -1288,6 +1313,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       state.period = 'year';
       document.querySelectorAll('#periodGroup .chip').forEach(c => c.classList.remove('active'));
       document.querySelector('#periodGroup .chip[data-period="year"]').classList.add('active');
+      positionHighlight(document.getElementById('periodGroup'));
     }
 
     if(!hasData) return;
@@ -1417,9 +1443,19 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     updateMap();
   }
 
+  function positionHighlight(groupEl){
+    const highlight = groupEl.querySelector('.segmented-highlight');
+    const active = groupEl.querySelector('.chip.active');
+    if(!highlight || !active) return;
+    highlight.style.width = active.offsetWidth + 'px';
+    highlight.style.transform = `translateX(${active.offsetLeft - 3}px)`;
+  }
+
   function setActive(groupSel, chip){
-    document.querySelectorAll(groupSel + ' .chip').forEach(c => c.classList.remove('active'));
+    const groupEl = document.querySelector(groupSel);
+    groupEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
+    positionHighlight(groupEl);
   }
 
   // ---------- Filter-Interaktionen ----------
@@ -1601,14 +1637,18 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     setGoalCard('year-ride', yearRidePct, fmtKm(yearRideKm) + ' km', fmtKm(Math.max(0,10000-yearRideKm)) + ' km',
       yearRideDelta >= 0 ? `+${fmtKm(yearRideDelta)} km vor Plan` : `${fmtKm(Math.abs(yearRideDelta))} km hinter Plan`, yearRideDelta >= 0);
 
-    // Optionale Stretch-Ziele: 11.000 und 12.000 km (10.000 war das eigentliche Ziel, aber sportlich mehr drin)
+    // Optionale Stretch-Ziele: 11.000 und 12.000 km, jeweils mit eigenem Plan-Soll
     const stretchTargets = [11000, 12000];
     document.getElementById('stretchGoals').innerHTML = stretchTargets.map(target => {
       const pct = Math.min(100, Math.round(yearRideKm / target * 100));
+      const plan = (yearFracDay / 365) * target;
+      const delta = yearRideKm - plan;
+      const deltaText = delta >= 0 ? `+${fmtKm(delta)} km vor Plan` : `${fmtKm(Math.abs(delta))} km hinter Plan`;
       return `<div class="stretch-goal">
         <div class="sg-label">${fmtInt(target/1000)}.000 km</div>
         <div class="sg-track"><div class="sg-fill" style="width:${pct}%"></div></div>
         <div class="sg-pct">${pct}%</div>
+        <div class="sg-delta ${delta>=0?'ahead':'behind'}">${deltaText}</div>
       </div>`;
     }).join('');
 
@@ -1912,10 +1952,30 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       };
       const days = data.daily.time;
       const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+      // Für "Heute": häufigster Wettercode der Tagesstunden (7-21 Uhr) statt des Open-Meteo
+      // Tages-Sammelwerts, der laut deren Doku die "schwerste" Bedingung des ganzen Tages zeigt —
+      // eine einzige kurze Wolke würde sonst den ganzen Tag als bewölkt markieren.
+      function dominantTodayCode(){
+        const todayStr = days[0];
+        const codes = [];
+        data.hourly.time.forEach((t, idx) => {
+          if(!t.startsWith(todayStr)) return;
+          const hour = parseInt(t.slice(11,13), 10);
+          if(hour >= 7 && hour <= 21) codes.push(data.hourly.weathercode[idx]);
+        });
+        if(codes.length === 0) return data.daily.weathercode[0];
+        const counts = {};
+        codes.forEach(c => counts[c] = (counts[c]||0) + 1);
+        return Object.keys(counts).reduce((a,b) => counts[a] >= counts[b] ? a : b) | 0;
+      }
+      const todayCode = dominantTodayCode();
+
       el.innerHTML = days.map((d,i) => {
         const dt = new Date(d + 'T12:00:00');
         const lbl = i === 0 ? 'Heute' : dayNames[dt.getDay()];
-        const icon = codeMap[data.daily.weathercode[i]] || '🌡️';
+        const code = i === 0 ? todayCode : data.daily.weathercode[i];
+        const icon = codeMap[code] || '🌡️';
         const max = Math.round(data.daily.temperature_2m_max[i]);
         const min = Math.round(data.daily.temperature_2m_min[i]);
         const rain = data.daily.precipitation_probability_max[i];
@@ -2133,6 +2193,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     chip.addEventListener('click', () => {
       document.querySelectorAll('.map-modes .chip[data-mapmode]').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
+      positionHighlight(document.getElementById('mapModeGroup'));
       mapMode = chip.dataset.mapmode;
       document.getElementById('routeSelect').style.display = mapMode === 'route' ? '' : 'none';
       updateMap();
@@ -2568,7 +2629,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       head.setAttribute('aria-expanded', String(isOpen));
     }
     apply();
-    if(isOpen && id === 'karte') initMap();
+    if(isOpen && id === 'karte'){ initMap(); positionHighlight(document.getElementById('mapModeGroup')); }
 
     function toggle(){
       isOpen = !isOpen;
@@ -2576,6 +2637,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       localStorage.setItem(storageKey, isOpen ? '1' : '0');
       if(isOpen && id === 'karte'){
         if(!leafletMap) initMap();
+        positionHighlight(document.getElementById('mapModeGroup'));
         setTimeout(() => { if(leafletMap){ leafletMap.invalidateSize(); updateMap(); } }, 60);
       }
     }
@@ -2608,6 +2670,18 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   loadWeather();
   Object.keys(SECTION_DEFAULTS).forEach(id => initCollapsible(id, SECTION_DEFAULTS[id]));
   render();
+
+  // Segmented-Control-Highlights initial positionieren (vor jedem Klick) + bei Resize neu berechnen
+  positionHighlight(document.getElementById('periodGroup'));
+  positionHighlight(document.getElementById('sportGroup'));
+  let _resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => {
+      positionHighlight(document.getElementById('periodGroup'));
+      positionHighlight(document.getElementById('sportGroup'));
+    }, 100);
+  });
 
   // Skeleton-Ladezustand beenden: alle Kernwerte sind jetzt berechnet und im DOM.
   // Kleine Verzögerung, damit der Shimmer-Effekt kurz sichtbar ist statt einfach zu "poppen".
