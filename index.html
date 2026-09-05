@@ -486,8 +486,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .cal-bars div{flex:1; background:var(--outdoor); border-radius:1px; min-height:2px;}
 
 /* ---- Wetter ---- */
-.weather-strip{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch;}
-.weather-strip::-webkit-scrollbar{display:none;}
+.weather-strip{display:flex; flex-direction:column; gap:14px;}
+.wx-now{
+  display:flex; align-items:center; gap:18px; padding:20px 22px;
+  background:linear-gradient(135deg, var(--panel-2), var(--panel));
+  border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--shadow-md);
+}
+.wx-now-icon{font-size:46px; line-height:1; flex-shrink:0;}
+.wx-now-temp{font-size:36px; font-weight:800; letter-spacing:-.02em; line-height:1;}
+.wx-now-desc{font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:5px;}
+.wx-strip{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch;}
+.wx-strip::-webkit-scrollbar{display:none;}
 .wx-day{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md);
   padding:16px 14px; text-align:center; min-width:82px; flex:1;
@@ -1950,28 +1959,53 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
         61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',77:'🌨️',
         80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'❄️',95:'⛈️',96:'⛈️',99:'⛈️'
       };
+      const descMap = {
+        0:'Klarer Himmel',1:'Überwiegend klar',2:'Teilweise bewölkt',3:'Bedeckt',
+        45:'Nebel',48:'Nebel mit Reifglätte',51:'Leichter Nieselregen',53:'Nieselregen',55:'Starker Nieselregen',
+        61:'Leichter Regen',63:'Regen',65:'Starker Regen',66:'Gefrierender Regen',67:'Starker gefrierender Regen',
+        71:'Leichter Schneefall',73:'Schneefall',75:'Starker Schneefall',77:'Schneegriesel',
+        80:'Leichte Regenschauer',81:'Regenschauer',82:'Heftige Regenschauer',
+        85:'Leichte Schneeschauer',86:'Starke Schneeschauer',95:'Gewitter',96:'Gewitter mit Hagel',99:'Starkes Gewitter mit Hagel'
+      };
       const days = data.daily.time;
       const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 
-      // Für "Heute": häufigster Wettercode der Tagesstunden (7-21 Uhr) statt des Open-Meteo
-      // Tages-Sammelwerts, der laut deren Doku die "schwerste" Bedingung des ganzen Tages zeigt —
-      // eine einzige kurze Wolke würde sonst den ganzen Tag als bewölkt markieren.
-      function dominantTodayCode(){
+      // "Jetzt": Open-Meteos current_weather ist der einzig wirklich verlässliche Punkt —
+      // eine echte, aktuelle Momentaufnahme statt einer Prognose. Zeitbasis kommt von der
+      // API selbst (nicht vom Client), damit "vergangene Stunden" unten exakt dazu passt.
+      const nowApi = new Date(data.current_weather.time);
+      const curCode = data.current_weather.weathercode;
+      const curTemp = Math.round(data.current_weather.temperature);
+
+      // Für "Heute" im 7-Tage-Streifen: NUR bereits vergangene Stunden einbeziehen (nowcast),
+      // niemals noch bevorstehende Prognose-Stunden — sonst kann der "Heute"-Wert etwas zeigen,
+      // das noch gar nicht passiert ist (der eigentliche Kern des zuvor gemeldeten Problems).
+      function pastHoursDominantCode(){
         const todayStr = days[0];
         const codes = [];
         data.hourly.time.forEach((t, idx) => {
           if(!t.startsWith(todayStr)) return;
-          const hour = parseInt(t.slice(11,13), 10);
-          if(hour >= 7 && hour <= 21) codes.push(data.hourly.weathercode[idx]);
+          const ts = new Date(t);
+          if(ts <= nowApi) codes.push(data.hourly.weathercode[idx]);
         });
-        if(codes.length === 0) return data.daily.weathercode[0];
+        if(codes.length === 0) return curCode;
         const counts = {};
         codes.forEach(c => counts[c] = (counts[c]||0) + 1);
-        return Object.keys(counts).reduce((a,b) => counts[a] >= counts[b] ? a : b) | 0;
+        return parseInt(Object.keys(counts).reduce((a,b) => counts[a] >= counts[b] ? a : b), 10);
       }
-      const todayCode = dominantTodayCode();
+      const todayCode = pastHoursDominantCode();
 
-      el.innerHTML = days.map((d,i) => {
+      // Hero: aktuelle Bedingungen jetzt gerade — der verlässlichste Einzelwert
+      const heroHtml = `
+        <div class="wx-now">
+          <div class="wx-now-icon">${codeMap[curCode] || '🌡️'}</div>
+          <div class="wx-now-info">
+            <div class="wx-now-temp">${curTemp}°</div>
+            <div class="wx-now-desc">${descMap[curCode] || 'Percha'} · gerade eben</div>
+          </div>
+        </div>`;
+
+      const stripHtml = days.map((d,i) => {
         const dt = new Date(d + 'T12:00:00');
         const lbl = i === 0 ? 'Heute' : dayNames[dt.getDay()];
         const code = i === 0 ? todayCode : data.daily.weathercode[i];
@@ -1987,6 +2021,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
           <div class="wx-rain">${rain}% 💧</div>
         </div>`;
       }).join('');
+
+      el.innerHTML = heroHtml + '<div class="wx-strip">' + stripHtml + '</div>';
     } catch(err){
       el.innerHTML = '<div class="wx-loading">Wetter konnte nicht geladen werden (offline?)</div>';
     }
