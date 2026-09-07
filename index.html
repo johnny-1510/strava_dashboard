@@ -188,6 +188,11 @@ header{
 .chip.disabled{opacity:.35; pointer-events:none;}
 .filters .sep{width:1px; align-self:stretch; background:var(--line); margin:2px 6px;}
 
+.today-indicator{
+  font-family:var(--mono); font-size:11.5px; color:var(--text-dim); font-weight:600;
+  padding:8px 4px; white-space:nowrap;
+}
+.today-indicator::before{content:'📅 '; opacity:.7;}
 .year-select{
   font-family:var(--mono); font-size:12px; padding:8px 30px 8px 15px; border-radius:100px;
   border:1px solid var(--line); color:var(--text); background:var(--panel);
@@ -706,12 +711,9 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </header>
 
   <div class="filters">
-    <select class="year-select" id="yearSelect">
-      <option value="2025">2025</option>
-      <option value="2026" selected>2026</option>
-      <option value="2027">2027</option>
-      <option value="2028">2028</option>
-    </select>
+    <div class="today-indicator" id="todayIndicator" data-skel>–</div>
+    <div class="sep"></div>
+    <select class="year-select" id="yearSelect"></select>
     <div class="sep"></div>
     <div class="filter-group segmented" id="periodGroup">
       <div class="segmented-highlight"></div>
@@ -1080,7 +1082,10 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   }
 
   const DATA = JSON.parse(document.getElementById('activity-data').textContent);
-  const NOW = new Date(2026, 8, 6, 11, 0); // Referenzzeitpunkt "heute"
+  const NOW = new Date(); // Echte, aktuelle Systemzeit — NICHT mehr manuell gesetzt.
+  // Damit rechnen sich alle Plan-vs-Ist-Vergleiche (Ziele, Fitness&Form, Recovery-Zeiträume)
+  // jedes Mal automatisch anhand des tatsächlichen heutigen Datums neu, auch ohne dass Daten
+  // frisch synced wurden. Fährst du heute nicht, wird "vor Plan" von ganz allein weniger.
   const CURRENT_YEAR = NOW.getFullYear();
 
   DATA.forEach(a => { a._dt = new Date(a.t); });
@@ -1467,9 +1472,26 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     positionHighlight(groupEl);
   }
 
+  // Sichtbare "Heute"-Anzeige mit echtem Datum — macht transparent, welchen Tag das Board
+  // gerade als Referenz für alle Plan-vs-Ist-Berechnungen verwendet.
+  document.getElementById('todayIndicator').textContent =
+    'Heute: ' + NOW.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+
   // ---------- Filter-Interaktionen ----------
   const customRangeEl = document.getElementById('customRange');
   const yearSelectEl = document.getElementById('yearSelect');
+
+  // Jahr-Dropdown dynamisch befüllen: von der ersten echten Aktivität bis zum tatsächlich
+  // aktuellen Jahr (nicht mehr hartkodiert) — damit das Board auch in einem späteren Jahr
+  // noch korrekt "heute" erkennt, ohne dass ich manuell Optionen ergänzen muss.
+  (function populateYearSelect(){
+    const earliestYear = DATA.reduce((min, a) => Math.min(min, a._dt.getFullYear()), CURRENT_YEAR);
+    let opts = '';
+    for(let y = earliestYear; y <= CURRENT_YEAR; y++){
+      opts += `<option value="${y}"${y === CURRENT_YEAR ? ' selected' : ''}>${y}</option>`;
+    }
+    yearSelectEl.innerHTML = opts;
+  })();
 
   yearSelectEl.addEventListener('change', () => {
     state.year = parseInt(yearSelectEl.value, 10);
