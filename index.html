@@ -334,6 +334,11 @@ body:not(.app-ready) [data-skel]{
 @media(max-width:640px){ .motivation-banner{padding:13px 16px; border-radius:var(--r-md);} .motivation-banner .mb-text{font-size:12.5px;} }
 
 /* ---- Section label ---- */
+.tab-bar{margin:30px 0 8px; display:flex;}
+.tab-bar .filter-group.segmented{width:100%; max-width:480px;}
+.tab-bar .chip{flex:1; text-align:center; font-size:12.5px; padding:9px 12px;}
+.tab-panel[hidden]{display:none;}
+
 .section-lbl{
   font-family:var(--mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase;
   color:var(--muted); margin:38px 0 14px; display:flex; align-items:center; gap:10px;
@@ -779,6 +784,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     <div class="kpi" data-metric="cal"><div class="lbl">Kalorien <span class="hint">↗</span></div><div class="val" id="kpiCal" data-skel>–</div><div class="delta up" id="kpiCalSub" data-skel>–</div></div>
   </div>
 
+  <div class="tab-bar">
+    <div class="filter-group segmented" id="tabGroup">
+      <div class="segmented-highlight"></div>
+      <div class="chip active" data-tab="heute">Heute</div>
+      <div class="chip" data-tab="verlauf">Verlauf</div>
+      <div class="chip" data-tab="leistung">Leistung</div>
+      <div class="chip" data-tab="karte">Karte</div>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-tab-panel="heute">
   <div class="bento-pair">
   <div class="bento-col">
   <div class="section-lbl collapsible" data-collapse-head="fitness"><span>Fitness & Form</span> <span class="note">— dein Trainingszustand, immer aus der gesamten Historie (unabhängig vom Filter oben)</span><div class="chevron"></div></div>
@@ -843,6 +859,12 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
   </div>
 
+  <div class="section-lbl collapsible" data-collapse-head="wetter"><span>Wetter · Percha / München</span> <span class="note">— nächste 7 Tage, live</span><div class="chevron"></div></div>
+  <div class="collapse-body" data-collapse-body="wetter">
+  <div class="weather-strip" id="weatherStrip"><div class="wx-loading">Lade aktuelle Vorhersage…</div></div>
+  </div>
+
+
   <div class="section-lbl collapsible" data-collapse-head="ziele"><span>Ziele</span> <span class="note">(aktuelle Kalenderwoche / Jahr · anklicken für Details)</span><div class="chevron"></div></div>
   <div class="collapse-body" data-collapse-body="ziele">
   <div class="goals">
@@ -898,8 +920,12 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
   </div>
 
+
+  </div>
+
+  <div class="tab-panel" data-tab-panel="verlauf" hidden>
   <div class="section-lbl collapsible" data-collapse-head="charts"><span>Trainingsmuster</span> <span class="note">— Tageszeit & Wochentag reagieren auf Filter oben</span><div class="chevron"></div></div>
-  <div class="collapse-body collapsed" data-collapse-body="charts">
+  <div class="collapse-body" data-collapse-body="charts">
   <div class="pattern-insight" id="patternInsight">💡 Wird berechnet…</div>
   <div class="charts">
     <div class="panel">
@@ -923,29 +949,28 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
   </div>
 
-  <div class="section-lbl collapsible" data-collapse-head="hrpower"><span>Herzfrequenz & Leistung</span> <span class="note">— reagiert auf Filter oben · nur Sessions mit abgefragten Leistungsdaten (bislang 4 von 360)</span><div class="chevron"></div></div>
-  <div class="collapse-body collapsed" data-collapse-body="hrpower">
-  <div class="hrpower-panel">
-    <div class="hrpower-sub" id="hrpowerSub">Wird berechnet…</div>
-    <div class="hrpower-grid">
-      <div>
-        <svg id="powerCurveChart" viewBox="0 0 700 220" preserveAspectRatio="none"></svg>
-      </div>
-      <div>
-        <div class="hrpower-sub" style="margin-bottom:8px;">Ø/Max Herzfrequenz je Session</div>
-        <div class="hr-session-list" id="hrSessionList"></div>
-      </div>
-    </div>
-  </div>
+  <div class="section-lbl collapsible" data-collapse-head="vergleich"><span>Jahresvergleich</span> <span class="note">— 2025 vs. 2026, gleicher Zeitraum (bis heutigem Tag im Jahr)</span><div class="chevron"></div></div>
+  <div class="collapse-body" data-collapse-body="vergleich">
+  <div class="compare-grid" id="compareGrid"></div>
   </div>
 
-  <div class="section-lbl collapsible" data-collapse-head="wetter"><span>Wetter · Percha / München</span> <span class="note">— nächste 7 Tage, live</span><div class="chevron"></div></div>
-  <div class="collapse-body" data-collapse-body="wetter">
-  <div class="weather-strip" id="weatherStrip"><div class="wx-loading">Lade aktuelle Vorhersage…</div></div>
+
+  <div class="section-lbl collapsible" data-collapse-head="kalender"><span>Kalender <span id="calYearLabel">2026</span></span> <span class="note">(Jahresübersicht · Monat anklicken für Details)</span><div class="chevron"></div></div>
+  <div class="collapse-body" data-collapse-body="kalender">
+  <div class="cal-summary">
+    <div class="item"><div class="val" id="calHours" data-skel>275</div><div class="lbl">Stunden</div></div>
+    <div class="item"><div class="val" id="calKm" data-skel>7.638</div><div class="lbl">Kilometer</div></div>
+    <div class="item"><div class="val accent" id="calPR" data-skel>1030</div><div class="lbl">Persönliche Rekorde<br><span style="font-size:8.5px; opacity:.7; text-transform:none;">auf Streckenabschnitten, kumulativ</span></div></div>
+    <div class="item"><div class="val" id="calN" data-skel>261</div><div class="lbl">Aktivitäten</div></div>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
   </div>
 
+  </div>
+
+  <div class="tab-panel" data-tab-panel="leistung" hidden>
   <div class="section-lbl collapsible" data-collapse-head="rekorde"><span>Rekorde in der Auswahl</span> <span class="note">— zum Aufklappen anklicken</span><div class="chevron"></div></div>
-  <div class="collapse-body collapsed" data-collapse-body="rekorde">
+  <div class="collapse-body" data-collapse-body="rekorde">
   <div class="records-hero" id="recordsHero">
     <div>
       <div class="rh-label">Deine intensivste Session</div>
@@ -980,24 +1005,27 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
   </div>
 
-  <div class="section-lbl collapsible" data-collapse-head="vergleich"><span>Jahresvergleich</span> <span class="note">— 2025 vs. 2026, gleicher Zeitraum (bis heutigem Tag im Jahr)</span><div class="chevron"></div></div>
-  <div class="collapse-body collapsed" data-collapse-body="vergleich">
-  <div class="compare-grid" id="compareGrid"></div>
+  <div class="section-lbl collapsible" data-collapse-head="hrpower"><span>Herzfrequenz & Leistung</span> <span class="note">— reagiert auf Filter oben · nur Sessions mit abgefragten Leistungsdaten (bislang 4 von 360)</span><div class="chevron"></div></div>
+  <div class="collapse-body" data-collapse-body="hrpower">
+  <div class="hrpower-panel">
+    <div class="hrpower-sub" id="hrpowerSub">Wird berechnet…</div>
+    <div class="hrpower-grid">
+      <div>
+        <svg id="powerCurveChart" viewBox="0 0 700 220" preserveAspectRatio="none"></svg>
+      </div>
+      <div>
+        <div class="hrpower-sub" style="margin-bottom:8px;">Ø/Max Herzfrequenz je Session</div>
+        <div class="hr-session-list" id="hrSessionList"></div>
+      </div>
+    </div>
+  </div>
   </div>
 
-  <div class="section-lbl collapsible" data-collapse-head="kalender"><span>Kalender <span id="calYearLabel">2026</span></span> <span class="note">(Jahresübersicht · Monat anklicken für Details)</span><div class="chevron"></div></div>
-  <div class="collapse-body collapsed" data-collapse-body="kalender">
-  <div class="cal-summary">
-    <div class="item"><div class="val" id="calHours" data-skel>275</div><div class="lbl">Stunden</div></div>
-    <div class="item"><div class="val" id="calKm" data-skel>7.638</div><div class="lbl">Kilometer</div></div>
-    <div class="item"><div class="val accent" id="calPR" data-skel>1030</div><div class="lbl">Persönliche Rekorde<br><span style="font-size:8.5px; opacity:.7; text-transform:none;">auf Streckenabschnitten, kumulativ</span></div></div>
-    <div class="item"><div class="val" id="calN" data-skel>261</div><div class="lbl">Aktivitäten</div></div>
-  </div>
-  <div class="cal-grid" id="calGrid"></div>
   </div>
 
+  <div class="tab-panel" data-tab-panel="karte" hidden>
   <div class="section-lbl collapsible" data-collapse-head="karte"><span>Strecken & Heatmap</span> <span class="note">— echte GPS-Strecken (Rad + Lauf), keine Zwift-Spielwelt und keine Spaziergänge</span><div class="chevron"></div></div>
-  <div class="collapse-body collapsed" data-collapse-body="karte">
+  <div class="collapse-body" data-collapse-body="karte">
   <div class="map-controls">
     <div class="map-modes">
       <div class="filter-group segmented" id="mapModeGroup">
@@ -1016,6 +1044,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
   </div>
 
+
+  </div>
 </div>
 <footer id="footerText">Live-Daten aus Strava · letzte Aktivität synced: 08.09.2026 · Vollständige Historie seit 17.07.2025</footer>
 
@@ -2662,16 +2692,12 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // Merkt sich die Präferenz pro Sektion (localStorage), damit das Board beim nächsten
   // Besuch genau so aussieht, wie der Nutzer es zuletzt eingerichtet hat.
   const SECTION_DEFAULTS = {
-    fitness: true,   // USP-Feature, standardmäßig offen
-    recovery: true,  // Apple Health Recovery/Schlaf, ebenfalls täglich relevant
-    ziele: true,     // wird häufig gecheckt
-    charts: false,   // Detail-Analyse, seltener gebraucht
-    hrpower: false,  // Tiefenanalyse, kein Tagesgeschäft
-    wetter: true,    // kompakt, nützlich für Planung
-    rekorde: false,  // nice-to-have, kein Tagesgeschäft
-    vergleich: false, // interessant, aber kein Tagesgeschäft
-    kalender: false, // Jahresrückblick, selten gebraucht
-    karte: false      // explorativ, zusätzlich: Karte wird erst bei Öffnen geladen (Performance)
+    fitness: true, recovery: true, ziele: true, wetter: true,
+    // Diese Sektionen leben jetzt in eigenen Tabs (Verlauf/Leistung/Karte) statt im
+    // langen Einzel-Scroll — daher innerhalb ihres Tabs standardmäßig offen, kein
+    // zusätzliches Akkordeon-Verstecken mehr nötig. Der Tab selbst ist die "Ausblenden"-Ebene.
+    charts: true, hrpower: true, rekorde: true, vergleich: true, kalender: true,
+    karte: true   // Karte wird trotzdem erst beim ersten Wechsel auf den Karte-Tab geladen (Performance)
   };
   function initCollapsible(id, defaultOpen){
     const head = document.querySelector(`[data-collapse-head="${id}"]`);
@@ -2687,23 +2713,45 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       head.setAttribute('aria-expanded', String(isOpen));
     }
     apply();
-    if(isOpen && id === 'karte'){ initMap(); positionHighlight(document.getElementById('mapModeGroup')); }
 
     function toggle(){
       isOpen = !isOpen;
       apply();
       localStorage.setItem(storageKey, isOpen ? '1' : '0');
-      if(isOpen && id === 'karte'){
-        if(!leafletMap) initMap();
-        positionHighlight(document.getElementById('mapModeGroup'));
-        setTimeout(() => { if(leafletMap){ leafletMap.invalidateSize(); updateMap(); } }, 60);
-      }
     }
     head.setAttribute('role', 'button');
     head.setAttribute('tabindex', '0');
     head.addEventListener('click', toggle);
     head.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); } });
   }
+
+  // ---------- Tab-Navigation ----------
+  // Ersetzt den früheren langen Einzel-Scroll: nur EIN Tab-Inhalt ist je in der Seite,
+  // der Rest ist per hidden-Attribut komplett aus dem Layout genommen (nicht nur eingeklappt).
+  // Charts, die während hidden gerendert wurden, hätten Breite 0 -> beim Tab-Wechsel gezielt
+  // neu zeichnen.
+  document.querySelectorAll('#tabGroup .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const target = chip.dataset.tab;
+      document.querySelectorAll('#tabGroup .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      positionHighlight(document.getElementById('tabGroup'));
+
+      document.querySelectorAll('.tab-panel').forEach(p => {
+        p.hidden = p.dataset.tabPanel !== target;
+      });
+
+      if(target === 'heute'){
+        updateFitnessForm(); renderRecovery(); renderBodyComp(); updateGoalDeltas();
+      } else if(target === 'verlauf' || target === 'leistung'){
+        render();
+      } else if(target === 'karte'){
+        if(!leafletMap) initMap();
+        positionHighlight(document.getElementById('mapModeGroup'));
+        setTimeout(() => { if(leafletMap){ leafletMap.invalidateSize(); updateMap(); } }, 60);
+      }
+    });
+  });
 
   // ---------- Tastatur-Zugänglichkeit für Chips ----------
   // Chips sind aus Design-Gründen <div>-Elemente, nicht <button> — ohne das hier wären sie
@@ -2732,12 +2780,14 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // Segmented-Control-Highlights initial positionieren (vor jedem Klick) + bei Resize neu berechnen
   positionHighlight(document.getElementById('periodGroup'));
   positionHighlight(document.getElementById('sportGroup'));
+  positionHighlight(document.getElementById('tabGroup'));
   let _resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(_resizeTimer);
     _resizeTimer = setTimeout(() => {
       positionHighlight(document.getElementById('periodGroup'));
       positionHighlight(document.getElementById('sportGroup'));
+      positionHighlight(document.getElementById('tabGroup'));
     }, 100);
   });
 
