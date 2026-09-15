@@ -2880,13 +2880,18 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   yearSelectEl.addEventListener('change', buildCalendar);
 
   // Sobald der Cloudflare Worker steht: hier die Worker-URL eintragen, z.B.
-  // const WORKER_URL = "https://strava-sync.dein-name.workers.dev";
-  const WORKER_URL = null;
+  const WORKER_URL = "https://misty-rain-64ce.johannes-fersch.workers.dev";
 
   function mergeNewActivities(fresh){
-    const existingTimes = new Set(DATA.map(a => a.t));
+    // Strava liefert start_date_local mit einem angehängten "Z" (obwohl es echte Ortszeit ist,
+    // kein UTC — eine bekannte Eigenart der Strava-API). Unsere eingebetteten Daten haben das "Z"
+    // nicht. Ohne Normalisierung würde der reine String-Vergleich IMMER fehlschlagen und bei
+    // jedem Sync alle Aktivitäten der letzten 60 Tage erneut als "neu" einfügen.
+    const norm = t => t.endsWith('Z') ? t.slice(0, -1) : t;
+    const existingTimes = new Set(DATA.map(a => norm(a.t)));
     let added = 0;
-    fresh.forEach(a => {
+    fresh.forEach(raw => {
+      const a = { ...raw, t: norm(raw.t) };
       if(!existingTimes.has(a.t)){
         a._dt = new Date(a.t);
         DATA.push(a);
@@ -2917,6 +2922,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
         updateGoalDeltas();
         updateRunsBadge();
         updateFitnessForm();
+        renderRingsHero();
         render();
         synced.innerHTML = `<span class="dot"></span> Synced · ${added} neue Aktivität${added!==1?'en':''}`;
       } else {
