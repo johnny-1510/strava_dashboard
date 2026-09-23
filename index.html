@@ -537,6 +537,14 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .cal-km{font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:2px;}
 .cal-bars{display:flex; align-items:flex-end; gap:1.5px; height:36px; margin-top:13px;}
 .cal-bars div{flex:1; background:var(--outdoor); border-radius:1px; min-height:2px;}
+.cal-trend{margin-top:16px; background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:20px 22px; box-shadow:var(--shadow-sm); position:relative;}
+.cal-trend-head{display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+.cal-trend-head>span:first-child{font-size:13px; font-weight:700; color:var(--text);}
+.cal-trend-note{font-family:var(--mono); font-size:10.5px; color:var(--muted);}
+.cal-trend-legend{display:flex; gap:18px; margin:8px 0 4px; font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-wrap:wrap;}
+.cal-trend-legend span{display:inline-flex; align-items:center; gap:6px;}
+.cal-trend-legend i{width:14px; height:2px; border-radius:2px; display:inline-block;}
+#calTrendChart{width:100%; height:190px; display:block; margin-top:6px; overflow:visible; cursor:crosshair;}
 
 /* ---- Wetter ---- */
 .weather-strip{display:flex; flex-direction:column; gap:14px;}
@@ -1019,6 +1027,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     <div class="item"><div class="val" id="calN" data-skel>261</div><div class="lbl">Aktivitäten</div></div>
   </div>
   <div class="cal-grid" id="calGrid"></div>
+  <div class="cal-trend">
+    <div class="cal-trend-head">
+      <span>Kilometer & Trainingsdauer im Jahresverlauf</span>
+      <span class="cal-trend-note">je Monat, indexiert auf den jeweils stärksten Monat = 100%</span>
+    </div>
+    <div class="cal-trend-legend">
+      <span><i style="background:var(--glow-a)"></i>Kilometer</span>
+      <span><i style="background:var(--outdoor)"></i>Stunden</span>
+    </div>
+    <svg id="calTrendChart" viewBox="0 0 1000 190" preserveAspectRatio="none"></svg>
+  </div>
   </div>
 
   </div>
@@ -1133,6 +1152,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // Muss ganz oben stehen, da updateMapTheme() bereits beim Theme-Init (unten) darauf zugreift
   let leafletMap = null, currentLayer = null, tileLayerRef = null;
   let timelineState = null;
+  let calTrendState = null;
 
   // ---------- Theme (Hell/Dunkel/System) ----------
   (function themeInit(){
@@ -1681,7 +1701,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const lastMonthWithData = yAll.length ? Math.max(...yAll.map(a => a._dt.getMonth())) : -1;
     const byMonth = {};
     const kmByMonth = {};
-    for(let m=0;m<12;m++){ byMonth[m] = {}; kmByMonth[m] = 0; }
+    const hoursByMonth = {};
+    for(let m=0;m<12;m++){ byMonth[m] = {}; kmByMonth[m] = 0; hoursByMonth[m] = 0; }
     yAll.forEach(a => {
       const m = a._dt.getMonth(); const d = a._dt.getDate();
       byMonth[m][d] = (byMonth[m][d]||0) + a.m;
@@ -1695,6 +1716,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     for(let m=0;m<12;m++){
       const hasData = m <= lastMonthWithData && Object.keys(byMonth[m]).length > 0;
       const hours = hasData ? Object.values(byMonth[m]).reduce((s,v)=>s+v,0)/60 : 0;
+      hoursByMonth[m] = hours;
       let bars = '';
       if(hasData){
         for(let d=1; d<=daysInMonth(m); d++){
@@ -1708,6 +1730,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       </div>`;
     }
     document.getElementById('calGrid').innerHTML = html;
+    renderCalTrend(kmByMonth, hoursByMonth, lastMonthWithData);
 
     const totalHours = yAll.reduce((s,a) => s + a.m, 0) / 60;
     const totalKm = yAll.reduce((s,a) => s + a.d, 0);
@@ -1724,6 +1747,84 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const items = DATA.filter(a => a._dt.getFullYear() === state.year && a._dt.getMonth() === m).sort((a,b) => b._dt - a._dt);
     openDrawer(`${MONTH_NAMES[m]} ${state.year}`, `${items.length} Aktivitäten`, items);
   });
+
+  // ---------- Kalender: KM & Stunden übereinandergelegt (indexiert, ein gemeinsamer Maßstab) ----------
+  // Bewusst KEINE zwei y-Achsen (km links, Std. rechts): das verzerrt leicht, welcher Monat
+  // "stärker" wirkt, je nachdem wie man die zwei Skalen gegeneinander verschiebt. Stattdessen
+  // wird jede Reihe auf ihren eigenen stärksten Monat = 100% indexiert und beide Linien teilen
+  // sich eine Achse — ehrlich vergleichbar, und optisch trotzdem genau das gewünschte "Überlagern".
+  function renderCalTrend(kmByMonth, hoursByMonth, lastMonthWithData){
+    const svg = document.getElementById('calTrendChart');
+    if(lastMonthWithData < 0){ svg.innerHTML = ''; calTrendState = null; return; }
+    const months = [];
+    for(let m=0; m<=lastMonthWithData; m++) months.push(m);
+    const n = months.length;
+    const maxKm = Math.max(...months.map(m => kmByMonth[m]), 1);
+    const maxH = Math.max(...months.map(m => hoursByMonth[m]), 1);
+
+    const W = 1000, H = 190, padL = 10, padR = 10, padT = 14, padB = 26;
+    const x = i => n > 1 ? padL + (i/(n-1)) * (W-padL-padR) : W/2;
+    const y = pct => padT + (1 - pct/100) * (H-padT-padB);
+
+    const kmPts = months.map(m => kmByMonth[m]/maxKm*100);
+    const hPts = months.map(m => hoursByMonth[m]/maxH*100);
+    const pathFor = pts => pts.map((v,i) => `${i===0?'M':'L'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    const kmPath = pathFor(kmPts);
+    const hPath = pathFor(hPts);
+    const kmArea = n > 1 ? `${kmPath} L${x(n-1).toFixed(1)},${y(0).toFixed(1)} L${x(0).toFixed(1)},${y(0).toFixed(1)} Z` : '';
+
+    let monthTicks = '';
+    months.forEach((m,i) => {
+      monthTicks += `<text x="${x(i).toFixed(1)}" y="${H-8}" font-size="10.5" font-family="var(--mono)" fill="var(--muted)" text-anchor="middle">${MONTH_NAMES[m].replace('.','')}</text>`;
+    });
+    let dots = '';
+    months.forEach((m,i) => {
+      dots += `<circle cx="${x(i)}" cy="${y(kmPts[i])}" r="3.5" fill="var(--glow-a)"/>`;
+      dots += `<circle cx="${x(i)}" cy="${y(hPts[i])}" r="3.5" fill="var(--outdoor)"/>`;
+    });
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="calTrendFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#7c5cff" stop-opacity="0.16"/>
+          <stop offset="100%" stop-color="#7c5cff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${monthTicks}
+      ${kmArea ? `<path d="${kmArea}" fill="url(#calTrendFade)" stroke="none"/>` : ''}
+      <path d="${hPath}" fill="none" stroke="var(--outdoor)" stroke-width="2.5"/>
+      <path d="${kmPath}" fill="none" stroke="var(--glow-a)" stroke-width="2.5"/>
+      ${dots}
+    `;
+
+    calTrendState = { x, months, kmByMonth, hoursByMonth, kmPts, hPts, W };
+
+    svg.onmousemove = showCalTrendAt;
+    svg.onmouseleave = hideCalTrendTip;
+  }
+
+  function showCalTrendAt(e){
+    const st = calTrendState; if(!st) return;
+    const svg = document.getElementById('calTrendChart');
+    const rect = svg.getBoundingClientRect();
+    const relX = (e.clientX - rect.left) / rect.width * st.W;
+    let idx = 0, best = Infinity;
+    st.months.forEach((m,i) => { const d = Math.abs(st.x(i) - relX); if(d < best){ best = d; idx = i; } });
+    const m = st.months[idx];
+    let tip = document.getElementById('calTrendTooltip');
+    if(!tip){
+      tip = document.createElement('div'); tip.id = 'calTrendTooltip'; tip.className = 'tl-tooltip';
+      document.querySelector('.cal-trend').appendChild(tip);
+    }
+    tip.innerHTML = `<b>${MONTH_NAMES[m]} ${state.year}</b><br><i style="color:var(--glow-a)">●</i> ${fmtKm(st.kmByMonth[m])} km<br><i style="color:var(--outdoor)">●</i> ${Math.round(st.hoursByMonth[m])} Std.`;
+    const pctLeft = Math.min(88, Math.max(4, st.x(idx) / st.W * 100));
+    tip.style.left = pctLeft + '%';
+    tip.style.display = 'block';
+  }
+  function hideCalTrendTip(){
+    const tip = document.getElementById('calTrendTooltip');
+    if(tip) tip.style.display = 'none';
+  }
 
   // ---------- Ziele: echte Plan-Deltas berechnen ----------
   function updateGoalDeltas(){
