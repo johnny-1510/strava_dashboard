@@ -335,19 +335,6 @@ html[data-theme="light"] .custom-range input[type="date"]{ color-scheme:light; }
   .bento-col:first-child .section-lbl{margin-top:0;}
 }
 
-/* ---- Herzfrequenz & Power Curve ---- */
-.hrpower-panel{background:var(--panel); border:1px solid var(--panel-border); border-radius:var(--r-lg); padding:26px; box-shadow:var(--shadow-lg); backdrop-filter:blur(var(--blur-panel)) saturate(160%); -webkit-backdrop-filter:blur(var(--blur-panel)) saturate(160%);}
-.hrpower-sub{font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:16px; line-height:1.5;}
-#powerCurveChart{width:100%; height:220px; display:block;}
-.hr-session-list{display:flex; flex-direction:column; gap:0; margin-top:8px;}
-.hr-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line);}
-.hr-row:last-child{border-bottom:none;}
-.hr-row .hr-date{font-family:var(--mono); font-size:10.5px; color:var(--muted); width:64px; flex-shrink:0;}
-.hr-row .hr-name{font-size:12.5px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.hr-row .hr-vals{font-family:var(--mono); font-size:11.5px; color:var(--text-dim); white-space:nowrap; text-align:right;}
-.hr-row .hr-vals b{color:var(--accent-2); font-weight:700;}
-.hrpower-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:20px;}
-@media(max-width:1024px){ .hrpower-grid{grid-template-columns:1fr;} }
 
 /* ---- Skeleton-Ladezustand (statt "–" beim ersten Rendern) ---- */
 body:not(.app-ready) [data-skel]{
@@ -658,28 +645,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 }
 .form-learn:hover{color:var(--text-dim);}
 
-/* ---- Rekorde Showcase ---- */
-.records-hero{
-  background:linear-gradient(135deg, var(--panel-2), var(--panel));
-  border:1px solid var(--panel-border); border-radius:var(--r-lg); padding:26px;
-  display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center;
-  cursor:pointer; margin-bottom:12px; transition:border-color .2s var(--ease);
-  position:relative; overflow:hidden;
-  backdrop-filter:blur(var(--blur-panel)) saturate(160%); -webkit-backdrop-filter:blur(var(--blur-panel)) saturate(160%);
-}
-.records-hero:hover{border-color:var(--line-strong);}
-.records-hero::after{
-  content:''; position:absolute; right:-60px; top:-60px; width:200px; height:200px; border-radius:50%;
-  background:radial-gradient(circle, color-mix(in srgb, var(--glow-a) 16%, transparent), transparent 70%);
-}
-.records-hero .rh-label{font-family:var(--mono); font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
-.records-hero .rh-val{font-family:var(--display); font-size:42px; font-weight:700; margin-top:8px; color:var(--glow-a); background:var(--glow-grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
-.records-hero .rh-sub{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-top:8px;}
-.records-hero .rh-compare{font-family:var(--mono); font-size:11px; color:var(--outdoor); margin-top:6px;}
-.rh-sparkline{display:flex; align-items:flex-end; gap:3px; height:70px; z-index:1;}
-.rh-sparkline div{width:8px; border-radius:2px 2px 0 0; background:var(--carbon-hi);}
-.rh-sparkline div.top{background:var(--glow-grad);}
-
 /* ---- Detail Drawer ---- */
 .drawer-overlay{
   position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(3px);
@@ -864,7 +829,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <div class="segmented-highlight"></div>
       <div class="chip active" data-tab="heute">Heute</div>
       <div class="chip" data-tab="verlauf">Verlauf</div>
-      <div class="chip" data-tab="leistung">Leistung</div>
       <div class="chip" data-tab="karte">Karte</div>
     </div>
   </div>
@@ -1011,37 +975,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
 
   <div class="tab-panel" data-tab-panel="verlauf" hidden>
-  <div class="section-lbl collapsible" data-collapse-head="charts"><span>Trainingsmuster</span> <span class="note">— Tageszeit & Wochentag reagieren auf Filter oben</span><div class="chevron"></div></div>
-  <div class="collapse-body" data-collapse-body="charts">
-  <div class="pattern-insight" id="patternInsight">💡 Wird berechnet…</div>
-  <div class="charts">
-    <div class="panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:8px;">
-        <h3 id="todChartTitle" style="margin-bottom:0;">Trainingsintensität nach Tageszeit</h3>
-        <div class="filter-group" id="todGroup" style="gap:5px;">
-          <div class="chip active" data-tod="all" style="font-size:10px; padding:5px 11px;">Alle</div>
-          <div class="chip" data-tod="morgen" style="font-size:10px; padding:5px 11px;">Morgen</div>
-          <div class="chip" data-tod="mittag" style="font-size:10px; padding:5px 11px;">Mittag</div>
-          <div class="chip" data-tod="abend" style="font-size:10px; padding:5px 11px;">Abend</div>
-        </div>
-      </div>
-      <div class="bars" id="todBars"></div>
-      <div class="legend" id="todLegend"></div>
-    </div>
-    <div class="panel">
-      <h3>Wochentag-Heatmap · Effort</h3>
-      <div class="heat" id="weekdayHeat"></div>
-      <div class="legend" id="weekdayLegend"></div>
-    </div>
-  </div>
-  </div>
-
-  <div class="section-lbl collapsible" data-collapse-head="vergleich"><span>Jahresvergleich</span> <span class="note">— 2025 vs. 2026, gleicher Zeitraum (bis heutigem Tag im Jahr)</span><div class="chevron"></div></div>
-  <div class="collapse-body" data-collapse-body="vergleich">
-  <div class="compare-grid" id="compareGrid"></div>
-  </div>
-
-
   <div class="section-lbl collapsible" data-collapse-head="kalender"><span>Kalender <span id="calYearLabel">2026</span></span> <span class="note">(Jahresübersicht · Monat anklicken für Details)</span><div class="chevron"></div></div>
   <div class="collapse-body" data-collapse-body="kalender">
   <div class="cal-summary">
@@ -1062,61 +995,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <span class="cal-trend-best" id="calTrendBest"></span>
     </div>
     <svg id="calTrendChart" viewBox="0 0 1000 250" preserveAspectRatio="none"></svg>
-  </div>
-  </div>
-
-  </div>
-
-  <div class="tab-panel" data-tab-panel="leistung" hidden>
-  <div class="section-lbl collapsible" data-collapse-head="rekorde"><span>Rekorde in der Auswahl</span> <span class="note">— zum Aufklappen anklicken</span><div class="chevron"></div></div>
-  <div class="collapse-body" data-collapse-body="rekorde">
-  <div class="records-hero" id="recordsHero">
-    <div>
-      <div class="rh-label">Deine intensivste Session</div>
-      <div class="rh-val" id="rhVal" data-skel>–</div>
-      <div class="rh-sub" id="rhSub" data-skel>–</div>
-      <div class="rh-compare" id="rhCompare" data-skel>–</div>
-    </div>
-    <div class="rh-sparkline" id="rhSparkline"></div>
-  </div>
-  <div class="goals" id="recordsGrid">
-    <div class="goal-card" data-record="longest">
-      <div class="goal-info">
-        <div class="lbl">Längste Session</div>
-        <div class="row"><div><b id="recLongest" data-skel>–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recLongestSub" data-skel>–</div>
-      </div>
-    </div>
-    <div class="goal-card" data-record="elev">
-      <div class="goal-info">
-        <div class="lbl">Meiste Höhenmeter</div>
-        <div class="row"><div><b id="recElev" data-skel>–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recElevSub" data-skel>–</div>
-      </div>
-    </div>
-    <div class="goal-card" data-record="indoor">
-      <div class="goal-info">
-        <div class="lbl">Indoor-Anteil</div>
-        <div class="row"><div><b id="recIndoorSessions" data-skel>–</b></div><div><b id="recIndoorKm" data-skel>–</b></div></div>
-        <div class="plan" style="color:var(--muted)" id="recIndoorSub" data-skel>–</div>
-      </div>
-    </div>
-  </div>
-  </div>
-
-  <div class="section-lbl collapsible" data-collapse-head="hrpower"><span>Herzfrequenz & Leistung</span> <span class="note">— reagiert auf Filter oben · nur Sessions mit abgefragten Leistungsdaten (bislang <span id="hrpowerNoteCount">4 von 360</span>)</span><div class="chevron"></div></div>
-  <div class="collapse-body" data-collapse-body="hrpower">
-  <div class="hrpower-panel">
-    <div class="hrpower-sub" id="hrpowerSub">Wird berechnet…</div>
-    <div class="hrpower-grid">
-      <div>
-        <svg id="powerCurveChart" viewBox="0 0 700 220" preserveAspectRatio="none"></svg>
-      </div>
-      <div>
-        <div class="hrpower-sub" style="margin-bottom:8px;">Ø/Max Herzfrequenz je Session</div>
-        <div class="hr-session-list" id="hrSessionList"></div>
-      </div>
-    </div>
   </div>
   </div>
 
@@ -1221,7 +1099,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   DATA.forEach(a => { a._dt = new Date(a.t); });
   const dataYears = new Set(DATA.map(a => a._dt.getFullYear()));
 
-  const state = { year: CURRENT_YEAR, period: 'week', sport: 'all', tod: 'all', customFrom: null, customTo: null, currentLabel: '' };
+  const state = { year: CURRENT_YEAR, period: 'week', sport: 'all', customFrom: null, customTo: null, currentLabel: '' };
 
   function startOfWeek(d){
     const day = d.getDay();
@@ -1270,14 +1148,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     if(state.sport === 'outdoor') return !a.i;
     return true;
   }
-  function todBucket(dt){
-    const h = dt.getHours();
-    if(h < 10) return 'morgen';
-    if(h < 16) return 'mittag';
-    return 'abend';
-  }
-  function weekdayIdx(dt){ const wd = dt.getDay(); return wd === 0 ? 6 : wd - 1; }
-
   function filtered(){ return DATA.filter(a => inPeriod(a) && inSport(a)); }
   function yearAll(){ return DATA.filter(a => a._dt.getFullYear() === state.year); }
 
@@ -1347,66 +1217,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       avgDistPerSession: rideArr.length > 0 ? dist/rideArr.length : 0,
       avgCalPerSession: n > 0 ? cal/n : 0
     };
-  }
-
-  function weekdayEffort(arr){
-    const days = [0,0,0,0,0,0,0];
-    arr.forEach(a => { days[weekdayIdx(a._dt)] += a.r; });
-    return days;
-  }
-  function weekdayStats(arr){
-    const days = Array.from({length:7}, () => ({sum:0, min:0, n:0}));
-    arr.forEach(a => { const i = weekdayIdx(a._dt); days[i].sum += a.r; days[i].min += a.m; days[i].n += 1; });
-    return days.map(d => ({ ...d, epm: d.min > 0 ? d.sum/d.min : 0 }));
-  }
-  function todEffort(arr){
-    const b = { morgen: {effort:0, min:0}, mittag: {effort:0, min:0}, abend: {effort:0, min:0} };
-    arr.forEach(a => { const k = todBucket(a._dt); b[k].effort += a.r; b[k].min += a.m; });
-    return b;
-  }
-
-  // ---------- Erkenntnis-Zeile für "Trainingsmuster" ----------
-  // Übersetzt die Rohdaten in einen konkreten, verständlichen Satz statt nur Balken/Farben zu zeigen.
-  function renderPatternInsight(arr, tod, buckets, labels, epm, wdStats, wdLabels){
-    const el = document.getElementById('patternInsight');
-    if(!el) return;
-
-    if(arr.length < 4){
-      el.innerHTML = `<span class="pi-icon">💡</span><span>Noch zu wenige Sessions in dieser Auswahl für eine verlässliche Muster-Analyse (mind. 4 nötig).</span>`;
-      return;
-    }
-
-    // Tageszeit: bester/schwächster Zeitblock mit ausreichend Daten
-    const validTod = buckets.map((b,i) => ({b, label:labels[b], epm:epm[i], min:tod[b].min})).filter(x => x.min >= 20);
-    let todSentence = '';
-    if(validTod.length >= 2){
-      const best = validTod.reduce((a,b) => b.epm > a.epm ? b : a);
-      const worst = validTod.reduce((a,b) => b.epm < a.epm ? b : a);
-      if(best.b !== worst.b && worst.epm > 0){
-        const pct = Math.round(((best.epm/worst.epm)-1)*100);
-        if(pct >= 5){
-          todSentence = `Du trainierst <b>${best.label.toLowerCase()}s ${pct}% intensiver</b> als ${worst.label.toLowerCase()}s.`;
-        }
-      }
-    }
-
-    // Wochentag: stärkster/ruhigster Tag mit ausreichend Daten (min. 2 Sessions)
-    const validDays = wdStats.map((d,i) => ({i, epm:d.epm, n:d.n})).filter(d => d.n >= 2 && d.epm > 0);
-    let daySentence = '';
-    if(validDays.length >= 2){
-      const bestDay = validDays.reduce((a,b) => b.epm > a.epm ? b : a);
-      const worstDay = validDays.reduce((a,b) => b.epm < a.epm ? b : a);
-      if(bestDay.i !== worstDay.i){
-        daySentence = `<b>${wdLabels[bestDay.i]}</b> ist dein stärkster Trainingstag, <b>${wdLabels[worstDay.i]}</b> dein ruhigster.`;
-      }
-    }
-
-    const parts = [todSentence, daySentence].filter(Boolean);
-    if(parts.length === 0){
-      el.innerHTML = `<span class="pi-icon">💡</span><span>Deine Sessions verteilen sich noch zu gleichmäßig für ein klares Muster — je mehr Daten, desto deutlicher wird's.</span>`;
-    } else {
-      el.innerHTML = `<span class="pi-icon">💡</span><span>${parts.join(' ')}</span>`;
-    }
   }
 
   // ---------- Drawer ----------
@@ -1505,85 +1315,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     document.getElementById('kpiCalSub').textContent = stats.n > 0 ? `Ø ${fmtInt(stats.avgCalPerSession)}/Session` : '–';
     document.querySelectorAll('#statsRow .val, #statsRow .delta').forEach(el => { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); });
 
-    // Tageszeit-Chart
-    const todBase = DATA.filter(a => inPeriod(a) && inSport(a));
-    const tod = todEffort(todBase);
-    const buckets = ['morgen','mittag','abend'];
-    const labels = {morgen:'Morgen', mittag:'Mittag', abend:'Abend'};
-    const epm = buckets.map(b => tod[b].min > 0 ? tod[b].effort/tod[b].min : 0);
-    const maxEpm = Math.max(...epm, 0.01);
-    document.getElementById('todBars').innerHTML = buckets.map((b,i) => {
-      const dimmed = (state.tod !== 'all' && state.tod !== b);
-      const isMax = epm[i] === Math.max(...epm) && epm[i] > 0;
-      const barColor = isMax ? 'var(--text)' : 'var(--outdoor)';
-      return `<div class="bar-col" data-tod="${b}"><div class="bar" style="height:${Math.max(4, epm[i]/maxEpm*100)}%; background:${barColor}; opacity:${dimmed?0.35:(isMax?1:0.65)}"></div><div class="bar-lbl">${labels[b]}</div></div>`;
-    }).join('');
-    document.getElementById('todLegend').innerHTML = buckets.map((b,i) =>
-      `<span><i style="background:var(--outdoor)"></i>${labels[b]} · ${Math.round(epm[i]/maxEpm*100)}%</span>`
-    ).join('');
-    document.getElementById('todChartTitle').textContent = 'Trainingsintensität nach Tageszeit — ' + periodLabel;
-
-    // Wochentag-Heatmap
-    const wd = weekdayEffort(arr);
-    const wdStats = weekdayStats(arr);
-    const wdLabels = ['Mo','Di','Mi','Do','Fr','Sa','So'];
-    const maxWd = Math.max(...wd, 1);
-    document.getElementById('weekdayHeat').innerHTML = wd.map((v,i) => {
-      const alpha = Math.round((v/maxWd)*195 + 40);
-      const isPeak = v === maxWd && v > 0;
-      const bg = `rgba(53,201,176,${(alpha/255).toFixed(2)})`;
-      const ring = isPeak ? 'box-shadow:inset 0 0 0 2px var(--text);' : '';
-      return `<div class="heat-col" data-day="${i}"><div class="heat-cell" style="background:${bg}; ${ring}" title="${wdLabels[i]}: ${Math.round(v)}"></div><div class="heat-lbl">${wdLabels[i]}${isPeak ? ' •' : ''}</div></div>`;
-    }).join('');
-    const peakIdx = wd.indexOf(Math.max(...wd));
-    document.getElementById('weekdayLegend').innerHTML = stats.n > 0
-      ? `<span>Anstrengendster Tag: ${wdLabels[peakIdx]}</span>`
-      : `<span>Keine Daten in dieser Auswahl</span>`;
-
-    // Erkenntnis-Zeile: sagt konkret, was die Zahlen bedeuten, statt nur Balken zu zeigen
-    renderPatternInsight(arr, tod, buckets, labels, epm, wdStats, wdLabels);
-    renderPowerCurve(arr);
-    renderHrSessions(arr);
     renderRecovery();
-
-    // Rekorde
-    if(arr.length > 0){
-      const longest = arr.reduce((m,a) => a.d > m.d ? a : m, arr[0]);
-      const mostElev = arr.reduce((m,a) => a.e > m.e ? a : m, arr[0]);
-      document.getElementById('recLongest').textContent = fmtKm(longest.d) + ' km';
-      document.getElementById('recLongestSub').textContent = `${longest.n} · ${longest._dt.toLocaleDateString('de-DE',{day:'2-digit',month:'long'})}`;
-      document.getElementById('recElev').textContent = fmtInt(mostElev.e) + ' m';
-      document.getElementById('recElevSub').textContent = `${mostElev.n} · ${mostElev._dt.toLocaleDateString('de-DE',{day:'2-digit',month:'long'})}`;
-      const indoorPctN = stats.n > 0 ? (stats.indoorN/stats.n*100) : 0;
-      const indoorPctKm = stats.dist > 0 ? (stats.indoorDist/stats.dist*100) : 0;
-      document.getElementById('recIndoorSessions').textContent = indoorPctN.toFixed(0) + '% Sessions';
-      document.getElementById('recIndoorKm').textContent = indoorPctKm.toFixed(0) + '% km';
-      document.getElementById('recIndoorSub').textContent = `${stats.indoorN} Indoor · ${stats.n - stats.indoorN} Outdoor`;
-
-      // Records-Hero-Showcase: 8 intensivste Sessions, verständlich statt als Rohwert
-      const byEffort = [...arr].sort((a,b) => b.r - a.r).slice(0,8);
-      const top = byEffort[0];
-      const maxR = Math.max(...byEffort.map(a=>a.r), 1);
-      const topLabel = effortLabel(top.r);
-      document.getElementById('rhVal').textContent = topLabel.text;
-      document.getElementById('rhSub').textContent = `${top.n} · ${top._dt.toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'})} · ${fmtKm(top.d)} km · ${fmtDuration(top.m)}`;
-      const avgR = stats.n > 0 ? arr.reduce((s,a)=>s+a.r,0)/stats.n : 0;
-      document.getElementById('rhCompare').textContent = avgR > 0
-        ? `${(top.r/avgR).toFixed(1)}× intensiver als eine durchschnittliche Session in dieser Auswahl`
-        : 'Deine intensivste Session in dieser Auswahl';
-      document.getElementById('rhSparkline').innerHTML = byEffort.map((a,i) =>
-        `<div class="${i===0?'top':''}" style="height:${Math.max(6, a.r/maxR*100)}%" title="${esc(a.n)}: ${effortLabel(a.r).text}"></div>`
-      ).join('');
-      document.getElementById('recordsHero').onclick = () => openDrawer('Deine 8 intensivsten Sessions', periodLabel, byEffort);
-    } else {
-      ['recLongest','recElev','recIndoorSessions','recIndoorKm'].forEach(id => document.getElementById(id).textContent = '–');
-      ['recLongestSub','recElevSub','recIndoorSub'].forEach(id => document.getElementById(id).textContent = 'Keine Aktivitäten in dieser Auswahl');
-      document.getElementById('rhVal').textContent = '–';
-      document.getElementById('rhSub').textContent = 'Keine Aktivitäten in dieser Auswahl';
-      document.getElementById('rhCompare').textContent = '–';
-      document.getElementById('rhSparkline').innerHTML = '';
-    }
-    document.querySelectorAll('#recordsGrid b, #recordsGrid .plan').forEach(el => { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); });
 
     updateMap();
   }
@@ -1643,10 +1375,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   document.querySelectorAll('#sportGroup .chip').forEach(chip => {
     chip.addEventListener('click', () => { state.sport = chip.dataset.sport; setActive('#sportGroup', chip); render(); });
   });
-  document.querySelectorAll('#todGroup .chip').forEach(chip => {
-    chip.addEventListener('click', () => { state.tod = chip.dataset.tod; setActive('#todGroup', chip); render(); });
-  });
-
   document.getElementById('applyCustom').addEventListener('click', () => {
     const fromEl = document.getElementById('dateFrom');
     const toEl = document.getElementById('dateTo');
@@ -1668,38 +1396,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     else if(metric === 'elev'){ sorted = [...arr].sort((a,b) => b.e - a.e).slice(0,12); title = 'Top nach Höhenmetern'; }
     else if(metric === 'cal'){ sorted = [...arr].sort((a,b) => b.c - a.c).slice(0,12); title = 'Top nach Kalorien'; }
     openDrawer(title, state.currentLabel, sorted);
-  });
-
-  document.getElementById('weekdayHeat').addEventListener('click', e => {
-    const col = e.target.closest('.heat-col'); if(!col) return;
-    const dayIdx = parseInt(col.dataset.day, 10);
-    const wdLabels = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
-    const items = filtered().filter(a => weekdayIdx(a._dt) === dayIdx).sort((a,b) => b._dt - a._dt);
-    openDrawer(`Sessions am ${wdLabels[dayIdx]}`, state.currentLabel, items);
-  });
-
-  document.getElementById('todBars').addEventListener('click', e => {
-    const col = e.target.closest('.bar-col'); if(!col) return;
-    const bucket = col.dataset.tod;
-    state.tod = bucket;
-    document.querySelectorAll('#todGroup .chip').forEach(c => c.classList.toggle('active', c.dataset.tod === bucket));
-    render();
-    const labels = {morgen:'morgens (< 10 Uhr)', mittag:'mittags (10–16 Uhr)', abend:'abends (≥ 16 Uhr)'};
-    const items = DATA.filter(a => inPeriod(a) && inSport(a) && todBucket(a._dt) === bucket).sort((a,b) => b._dt - a._dt);
-    openDrawer(`Sessions ${labels[bucket]}`, state.currentLabel, items);
-  });
-
-  document.getElementById('recordsGrid').addEventListener('click', e => {
-    const card = e.target.closest('.goal-card'); if(!card) return;
-    const type = card.dataset.record;
-    const arr = filtered();
-    if(type === 'longest'){
-      openDrawer('Top 5 · Längste Sessions', state.currentLabel, [...arr].sort((a,b) => b.d - a.d).slice(0,5));
-    } else if(type === 'elev'){
-      openDrawer('Top 5 · Meiste Höhenmeter', state.currentLabel, [...arr].sort((a,b) => b.e - a.e).slice(0,5));
-    } else if(type === 'indoor'){
-      openDrawer('Indoor vs. Outdoor', state.currentLabel, [...arr].sort((a,b) => b._dt - a._dt).slice(0,15));
-    }
   });
 
   document.querySelectorAll('.goals')[1] ? null : null; // no-op guard
@@ -2649,102 +2345,6 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     `;
   }
 
-  // ---------- Herzfrequenz & Power Curve ----------
-  // WICHTIG: Keine separaten, hartkodierten Werte mehr — wird live aus den Aktivitäten der
-  // AKTUELLEN Filterauswahl berechnet (arr = filtered()), genau wie jede andere Sektion.
-  // Nur 4 Sessions in der gesamten Historie haben echte Leistungs-/HF-Daten von Strava
-  // (get_activity_performance je Aktivität einzeln abgefragt — nicht für alle 360 Aktivitäten
-  // praktikabel). Enthält die aktuelle Auswahl keine davon, wird das ehrlich so angezeigt,
-  // statt irgendwelche Zahlen zu erfinden.
-  const PC_DURATIONS = [
-    {label:'5s', sec:5}, {label:'15s', sec:15}, {label:'30s', sec:30}, {label:'1min', sec:60},
-    {label:'2min', sec:120}, {label:'3min', sec:180}, {label:'5min', sec:300}, {label:'8min', sec:480},
-    {label:'10min', sec:600}, {label:'15min', sec:900}, {label:'20min', sec:1200}, {label:'30min', sec:1800},
-    {label:'45min', sec:2700}, {label:'1h', sec:3600}
-  ];
-
-  function renderPowerCurve(arr){
-    const svg = document.getElementById('powerCurveChart');
-    if(!svg) return;
-    const withPc = arr.filter(a => a.pc);
-
-    if(withPc.length === 0){
-      svg.innerHTML = `<text x="350" y="110" font-size="12" font-family="var(--sans)" fill="var(--muted)" text-anchor="middle">Keine Sessions mit Leistungsdaten in dieser Auswahl</text>`;
-      return;
-    }
-
-    // Bester (=höchster) Wert je Zeitdauer über alle Sessions der aktuellen Auswahl, die Daten haben
-    const curve = PC_DURATIONS.map(d => ({
-      ...d,
-      watts: Math.max(...withPc.map(a => a.pc[d.sec] || 0))
-    })).filter(d => d.watts > 0);
-
-    if(curve.length === 0){
-      svg.innerHTML = `<text x="350" y="110" font-size="12" font-family="var(--sans)" fill="var(--muted)" text-anchor="middle">Keine Leistungsdaten in dieser Auswahl</text>`;
-      return;
-    }
-
-    const W = 700, H = 220, padL = 38, padR = 12, padT = 14, padB = 26;
-    const chartW = W - padL - padR, chartH = H - padT - padB;
-    const maxSec = Math.log10(curve[curve.length-1].sec);
-    const minSec = Math.log10(curve[0].sec);
-    const maxW = Math.max(...curve.map(p => p.watts)) * 1.1;
-    const x = sec => minSec === maxSec ? padL + chartW/2 : padL + ((Math.log10(sec)-minSec)/(maxSec-minSec)) * chartW;
-    const y = w => padT + chartH - (w/maxW) * chartH;
-
-    const path = curve.map((p,i) => `${i===0?'M':'L'}${x(p.sec).toFixed(1)},${y(p.watts).toFixed(1)}`).join(' ');
-    const area = path + ` L${x(curve[curve.length-1].sec).toFixed(1)},${y(0)} L${x(curve[0].sec).toFixed(1)},${y(0)} Z`;
-
-    const yTicks = [0, Math.round(maxW*0.25/10)*10, Math.round(maxW*0.5/10)*10, Math.round(maxW*0.75/10)*10, Math.round(maxW/10)*10];
-    const yGrid = yTicks.map(t => `<line x1="${padL}" y1="${y(t)}" x2="${W-padR}" y2="${y(t)}" stroke="var(--line)" stroke-width="1"/><text x="${padL-6}" y="${y(t)+3}" font-size="9" font-family="var(--mono)" fill="var(--muted)" text-anchor="end">${t}</text>`).join('');
-    const labels = curve.map(p => `<text x="${x(p.sec)}" y="${H-8}" font-size="9" font-family="var(--mono)" fill="var(--muted)" text-anchor="middle">${p.label}</text>`).join('');
-    const dots = curve.map(p => `<circle cx="${x(p.sec)}" cy="${y(p.watts)}" r="3" fill="var(--glow-a)"/>`).join('');
-
-    svg.innerHTML = `
-      <defs>
-        <linearGradient id="pcLineGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#d55181"/>
-          <stop offset="100%" stop-color="#9085e9"/>
-        </linearGradient>
-        <linearGradient id="pcAreaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#9085e9" stop-opacity="0.25"/>
-          <stop offset="100%" stop-color="#9085e9" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      ${yGrid}
-      <path d="${area}" fill="url(#pcAreaGrad)" stroke="none"/>
-      <path d="${path}" fill="none" stroke="url(#pcLineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      ${dots}
-      ${labels}
-    `;
-  }
-
-  function renderHrSessions(arr){
-    const el = document.getElementById('hrSessionList');
-    const subEl = document.getElementById('hrpowerSub');
-    if(!el) return;
-    const noteCount = document.getElementById('hrpowerNoteCount');
-    if(noteCount) noteCount.textContent = `${DATA.filter(a => a.hr).length} von ${DATA.length}`;
-    const withHr = [...arr].filter(a => a.hr).sort((a,b) => b._dt - a._dt);
-
-    if(withHr.length === 0){
-      el.innerHTML = '';
-      const totalWithHr = DATA.filter(a => a.hr).length;
-      subEl.textContent = `Keine Sessions mit Herzfrequenzdaten in dieser Auswahl. (Nur ${totalWithHr} Session${totalWithHr!==1?'s':''} in der gesamten Historie haben bislang abgefragte Leistungs-/HF-Daten von Strava.)`;
-      return;
-    }
-
-    el.innerHTML = withHr.map(s => `
-      <div class="hr-row">
-        <div class="hr-date">${s._dt.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</div>
-        <div class="hr-name">${esc(s.n)}</div>
-        <div class="hr-vals">Ø <b>${s.hr}</b> · max ${s.mhr}</div>
-      </div>
-    `).join('');
-    const avgHr = Math.round(withHr.reduce((s,h)=>s+h.hr,0)/withHr.length);
-    subEl.textContent = `${withHr.length} von ${arr.length} Sessions in dieser Auswahl haben Leistungsdaten (FTP ${253} W als Referenz) · Ø Herzfrequenz dieser Sessions: ${avgHr} bpm`;
-  }
-
   // ---------- Recovery & Schlaf (aus Apple-Health-Export) ----------
   // WICHTIG: Anders als Strava-Daten wird das hier NICHT live nachgeladen — der Nutzer hat
   // einmalig eine Export.zip hochgeladen. Alle Werte sind echt (Nächte-Anzahl siehe
@@ -2985,11 +2585,9 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   const SECTION_DEFAULTS = {
     // "Heute" ist die Auf-einen-Blick-Ansicht — hier bleibt alles offen.
     fitness: true, recovery: true, ziele: true, wetter: true,
-    // In den Detail-Tabs (Verlauf/Leistung) ist die Kopfsektion die Schlagzeile (offen),
-    // die dichteren/selteneren Zusatzsektionen starten eingeklappt — entschlackt den
-    // ersten Eindruck pro Tab, ohne dass eine einzige Funktion verschwindet.
-    charts: true, vergleich: false, kalender: false,
-    rekorde: true, hrpower: false,
+    // Im Verlauf-Tab ist die Kopfsektion die Schlagzeile (offen), Zusatzsektionen starten
+    // eingeklappt — entschlackt den ersten Eindruck pro Tab, ohne dass eine Funktion verschwindet.
+    kalender: false,
     karte: true   // Karte wird ohnehin erst beim ersten Wechsel auf den Karte-Tab geladen (Performance)
   };
   function initCollapsible(id, defaultOpen){
@@ -3036,7 +2634,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
       if(target === 'heute'){
         updateFitnessForm(); renderRecovery(); renderBodyComp(); updateGoalDeltas(); renderRingsHero();
-      } else if(target === 'verlauf' || target === 'leistung'){
+      } else if(target === 'verlauf'){
         render();
       } else if(target === 'karte'){
         if(!leafletMap) initMap();
