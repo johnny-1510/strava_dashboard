@@ -544,7 +544,14 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .cal-trend-legend{display:flex; gap:18px; margin:8px 0 4px; font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-wrap:wrap;}
 .cal-trend-legend span{display:inline-flex; align-items:center; gap:6px;}
 .cal-trend-legend i{width:14px; height:2px; border-radius:2px; display:inline-block;}
-#calTrendChart{width:100%; height:190px; display:block; margin-top:6px; overflow:visible; cursor:crosshair;}
+.cal-trend-best{margin-left:auto; color:var(--text-dim); font-weight:600;}
+#calTrendChart{width:100%; height:250px; display:block; margin-top:10px; overflow:visible; cursor:crosshair;}
+.cal-trend-tip{
+  position:absolute; top:8px; transform:translateX(-50%);
+  background:var(--panel-2); border:1px solid var(--line-strong); border-radius:8px;
+  padding:8px 12px; font-family:var(--mono); font-size:11px; color:var(--text);
+  white-space:nowrap; pointer-events:none; display:none; box-shadow:var(--shadow-md); z-index:2; line-height:1.6;
+}
 
 /* ---- Wetter ---- */
 .weather-strip{display:flex; flex-direction:column; gap:14px;}
@@ -1035,8 +1042,9 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     <div class="cal-trend-legend">
       <span><i style="background:var(--glow-a)"></i>Kilometer</span>
       <span><i style="background:var(--outdoor)"></i>Stunden</span>
+      <span class="cal-trend-best" id="calTrendBest"></span>
     </div>
-    <svg id="calTrendChart" viewBox="0 0 1000 190" preserveAspectRatio="none"></svg>
+    <svg id="calTrendChart" viewBox="0 0 1000 250" preserveAspectRatio="none"></svg>
   </div>
   </div>
 
@@ -1755,15 +1763,16 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // sich eine Achse — ehrlich vergleichbar, und optisch trotzdem genau das gewünschte "Überlagern".
   function renderCalTrend(kmByMonth, hoursByMonth, lastMonthWithData){
     const svg = document.getElementById('calTrendChart');
-    if(lastMonthWithData < 0){ svg.innerHTML = ''; calTrendState = null; return; }
+    const bestEl = document.getElementById('calTrendBest');
+    if(lastMonthWithData < 0){ svg.innerHTML = ''; calTrendState = null; if(bestEl) bestEl.textContent = ''; return; }
     const months = [];
     for(let m=0; m<=lastMonthWithData; m++) months.push(m);
     const n = months.length;
     const maxKm = Math.max(...months.map(m => kmByMonth[m]), 1);
     const maxH = Math.max(...months.map(m => hoursByMonth[m]), 1);
 
-    const W = 1000, H = 190, padL = 10, padR = 10, padT = 14, padB = 26;
-    const x = i => n > 1 ? padL + (i/(n-1)) * (W-padL-padR) : W/2;
+    const W = 1000, H = 250, padL = 44, padR = 14, padT = 20, padB = 32;
+    const x = i => n > 1 ? padL + (i/(n-1)) * (W-padL-padR) : (padL+W-padR)/2;
     const y = pct => padT + (1 - pct/100) * (H-padT-padB);
 
     const kmPts = months.map(m => kmByMonth[m]/maxKm*100);
@@ -1773,34 +1782,70 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const hPath = pathFor(hPts);
     const kmArea = n > 1 ? `${kmPath} L${x(n-1).toFixed(1)},${y(0).toFixed(1)} L${x(0).toFixed(1)},${y(0).toFixed(1)} Z` : '';
 
+    // Y-Achse: Gitterlinien + %-Beschriftung (eine gemeinsame, indexierte Skala für beide Reihen)
+    let grid = '';
+    [0,25,50,75,100].forEach(pct => {
+      const gy = y(pct);
+      grid += `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${W-padR}" y2="${gy.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
+      grid += `<text x="${padL-8}" y="${(gy+3.5).toFixed(1)}" font-size="10" font-family="var(--mono)" fill="var(--muted)" text-anchor="end">${pct}%</text>`;
+    });
+
+    // X-Achse: Monatsbeschriftung
     let monthTicks = '';
     months.forEach((m,i) => {
-      monthTicks += `<text x="${x(i).toFixed(1)}" y="${H-8}" font-size="10.5" font-family="var(--mono)" fill="var(--muted)" text-anchor="middle">${MONTH_NAMES[m].replace('.','')}</text>`;
+      monthTicks += `<text x="${x(i).toFixed(1)}" y="${H-10}" font-size="10.5" font-family="var(--mono)" fill="var(--muted)" text-anchor="middle">${MONTH_NAMES[m].replace('.','')}</text>`;
     });
+
+    // Direkte Beschriftung nur am Bestmonat + aktuellem Monat je Reihe (nicht an jedem Punkt —
+    // die genauen Werte für alle anderen Monate gibt's beim Draufhalten per Tooltip).
+    const peakKmIdx = kmPts.indexOf(Math.max(...kmPts));
+    const peakHIdx = hPts.indexOf(Math.max(...hPts));
+    const lastIdx = n - 1;
+
     let dots = '';
     months.forEach((m,i) => {
-      dots += `<circle cx="${x(i)}" cy="${y(kmPts[i])}" r="3.5" fill="var(--glow-a)"/>`;
-      dots += `<circle cx="${x(i)}" cy="${y(hPts[i])}" r="3.5" fill="var(--outdoor)"/>`;
+      const rKm = (i===peakKmIdx || i===lastIdx) ? 5 : 3.5;
+      const rH = (i===peakHIdx || i===lastIdx) ? 5 : 3.5;
+      dots += `<circle cx="${x(i)}" cy="${y(kmPts[i]).toFixed(1)}" r="${rKm}" fill="var(--glow-a)"/>`;
+      dots += `<circle cx="${x(i)}" cy="${y(hPts[i]).toFixed(1)}" r="${rH}" fill="var(--outdoor)"/>`;
+    });
+
+    let labels = '';
+    new Set([peakKmIdx, lastIdx]).forEach(i => {
+      labels += `<text x="${x(i).toFixed(1)}" y="${(y(kmPts[i])-12).toFixed(1)}" font-size="11" font-weight="700" font-family="var(--sans)" fill="var(--glow-a)" text-anchor="middle">${fmtKm(kmByMonth[months[i]])} km</text>`;
+    });
+    new Set([peakHIdx, lastIdx]).forEach(i => {
+      labels += `<text x="${x(i).toFixed(1)}" y="${(y(hPts[i])+19).toFixed(1)}" font-size="11" font-weight="700" font-family="var(--sans)" fill="var(--outdoor)" text-anchor="middle">${Math.round(hoursByMonth[months[i]])} Std.</text>`;
     });
 
     svg.innerHTML = `
       <defs>
-        <linearGradient id="calTrendFade" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="calTrendFadeKm" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#7c5cff" stop-opacity="0.16"/>
           <stop offset="100%" stop-color="#7c5cff" stop-opacity="0"/>
         </linearGradient>
       </defs>
-      ${monthTicks}
-      ${kmArea ? `<path d="${kmArea}" fill="url(#calTrendFade)" stroke="none"/>` : ''}
+      ${grid}
+      ${kmArea ? `<path d="${kmArea}" fill="url(#calTrendFadeKm)" stroke="none"/>` : ''}
       <path d="${hPath}" fill="none" stroke="var(--outdoor)" stroke-width="2.5"/>
       <path d="${kmPath}" fill="none" stroke="var(--glow-a)" stroke-width="2.5"/>
       ${dots}
+      ${labels}
+      ${monthTicks}
     `;
 
-    calTrendState = { x, months, kmByMonth, hoursByMonth, kmPts, hPts, W };
+    calTrendState = { x, months, kmByMonth, hoursByMonth, kmPts, hPts, W, H, padT, padB };
 
     svg.onmousemove = showCalTrendAt;
     svg.onmouseleave = hideCalTrendTip;
+
+    if(bestEl){
+      if(peakKmIdx === peakHIdx){
+        bestEl.textContent = `Stärkster Monat: ${MONTH_NAMES[months[peakKmIdx]]} (${fmtKm(kmByMonth[months[peakKmIdx]])} km · ${Math.round(hoursByMonth[months[peakKmIdx]])} Std.)`;
+      } else {
+        bestEl.textContent = `Meiste km: ${MONTH_NAMES[months[peakKmIdx]]} · meiste Zeit: ${MONTH_NAMES[months[peakHIdx]]}`;
+      }
+    }
   }
 
   function showCalTrendAt(e){
@@ -1811,19 +1856,33 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     let idx = 0, best = Infinity;
     st.months.forEach((m,i) => { const d = Math.abs(st.x(i) - relX); if(d < best){ best = d; idx = i; } });
     const m = st.months[idx];
+
+    let line = document.getElementById('calTrendCrosshair');
+    if(!line){
+      line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.id = 'calTrendCrosshair';
+      line.setAttribute('stroke', 'var(--text-dim)'); line.setAttribute('stroke-width', '1'); line.setAttribute('stroke-dasharray', '3 3');
+      svg.appendChild(line);
+    }
+    line.setAttribute('x1', st.x(idx)); line.setAttribute('x2', st.x(idx));
+    line.setAttribute('y1', st.padT); line.setAttribute('y2', st.H - st.padB);
+    line.style.display = '';
+
     let tip = document.getElementById('calTrendTooltip');
     if(!tip){
-      tip = document.createElement('div'); tip.id = 'calTrendTooltip'; tip.className = 'tl-tooltip';
+      tip = document.createElement('div'); tip.id = 'calTrendTooltip'; tip.className = 'cal-trend-tip';
       document.querySelector('.cal-trend').appendChild(tip);
     }
-    tip.innerHTML = `<b>${MONTH_NAMES[m]} ${state.year}</b><br><i style="color:var(--glow-a)">●</i> ${fmtKm(st.kmByMonth[m])} km<br><i style="color:var(--outdoor)">●</i> ${Math.round(st.hoursByMonth[m])} Std.`;
-    const pctLeft = Math.min(88, Math.max(4, st.x(idx) / st.W * 100));
+    tip.innerHTML = `<b>${MONTH_NAMES[m]} ${state.year}</b><br><span style="color:var(--glow-a)">●</span> ${fmtKm(st.kmByMonth[m])} km<br><span style="color:var(--outdoor)">●</span> ${Math.round(st.hoursByMonth[m])} Std.`;
+    const pctLeft = Math.min(90, Math.max(4, st.x(idx) / st.W * 100));
     tip.style.left = pctLeft + '%';
     tip.style.display = 'block';
   }
   function hideCalTrendTip(){
     const tip = document.getElementById('calTrendTooltip');
     if(tip) tip.style.display = 'none';
+    const line = document.getElementById('calTrendCrosshair');
+    if(line) line.style.display = 'none';
   }
 
   // ---------- Ziele: echte Plan-Deltas berechnen ----------
@@ -3044,13 +3103,32 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // Datenbasis war jeweils eine andere. Fix: dieselbe Sync-Logik läuft jetzt auch einmal
   // automatisch direkt nach dem Laden, sodass beide Wege immer zum selben, aktuellen
   // Ergebnis führen.
+  // fetch() mit hartem Timeout: ohne AbortController kann ein Request, der ins Leere läuft
+  // (Worker "hängt", statt zu antworten), den Sync minutenlang blockieren, bevor der Browser
+  // von sich aus aufgibt. Nach 10s brechen wir selbst ab, statt darauf zu warten.
+  async function fetchWithTimeout(url, ms){
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try{ return await fetch(url, { signal: ctrl.signal }); }
+    finally{ clearTimeout(t); }
+  }
+
   async function syncFromWorker({ silent } = {}){
     btn.disabled = true; btn.classList.add('spinning');
     if(!silent) synced.innerHTML = '<span class="dot"></span> Synchronisiere…';
+    synced.removeAttribute('title');
     try{
       if(WORKER_URL){
-        const res = await fetch(WORKER_URL);
-        if(!res.ok) throw new Error('Worker antwortete mit ' + res.status);
+        // Ein automatischer zweiter Versuch: ein einzelner kurzer Netzwerkaussetzer (z.B.
+        // Cloudflare Cold-Start) soll nicht sofort als "Sync fehlgeschlagen" enden, wenn ein
+        // zweiter Versuch 1,5s später einfach klappt.
+        let res, lastErr = null;
+        for(let attempt = 0; attempt < 2; attempt++){
+          try{ res = await fetchWithTimeout(WORKER_URL, 10000); lastErr = null; break; }
+          catch(e){ lastErr = e; if(attempt === 0) await new Promise(r => setTimeout(r, 1500)); }
+        }
+        if(lastErr) throw lastErr;
+        if(!res.ok) throw new Error('Worker antwortete mit HTTP ' + res.status);
         const fresh = await res.json();
         const added = mergeNewActivities(fresh);
         buildCalendar();
@@ -3066,8 +3144,18 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
         synced.innerHTML = '<span class="dot"></span> Zuletzt synced: gerade eben (Worker noch nicht eingerichtet)';
       }
     } catch(err){
+      // "Failed to fetch" (TypeError) heißt: der Request kam nie beim Server an — kein HTTP-Status,
+      // also kein Problem im Worker selbst, sondern meist ein Netzwerkaussetzer, eine Browser-
+      // Erweiterung (Ad-/Trackingblocker, die workers.dev blockiert) oder fehlende CORS-Freigabe.
+      // "Worker antwortete mit HTTP xyz" heißt dagegen: der Server wurde erreicht, hat aber einen
+      // Fehlerstatus geliefert (z.B. abgelaufener Strava-Token). Bewusst unterschiedlich benannt,
+      // damit im Titel-Tooltip sofort klar ist, wo man im Ernstfall suchen muss.
+      const reason = err.name === 'AbortError' ? 'Zeitüberschreitung — Worker hat nach 10s (2 Versuche) nicht geantwortet'
+        : (err instanceof TypeError) ? 'Verbindung fehlgeschlagen — Netzwerkproblem, Blocker oder fehlende CORS-Freigabe auf dem Worker'
+        : err.message;
       synced.innerHTML = '<span class="dot" style="background:var(--accent-2)"></span> Sync fehlgeschlagen';
-      console.error('Strava-Sync-Fehler:', err);
+      synced.title = reason;
+      console.error('Strava-Sync-Fehler:', reason, err);
     }
     btn.classList.remove('spinning'); btn.disabled = false;
   }
