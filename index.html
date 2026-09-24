@@ -736,8 +736,13 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   :root{ --bn-total-h: calc(52px + max(7px, env(safe-area-inset-bottom))); }
   .goals{grid-template-columns:1fr;}
   .big-num{font-size:48px;}
-  .hero-main{padding:26px 24px;}
-  .stat-tile{padding:22px 24px;}
+  /* Kennzahlen-Karte auf dem Phone: statt 5 vollbreiten Zeilen (Sessions + 4× Kennzahl je eigene
+     Zeile, ~630px Gesamthöhe) ein kompaktes 2×2-Raster unter der Sessions-Zeile — deterministisch
+     per CSS-Grid statt über Flex-Wrap-Breitenarithmetik geraten. Halbiert grob die Kartenhöhe. */
+  .hero{display:grid; grid-template-columns:1fr 1fr;}
+  .hero-main{grid-column:1 / -1; padding:20px 22px 16px;}
+  .stat-tile{padding:16px 16px; border-left:none; border-top:1px solid var(--line);}
+  .stat-tile:nth-child(3), .stat-tile:nth-child(5){border-left:1px solid var(--line);}
   .filters{
     overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;
     padding-right:28px;
@@ -1379,6 +1384,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '24.09-4', d: '24.09.2026', t: 'Mobile: Kennzahlen-Karte als kompaktes 2×2-Raster statt 5 vollbreiter Zeilen; Fitness & Form / Recovery & Schlaf / Ziele starten auf dem Phone eingeklappt (per Tap weiter aufklappbar) — Scroll-Länge des Heute-Tabs von ~4300px auf ~1700px reduziert.' },
     { v: '24.09-3', d: '24.09.2026', t: 'Mobile-Redesign: native Bottom-Nav (Heute/Verlauf/Karte) statt Pillen-Leiste, kompakter 2-zeiliger Header, entschärfte Sticky-Filterleiste, Läufe-Badge kollidiert nicht mehr mit der Bottom-Nav.' },
     { v: '24.09-2', d: '24.09.2026', t: '"Leistung"-Tab entfernt (Rekorde + Herzfrequenz & Leistung) — zu wenig Daten, zu viel Scrollen.' },
     { v: '24.09-1', d: '24.09.2026', t: 'Trainingsmuster (Tageszeit/Wochentag) und Jahresvergleich entfernt — Jahresvergleich kommt 2027 zurück.' },
@@ -2823,7 +2829,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   renderRingsHero();
   initTimelineScrub();
   loadWeather();
-  Object.keys(SECTION_DEFAULTS).forEach(id => initCollapsible(id, SECTION_DEFAULTS[id]));
+  // Auf dem Phone sind "Fitness & Form", "Recovery & Schlaf" und "Ziele" mit Abstand die
+  // schwersten Blöcke (618/697/991px) und machen zusammen über die Hälfte der Scroll-Länge
+  // des "Heute"-Tabs aus. Der Desktop-Grundsatz "hier bleibt alles offen" gilt weiter dort, wo
+  // genug Platz ist — auf einem schmalen Screen kollabieren diese drei stattdessen standardmäßig
+  // (weiterhin per Tap aufklappbar, pro Gerät unabhängig in localStorage gemerkt).
+  const MOBILE_COLLAPSE_DEFAULTS = { fitness: false, recovery: false, ziele: false };
+  const isNarrowViewport = window.innerWidth <= 640;
+  Object.keys(SECTION_DEFAULTS).forEach(id => {
+    const fallback = isNarrowViewport && (id in MOBILE_COLLAPSE_DEFAULTS) ? MOBILE_COLLAPSE_DEFAULTS[id] : SECTION_DEFAULTS[id];
+    initCollapsible(id, fallback);
+  });
   render();
 
   // Segmented-Control-Highlights initial positionieren (vor jedem Klick) + bei Resize neu berechnen
