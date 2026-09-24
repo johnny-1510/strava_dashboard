@@ -219,6 +219,12 @@ header{
 .chip.active{ background:var(--glow-grad); border-color:transparent; color:#fff; font-weight:600; }
 .chip.disabled{opacity:.35; pointer-events:none;}
 .filters .sep{width:1px; align-self:stretch; background:var(--line); margin:2px 6px;}
+/* .filters-row existiert nur, um auf dem Phone den Sport-Filter (Alle/Indoor/Outdoor) aus der
+   langen Scroll-Strecke des Datums/Zeitraum-Filters herauszulösen (siehe mobile Regel unten) —
+   auf Desktop/Tablet ist es unsichtbar (`display:contents`): die Kinder verhalten sich exakt so,
+   als lägen sie direkt in `.filters`, identisch zum vorherigen flachen Markup. */
+.filters-row{display:contents;}
+.filters-sep-desktop-only{display:block;}
 
 .today-indicator{
   font-family:var(--mono); font-size:11.5px; color:var(--text-dim); font-weight:600;
@@ -616,7 +622,18 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 /* ---- Karte & Heatmap ---- */
 .map-controls{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
 .map-modes{display:flex; gap:6px;}
-#routeMap{width:100%; height:420px; border-radius:var(--r-md); overflow:hidden; border:1px solid var(--line); background:var(--panel-2);}
+/* isolation:isolate ist der eigentliche Fix für "Bottom-Nav verschwindet auf der Karte":
+   Leaflet setzt intern z-index bis 1000 auf seine eigenen Panes/Controls (Zoom-Buttons,
+   Attribution). #routeMap ist zwar position:relative (von Leaflets eigenem CSS gesetzt),
+   aber OHNE eigenen Stapelkontext (z-index:auto) reichen diese hohen Werte durch den
+   Container hindurch bis in den globalen/Body-Stapelkontext — und übermalen dort alles
+   mit niedrigerem z-index, inklusive unserer fix positionierten .bottom-nav (z-index:40),
+   obwohl die im DOM sogar später kommt. isolation:isolate zwingt #routeMap dazu, einen
+   eigenen, in sich geschlossenen Stapelkontext zu bilden: alles innerhalb (auch z-index:1000)
+   bleibt visuell IN der Karte gefangen und kann nie wieder mit Geschwistern wie der
+   Bottom-Nav konkurrieren. Per Playwright mit einem Nachbau von Leaflets z-index-Schema
+   (400/1000) verifiziert: ohne isolation gewinnt der Karten-Layer, mit isolation die Bottom-Nav. */
+#routeMap{width:100%; height:420px; border-radius:var(--r-md); overflow:hidden; border:1px solid var(--line); background:var(--panel-2); isolation:isolate;}
 #routeMap.dark-tiles .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.85);}
 .route-select{
   font-family:var(--mono); font-size:11.5px; padding:8px 14px; border-radius:100px;
@@ -765,19 +782,36 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   .stat-tile .lbl{font-size:9.5px; margin-top:1px; gap:4px;}
   .stat-tile .delta{font-size:9.5px; margin-top:2px;}
   .badge{margin-top:4px; padding:3px 9px; font-size:9px;}
-  .filters{
+  /* Läufe wie folgt: der Sport-Filter (Alle/Indoor/Outdoor) saß bisher GANZ AM ENDE derselben
+     horizontal scrollenden Leiste wie Datum + 5 Zeitraum-Chips — auf einem 393px-Screen ist die
+     Gesamtbreite von beidem zusammen so groß, dass "Alle/Indoor/Outdoor" erst nach viel Scrollen
+     erreichbar war, ohne sichtbaren Hinweis außer dem schmalen Fade-Rand. Das las sich als
+     "abgeschnitten", nicht als "scrollbar" ("es wird noch was weggeschnitten" laut Rückmeldung).
+     Fix: zwei Zeilen statt einer. `.filters-row` wird hier (anders als auf Desktop/Tablet) zur
+     echten Flex-Zeile; nur die erste (Datum/Jahr/Zeitraum) bleibt horizontal scrollbar — die
+     zweite (Sport-Filter, nur 3 kurze Chips) ist immer komplett sichtbar, keine Scroll-Geste
+     nötig. Kostet eine zusätzliche, aber sehr flache Zeile (~40px) statt eines UI-Elements, das
+     sich kaputt anfühlt. */
+  .filters{ flex-direction:column; flex-wrap:nowrap; align-items:stretch; padding-top:10px; padding-bottom:10px; margin-bottom:14px; gap:8px; background:rgba(var(--bg-rgb), .94); }
+  /* min-width:0 ist hier kein Kosmetik-Detail, sondern macht den Unterschied zwischen
+     "scrollt intern" und "reißt die ganze Seite horizontal auf": ein Flex-Kind mit nowrap-
+     Inhalt hat per Spec ein implizites min-width:auto = seine Inhaltsbreite — align-items:stretch
+     kann es dadurch NICHT unter diese Breite zusammendrücken, egal wie schmal der Elterncontainer
+     ist. Ohne diese Zeile wäre `.filters-row-primary` trotz `overflow-x:auto` nie wirklich
+     schmäler als sein Inhalt geworden, sondern hätte `.filters`/`.wrap` selbst auf Inhaltsbreite
+     aufgeblasen (per Playwright gemessen: scrollWidth/clientWidth beide 888px, kein Scrollen
+     nötig oder möglich — Ursache des "weggeschnitten"-Eindrucks bestätigt). */
+  .filters-row{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .filters-sep-desktop-only{ display:none; }
+  .filters-row-primary{
     overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;
-    padding-right:28px; padding-top:10px; padding-bottom:12px; margin-bottom:14px;
-    /* Beim Sticky-Pinning ist eine leicht durchscheinende Leiste auf dem Desktop ein hübscher
-       Glass-Effekt, auf dem schmalen Phone-Screen aber ein verwirrendes "Geisterbild" aus
-       darunterliegendem Text. Auf Mobile fast blickdicht -> wirkt wie eine echte native Bar. */
-    background:rgba(var(--bg-rgb), .94);
-    /* Fade am rechten Rand statt hartem Abschnitt -> signalisiert "hier geht's horizontal weiter",
-       ohne einen Pfeil oder zusätzliches UI-Element einzuführen. */
+    padding-right:28px;
+    /* Fade am rechten Rand statt hartem Abschnitt -> signalisiert "hier geht's horizontal weiter". */
     mask-image:linear-gradient(to right, #000 calc(100% - 32px), transparent);
     -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 32px), transparent);
   }
-  .filters::-webkit-scrollbar{display:none;}
+  .filters-row-primary::-webkit-scrollbar{display:none;}
+  .filters-row-sport{ flex-wrap:wrap; }
   .cal-summary{gap:20px;}
   .wrap{padding:14px 16px calc(var(--bn-total-h) + 20px);}
   /* Abstands-Kaskade oben insgesamt entschlackt (Kopf → Filter → Abschnitts-Titel → Kennzahlen-
@@ -914,24 +948,28 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
 
   <div class="filters">
-    <div class="today-indicator" id="todayIndicator" data-skel>–</div>
-    <div class="sep"></div>
-    <select class="year-select" id="yearSelect"></select>
-    <div class="sep"></div>
-    <div class="filter-group segmented" id="periodGroup">
-      <div class="segmented-highlight"></div>
-      <div class="chip active" data-period="week">Diese Woche</div>
-      <div class="chip" data-period="7d">Letzte 7 Tage</div>
-      <div class="chip" data-period="30d">Letzte 30 Tage</div>
-      <div class="chip" data-period="year">Ganzes Jahr</div>
-      <div class="chip" data-period="custom">Custom</div>
+    <div class="filters-row filters-row-primary">
+      <div class="today-indicator" id="todayIndicator" data-skel>–</div>
+      <div class="sep"></div>
+      <select class="year-select" id="yearSelect"></select>
+      <div class="sep"></div>
+      <div class="filter-group segmented" id="periodGroup">
+        <div class="segmented-highlight"></div>
+        <div class="chip active" data-period="week">Diese Woche</div>
+        <div class="chip" data-period="7d">Letzte 7 Tage</div>
+        <div class="chip" data-period="30d">Letzte 30 Tage</div>
+        <div class="chip" data-period="year">Ganzes Jahr</div>
+        <div class="chip" data-period="custom">Custom</div>
+      </div>
     </div>
-    <div class="sep"></div>
-    <div class="filter-group segmented" id="sportGroup">
-      <div class="segmented-highlight"></div>
-      <div class="chip active" data-sport="all">Alle</div>
-      <div class="chip" data-sport="indoor">Indoor</div>
-      <div class="chip" data-sport="outdoor">Outdoor</div>
+    <div class="sep filters-sep-desktop-only"></div>
+    <div class="filters-row filters-row-sport">
+      <div class="filter-group segmented" id="sportGroup">
+        <div class="segmented-highlight"></div>
+        <div class="chip active" data-sport="all">Alle</div>
+        <div class="chip" data-sport="indoor">Indoor</div>
+        <div class="chip" data-sport="outdoor">Outdoor</div>
+      </div>
     </div>
   </div>
   <div class="custom-range" id="customRange" style="display:none;">
@@ -1435,6 +1473,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '24.09-9', d: '24.09.2026', t: 'Bottom-Nav verschwand auf dem Karte-Tab hinter der Leaflet-Karte (die Karte setzt intern z-index bis 1000, ohne eigenen Stapelkontext reichte das bis zur fix positionierten Navigation durch) — behoben, die Nav bleibt jetzt immer sichtbar.' },
+    { v: '24.09-8', d: '24.09.2026', t: 'Sport-Filter (Alle/Indoor/Outdoor) saß am Ende derselben langen Scroll-Leiste wie Datum + Zeitraum-Chips und war erst nach viel Scrollen erreichbar ("weggeschnitten"-Eindruck) — jetzt eigene, immer komplett sichtbare Zeile darunter. Dabei einen echten Bug gefunden: ein Flexbox-Vererbungsfehler hatte die komplette Seite auf 904px Breite aufgebläht statt sie auf dem Phone-Bildschirm zu halten — mitbehoben.' },
     { v: '24.09-7', d: '24.09.2026', t: 'Läufe-Badge (unten links) überlappte fix positioniert Überschriften/Kennzahlen, sobald diese zufällig hinter ihrer Bildschirmposition lagen — auf dem Phone jetzt erst ab ~80px Scroll sichtbar (blendet sich oben komplett aus), zusätzlich bekommt sie den Weichzeichner-Effekt, den jede andere Glas-Kachel im Board schon hatte (vorher schien Text unverblendet durch, dadurch die "Text-über-Text"-Optik in den Screenshots).' },
     { v: '24.09-6', d: '24.09.2026', t: 'Mobile, Runde 2 der Kennzahlen-Karte: die "Sessions"-Kachel war noch immer großzügiger gepolstert als die 4 anderen Werte (eigene Zeile, ~364px gesamt) — jetzt gleichberechtigte 6. Zelle im selben 2-Spalten-Raster, gleiche Kachel-Anatomie überall, ~150px für dieselben 5 Werte. "Wetter" startet aus Konsistenz jetzt ebenfalls eingeklappt.' },
     { v: '24.09-5', d: '24.09.2026', t: 'Mobile: Abstands-Kaskade oben (Header/Filter/Titel/Banner) entschlackt und "Aktueller Stand" von 392px auf 152px verkleinert (kleinere Ring-Grafik, Legende als 2×2-Raster statt 4-zeiliger Spalte) — Heute-Tab jetzt ~1390px statt ~4300px am Anfang der Session.' },
