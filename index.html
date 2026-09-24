@@ -745,7 +745,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   .stat-tile:nth-child(3), .stat-tile:nth-child(5){border-left:1px solid var(--line);}
   .filters{
     overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;
-    padding-right:28px;
+    padding-right:28px; padding-top:10px; padding-bottom:12px; margin-bottom:14px;
     /* Beim Sticky-Pinning ist eine leicht durchscheinende Leiste auf dem Desktop ein hübscher
        Glass-Effekt, auf dem schmalen Phone-Screen aber ein verwirrendes "Geisterbild" aus
        darunterliegendem Text. Auf Mobile fast blickdicht -> wirkt wie eine echte native Bar. */
@@ -757,7 +757,27 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   }
   .filters::-webkit-scrollbar{display:none;}
   .cal-summary{gap:20px;}
-  .wrap{padding:20px 16px calc(var(--bn-total-h) + 20px);}
+  .wrap{padding:14px 16px calc(var(--bn-total-h) + 20px);}
+  /* Abstands-Kaskade oben insgesamt entschlackt (Kopf → Filter → Abschnitts-Titel → Kennzahlen-
+     Karte → Banner): einzeln kleine Margins/Paddings, die sich zwischen mehreren kurzen Blöcken
+     aber zu spürbarer "toter" Höhe aufsummierten, bevor überhaupt die erste Kennzahl zu sehen war. */
+  .section-lbl{ margin:14px 0 6px; }
+  .hero{ margin-bottom:12px; }
+  .motivation-banner{ margin-top:10px; padding:10px 14px; }
+  .motivation-banner .mb-icon{ font-size:15px; }
+  .motivation-banner .mb-text{ font-size:12px; }
+  /* Die Ring-Grafik ist hübsch, aber pro Pixel informationsarm (3-4 Zahlen auf großer Fläche) —
+     auf dem Phone deutlich verkleinert UND die Legende von einer 4-zeiligen Spalte auf ein
+     2×2-Raster umgestellt (Label oben klein, Wert darunter fett — gleiches Muster wie die
+     Kennzahlen-Kacheln), damit "Aktueller Stand" nicht mehr Höhe kostet als sein Informations-
+     gehalt rechtfertigt. Rein CSS/Layout — die SVG bleibt unverändert von renderRingsHero() befüllt. */
+  .rings-hero{ padding:16px 16px; gap:14px; margin-bottom:10px; }
+  .rings-svg{ width:118px; height:118px; }
+  .rings-legend{ display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; min-width:0; flex:1; }
+  .rl-item{ flex-direction:column; align-items:flex-start; gap:2px; }
+  .rl-item i{ width:8px; height:8px; }
+  .rl-lbl{ flex:none; font-size:10px; }
+  .rl-val{ font-size:16px; }
   .drawer{width:100vw;}
   .recovery-head{grid-template-columns:1fr; justify-items:center; text-align:center;}
   .recovery-metrics{grid-template-columns:repeat(3,1fr); gap:10px; width:100%;}
@@ -767,7 +787,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
      Zwei klare Zeilen statt drei zerbrechender: Zeile 1 = Marke (volle Breite), Zeile 2 =
      Theme-Umschalter + Sync-Status (trunkiert in der Mitte) + Aktualisieren-Icon. Kein einziges
      JS-gebundenes Element wird umbenannt oder verschoben — nur ihre Reihenfolge/Größe ändert sich. */
-  header{ row-gap:10px; padding-bottom:16px; margin-bottom:20px; }
+  header{ row-gap:8px; padding-bottom:10px; margin-bottom:12px; }
   .brand{ flex:1 1 100%; min-width:0; }
   .brand span.name{ font-size:14.5px; }
   .brand span.sub{ font-size:9px; }
@@ -1384,6 +1404,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '24.09-5', d: '24.09.2026', t: 'Mobile: Abstands-Kaskade oben (Header/Filter/Titel/Banner) entschlackt und "Aktueller Stand" von 392px auf 152px verkleinert (kleinere Ring-Grafik, Legende als 2×2-Raster statt 4-zeiliger Spalte) — Heute-Tab jetzt ~1390px statt ~4300px am Anfang der Session.' },
     { v: '24.09-4', d: '24.09.2026', t: 'Mobile: Kennzahlen-Karte als kompaktes 2×2-Raster statt 5 vollbreiter Zeilen; Fitness & Form / Recovery & Schlaf / Ziele starten auf dem Phone eingeklappt (per Tap weiter aufklappbar) — Scroll-Länge des Heute-Tabs von ~4300px auf ~1700px reduziert.' },
     { v: '24.09-3', d: '24.09.2026', t: 'Mobile-Redesign: native Bottom-Nav (Heute/Verlauf/Karte) statt Pillen-Leiste, kompakter 2-zeiliger Header, entschärfte Sticky-Filterleiste, Läufe-Badge kollidiert nicht mehr mit der Bottom-Nav.' },
     { v: '24.09-2', d: '24.09.2026', t: '"Leistung"-Tab entfernt (Rekorde + Herzfrequenz & Leistung) — zu wenig Daten, zu viel Scrollen.' },
