@@ -617,7 +617,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 }
 .runs-badge .rb-num{font-size:15px; font-weight:700;}
 .runs-badge .rb-lbl{font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
-@media(max-width:640px){ .runs-badge{left:12px; bottom:max(12px, calc(env(safe-area-inset-bottom) + 12px)); padding:8px 12px 8px 8px;} .runs-badge .rb-lbl{display:none;} }
+/* Auf dem Phone komplett aus (statt nur beim Laden ausgeblendet, siehe die alte
+   rb-hidden-Logik weiter unten) — echte Scroll-Audits (scroll-increment-Screenshots, nicht
+   fullPage) haben gezeigt, dass die fix positionierte Badge auf der vollen Content-Breite
+   des Phones bei JEDER Scroll-Tiefe irgendeine Karte überlappt (Fitness-Sparkline,
+   Recovery-Schlafphasen-Legende, Ziele-Ring samt AKTUELL/FEHLEN-Zahlen, Jahresziel-Chart) —
+   das "erst ab scrollY>80 einblenden" hat nur die EINE Überlappung beim Laden behoben, nicht
+   das grundsätzliche Problem. Auf Desktop/Tablet bleibt sie unverändert (dort liegt sie im
+   leeren Rand links neben der zentrierten Content-Spalte, überlappt also nichts). Ersatz auf
+   dem Phone: ein vierter Eintrag in der Bottom-Nav (#runsBadgeMobile weiter unten) — Teil der
+   fixen, nicht scrollenden Chrome, kann also grundsätzlich keine Karte mehr verdecken. */
+@media(max-width:640px){ .runs-badge{display:none;} }
 
 /* ---- Karte & Heatmap ---- */
 .map-controls{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
@@ -875,17 +885,28 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   .bn-dot{width:4px; height:4px; border-radius:50%; background:var(--glow-a); opacity:0; transform:scale(.3); transition:opacity .2s var(--ease), transform .2s var(--ease);}
   .bn-item.active .bn-dot{opacity:1; transform:scale(1);}
 
-  /* Läufe-Badge über die neue Bottom-Nav heben, statt sie zu überlappen. */
-  .runs-badge{ bottom:calc(var(--bn-total-h) + 14px); }
-  /* Die Kennzahlen-Karte (2×2-Raster) endet auf dem Phone jetzt so weit oben, dass die fix
-     positionierte Läufe-Badge sie beim Öffnen der Seite (Scroll-Position 0) noch überlappt,
-     bevor überhaupt gescrollt wurde — sichtbar in echten Gerätescreenshots als Text-über-Text.
-     Statt die Badge zu verschieben (funktioniert nicht robust über alle Bildschirmhöhen/Filter-
-     Zustände hinweg, da sich die Höhe der Karte mit den Daten ändert), blendet sie sich ganz
-     oben aus und erscheint erst, sobald tatsächlich gescrollt wird — dort, wo für sie ohnehin
-     Platz ist. Per JS gesteuert (.runs-badge.rb-hidden), siehe initRunsBadgeScrollReveal(). */
-  .runs-badge{ transition:opacity .25s var(--ease), transform .25s var(--ease), border-color .2s var(--ease); }
+  /* Läufe-Badge: auf dem Phone jetzt komplett aus (display:none, siehe oben) statt nur
+     scroll-abhängig ein-/auszublenden — die alte rb-hidden-Logik blieb hier absichtlich als
+     Dead-Code stehen (die JS-Funktion initRunsBadgeScrollReveal() toggelt die Klasse weiter,
+     hat aber keine sichtbare Wirkung mehr), um den Diff klein zu halten. Ersatz: vierter
+     Bottom-Nav-Eintrag, siehe .bn-item-runs unten. */
   .runs-badge.rb-hidden{ opacity:0; transform:translateY(10px) scale(.92); pointer-events:none; }
+
+  /* ---- Läufe als vierter Bottom-Nav-Eintrag (Ersatz für die fix schwebende Läufe-Badge) ----
+     Liegt jetzt in der fixen, nicht scrollenden Nav-Leiste statt frei über dem Content zu
+     schweben — kann dadurch grundsätzlich keine Karte mehr verdecken, ganz gleich wie lang
+     die Seite mit welchen Filtern/Collapsibles gerade ist. Der Zähler sitzt als kleiner
+     Notification-Punkt oben rechts am Icon (gleiche Sprache wie App-Icon-Badges), die volle
+     Aufschlüsselung (Laufband/draußen) bleibt im Drawer, der beim Antippen aufgeht. */
+  .bn-item-runs{ position:relative; }
+  .bn-runs-icon-wrap{ position:relative; display:flex; align-items:center; justify-content:center; width:21px; height:21px; }
+  .bn-runs-emoji{ font-size:16px; line-height:1; opacity:.85; }
+  .bn-runs-count{
+    position:absolute; top:-5px; right:-9px; min-width:15px; height:15px; padding:0 3px;
+    border-radius:100px; background:var(--glow-a); color:#fff; font-family:var(--mono);
+    font-size:8.5px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    line-height:1; box-shadow:0 0 0 2px var(--bg);
+  }
 }
 
 @media(prefers-reduced-motion: reduce){
@@ -1045,6 +1066,13 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
       <span>Karte</span>
       <i class="bn-dot"></i>
+    </button>
+    <button class="bn-item bn-item-runs" id="runsBadgeMobile" type="button" aria-label="Alle Läufe anzeigen">
+      <span class="bn-runs-icon-wrap">
+        <span class="bn-runs-emoji" aria-hidden="true">🏃</span>
+        <span class="bn-runs-count" id="runsNumMobile">–</span>
+      </span>
+      <span>Läufe</span>
     </button>
   </nav>
 
@@ -1473,6 +1501,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '24.09-10', d: '24.09.2026', t: 'Selbst per Scroll-Screenshot-Audit getestet (echte Scroll-Positionen, nicht fullPage) und einen echten Bug gefunden, den v24.09-7 nur zur Hälfte behoben hatte: die fix positionierte Läufe-Badge blendete sich zwar ganz oben aus, blieb aber ab 80px Scrolltiefe permanent sichtbar und überlappte dadurch auf dem Phone quer durch die ganze Seite Karteninhalte (Fitness-Chart, Recovery-Schlaflegende, Ziele-Ring samt Zahlen, Jahresziel-Chart). Jetzt komplett anders gelöst: auf dem Phone ist die schwebende Badge aus, stattdessen gibt es einen vierten Bottom-Nav-Eintrag "Läufe" mit Notification-Punkt — Teil der fixen Chrome, kann also keine Karte mehr verdecken. Desktop/Tablet unverändert.' },
     { v: '24.09-9', d: '24.09.2026', t: 'Bottom-Nav verschwand auf dem Karte-Tab hinter der Leaflet-Karte (die Karte setzt intern z-index bis 1000, ohne eigenen Stapelkontext reichte das bis zur fix positionierten Navigation durch) — behoben, die Nav bleibt jetzt immer sichtbar.' },
     { v: '24.09-8', d: '24.09.2026', t: 'Sport-Filter (Alle/Indoor/Outdoor) saß am Ende derselben langen Scroll-Leiste wie Datum + Zeitraum-Chips und war erst nach viel Scrollen erreichbar ("weggeschnitten"-Eindruck) — jetzt eigene, immer komplett sichtbare Zeile darunter. Dabei einen echten Bug gefunden: ein Flexbox-Vererbungsfehler hatte die komplette Seite auf 904px Breite aufgebläht statt sie auf dem Phone-Bildschirm zu halten — mitbehoben.' },
     { v: '24.09-7', d: '24.09.2026', t: 'Läufe-Badge (unten links) überlappte fix positioniert Überschriften/Kennzahlen, sobald diese zufällig hinter ihrer Bildschirmposition lagen — auf dem Phone jetzt erst ab ~80px Scroll sichtbar (blendet sich oben komplett aus), zusätzlich bekommt sie den Weichzeichner-Effekt, den jede andere Glas-Kachel im Board schon hatte (vorher schien Text unverblendet durch, dadurch die "Text-über-Text"-Optik in den Screenshots).' },
@@ -2160,22 +2189,30 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   }
 
   // ---------- Läufe-Badge ----------
+  // Zwei Anzeigeorte, ein Datenstand: #runsNum (Desktop/Tablet, fix schwebende Badge, siehe
+  // .runs-badge) und #runsNumMobile (Phone, vierter Bottom-Nav-Eintrag — die Badge selbst ist
+  // auf dem Phone jetzt display:none, siehe CSS-Kommentar dort). Der Mobile-Zähler zeigt nur
+  // die Gesamtzahl (Platz im Notification-Punkt reicht nicht für "17 (6 / 11)"), die volle
+  // Aufschlüsselung bleibt im Drawer.
   function updateRunsBadge(){
     const runs = DATA.filter(a => a.s === 'Run');
     const treadmill = runs.filter(a => a.i);
     const outdoor = runs.filter(a => !a.i);
     document.getElementById('runsNum').textContent = `${runs.length} (${treadmill.length} / ${outdoor.length})`;
+    const mobileNum = document.getElementById('runsNumMobile');
+    if(mobileNum) mobileNum.textContent = runs.length;
   }
-  document.getElementById('runsBadge').addEventListener('click', () => {
+  function openRunsDrawer(){
     const runs = [...DATA.filter(a => a.s === 'Run')].sort((a,b) => b._dt - a._dt);
     openDrawer('Alle Läufe', `${runs.length} gesamt · Laufband vs. draußen`, runs);
-  });
+  }
+  document.getElementById('runsBadge').addEventListener('click', openRunsDrawer);
+  document.getElementById('runsBadgeMobile').addEventListener('click', openRunsDrawer);
 
-  // Auf dem Phone sitzt die fix positionierte Läufe-Badge tief genug, dass sie beim Laden
-  // (Scroll-Position 0) die Kennzahlen-Karte überlappt — sichtbar in Screenshots als Text-
-  // über-Text. Statt einer festen Höhe (bricht bei jeder neuen Datenlänge/Filter erneut),
-  // blendet sie sich ein, sobald tatsächlich gescrollt wird, und aus, sobald man zurück ganz
-  // nach oben ist — dort, wo sie sonst über dem ersten Blick auf die Karte läge.
+  // Rein auf Desktop/Tablet relevant: die fix schwebende Läufe-Badge (.runs-badge) blendet
+  // sich ein, sobald gescrollt wird, und aus ganz oben, wo sie sonst die Kennzahlen-Karte
+  // beim Laden überlappen würde. Auf dem Phone ist die Badge inzwischen komplett display:none
+  // (siehe CSS) — die mq.matches-Prüfung unten sorgt dafür, dass dort ohnehin nichts passiert.
   function initRunsBadgeScrollReveal(){
     const badge = document.getElementById('runsBadge');
     const mq = window.matchMedia('(max-width:640px)');
