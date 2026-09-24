@@ -682,6 +682,38 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .drawer-item .di-date{font-family:var(--mono); font-size:10.5px; color:var(--muted);}
 .drawer-item .di-stats{text-align:right; font-family:var(--mono); font-size:11.5px; color:var(--text-dim); white-space:nowrap; flex-shrink:0;}
 .drawer-item .di-stats .di-main{font-weight:700; color:var(--text); font-size:13px;}
+
+/* ---- Versions-Badge & Änderungsverlauf ----
+   Kleiner, unaufdringlicher Marker oben im Header — Zweck ist rein diagnostisch: auf einen
+   Blick sehen, welcher Stand gerade wirklich ausgeliefert wird (statt CDN-/Browser-Cache-
+   Verzögerungen nach einem Push zu erraten). */
+.version-badge{
+  align-self:flex-start; margin-top:2px; font-family:var(--mono); font-size:9.5px; color:var(--muted);
+  background:var(--panel); border:1px solid var(--line); border-radius:100px; padding:2px 9px;
+  cursor:pointer; letter-spacing:.03em; transition:border-color .2s var(--ease), color .2s var(--ease);
+}
+.version-badge:hover{border-color:var(--line-strong); color:var(--text-dim);}
+.changelog-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.5); backdrop-filter:blur(3px);
+  opacity:0; pointer-events:none; transition:opacity .25s var(--ease); z-index:95;
+  display:flex; align-items:flex-start; justify-content:center; padding:80px 20px 20px;
+}
+.changelog-overlay.open{opacity:1; pointer-events:auto;}
+.changelog-panel{
+  width:min(420px, 100%); max-height:70vh; display:flex; flex-direction:column;
+  background:rgba(var(--bg-rgb), .92); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--line-strong); border-radius:var(--r-lg); box-shadow:var(--shadow-lg);
+  transform:translateY(-10px) scale(.97); opacity:0; transition:transform .25s var(--ease), opacity .25s var(--ease);
+}
+.changelog-overlay.open .changelog-panel{transform:translateY(0) scale(1); opacity:1;}
+.changelog-head{padding:18px 20px 14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;}
+.changelog-head h4{font-family:var(--display); font-size:15.5px; font-weight:700;}
+.changelog-list{overflow-y:auto; padding:6px 20px 20px;}
+.changelog-item{padding:12px 0; border-bottom:1px solid var(--line);}
+.changelog-item:last-child{border-bottom:none;}
+.changelog-item .cl-v{font-family:var(--mono); font-size:10px; color:var(--glow-a); font-weight:700;}
+.changelog-item .cl-date{font-family:var(--mono); font-size:10px; color:var(--muted); margin-left:8px;}
+.changelog-item .cl-note{font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-top:4px;}
 .drawer-empty{padding:40px 20px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px;}
 
 /* ---- Responsive ----
@@ -792,6 +824,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <div class="brand-text">
         <span class="name">Johannes' Sports Dashboard</span>
         <span class="sub" id="brandSub">Rad · Zwift · Lauf</span>
+        <button class="version-badge" id="versionBadge" type="button" title="Änderungsverlauf anzeigen — zeigt, welcher Stand gerade wirklich ausgeliefert wird">v–</button>
       </div>
     </div>
     <div class="header-right">
@@ -813,6 +846,16 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       </button>
     </div>
   </header>
+
+  <div class="changelog-overlay" id="changelogOverlay">
+    <div class="changelog-panel" role="dialog" aria-label="Änderungsverlauf">
+      <div class="changelog-head">
+        <h4>Änderungsverlauf</h4>
+        <button class="drawer-close" id="changelogClose" aria-label="Schließen">✕</button>
+      </div>
+      <div class="changelog-list" id="changelogList"></div>
+    </div>
+  </div>
 
   <div class="filters">
     <div class="today-indicator" id="todayIndicator" data-skel>–</div>
@@ -1329,6 +1372,31 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   drawerOverlay.addEventListener('click', closeDrawer);
   document.getElementById('drawerClose').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
+
+  // ---------- Versions-Badge & Änderungsverlauf ----------
+  // Zweck: rein diagnostisch sichtbar machen, welcher Stand gerade wirklich ausgeliefert wird —
+  // nach jedem Push hier oben einen neuen Eintrag ergänzen (neueste zuerst), APP_VERSION mitziehen.
+  // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
+  // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
+  const CHANGELOG = [
+    { v: '24.09-3', d: '24.09.2026', t: 'Mobile-Redesign: native Bottom-Nav (Heute/Verlauf/Karte) statt Pillen-Leiste, kompakter 2-zeiliger Header, entschärfte Sticky-Filterleiste, Läufe-Badge kollidiert nicht mehr mit der Bottom-Nav.' },
+    { v: '24.09-2', d: '24.09.2026', t: '"Leistung"-Tab entfernt (Rekorde + Herzfrequenz & Leistung) — zu wenig Daten, zu viel Scrollen.' },
+    { v: '24.09-1', d: '24.09.2026', t: 'Trainingsmuster (Tageszeit/Wochentag) und Jahresvergleich entfernt — Jahresvergleich kommt 2027 zurück.' },
+    { v: '23.09-3', d: '23.09.2026', t: '"Aurora"-Redesign: neue Farbpalette, Typografie (Space Grotesk/Inter/JetBrains Mono), Glassmorphism-Panels.' },
+    { v: '23.09-2', d: '23.09.2026', t: 'Header neu strukturiert (eine Kennzahlen-Zeile statt Duplikaten), Abstände & Schriftgrößen durchgehend verkleinert.' },
+    { v: '23.09-1', d: '23.09.2026', t: 'Nur-Rad-Kilometer-Regel korrigiert (Lauf-km wurden fälschlich mitgezählt), Recovery-Formel rekonstruiert.' },
+  ];
+  const APP_VERSION = CHANGELOG[0].v;
+  document.getElementById('versionBadge').textContent = 'v' + APP_VERSION;
+  document.getElementById('changelogList').innerHTML = CHANGELOG.map(c => `
+    <div class="changelog-item">
+      <span class="cl-v">v${esc(c.v)}</span><span class="cl-date">${esc(c.d)}</span>
+      <div class="cl-note">${esc(c.t)}</div>
+    </div>`).join('');
+  const changelogOverlay = document.getElementById('changelogOverlay');
+  document.getElementById('versionBadge').addEventListener('click', () => changelogOverlay.classList.add('open'));
+  document.getElementById('changelogClose').addEventListener('click', () => changelogOverlay.classList.remove('open'));
+  changelogOverlay.addEventListener('click', e => { if(e.target === changelogOverlay) changelogOverlay.classList.remove('open'); });
 
   // ---------- Render ----------
   function render(){
