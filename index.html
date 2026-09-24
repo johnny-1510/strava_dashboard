@@ -595,6 +595,14 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   box-shadow:var(--shadow-lg); cursor:pointer;
   transition:border-color .2s var(--ease), transform .15s var(--ease);
   font-family:var(--mono);
+  /* --panel ist bewusst fast durchsichtig (5% Weißanteil im Dark-Mode) — bei jeder anderen
+     Glass-Panel in diesem File macht ein backdrop-filter:blur() daraus einen milchigen
+     Frost-Effekt. Hier fehlte genau das: die Badge schwebt fix über wechselndem Inhalt
+     (Überschriften, Fließtext), und ohne eigenen Blur schien der Text darunter unverblendet
+     durch — sichtbar als "Text-über-Text"-Wirrwarr in echten Gerätescreenshots, sobald die
+     Badge zufällig über einer Section-Überschrift lag. Mit Blur liegt sie wie jedes andere
+     Panel sichtbar *über* dem Inhalt statt mit ihm zu verschmelzen. */
+  backdrop-filter:blur(var(--blur-panel)) saturate(160%); -webkit-backdrop-filter:blur(var(--blur-panel)) saturate(160%);
 }
 .runs-badge:hover{border-color:var(--line-strong); transform:translateY(-2px);}
 .runs-badge .rb-icon{
@@ -735,14 +743,28 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
      damit beide bei einer künftigen Anpassung der Nav-Höhe automatisch mitziehen. */
   :root{ --bn-total-h: calc(52px + max(7px, env(safe-area-inset-bottom))); }
   .goals{grid-template-columns:1fr;}
-  .big-num{font-size:48px;}
-  /* Kennzahlen-Karte auf dem Phone: statt 5 vollbreiten Zeilen (Sessions + 4× Kennzahl je eigene
-     Zeile, ~630px Gesamthöhe) ein kompaktes 2×2-Raster unter der Sessions-Zeile — deterministisch
-     per CSS-Grid statt über Flex-Wrap-Breitenarithmetik geraten. Halbiert grob die Kartenhöhe. */
-  .hero{display:grid; grid-template-columns:1fr 1fr;}
-  .hero-main{grid-column:1 / -1; padding:20px 22px 16px;}
-  .stat-tile{padding:16px 16px; border-left:none; border-top:1px solid var(--line);}
-  .stat-tile:nth-child(3), .stat-tile:nth-child(5){border-left:1px solid var(--line);}
+  /* Kennzahlen-Karte auf dem Phone, Runde 2: die erste Fassung ließ "Sessions" als eigene,
+     großzügig gepolsterte Zeile über einem 2×2-Raster stehen (~364px für 5 Zahlen — mehr
+     Höhe als eine Ringgrafik für weniger Information). Jetzt ist die Sessions-Kachel eine
+     gleichberechtigte 6. Zelle in einem durchgehenden 2-Spalten-Raster, gleiche Kachel-
+     Anatomie wie die vier Kennzahlen (kleines Label + fette Zahl) — keine Sonderrolle mehr,
+     dafür ~150px für dieselben 5 Werte. */
+  .hero{display:grid; grid-template-columns:1fr 1fr; margin-bottom:12px;}
+  .hero-main{padding:10px 12px 8px;}
+  /* nowrap+ellipsis statt Umbruch: die Perioden-Bezeichnung ("Letzte 7 Tage (bis heute)")
+     ist ohnehin doppelt vorhanden (Filter-Chip + Abschnitts-Titel darüber) — ein zweizeiliger
+     Umbruch hier würde nur die Kartenhöhe von der Textlänge abhängig machen, ohne echten Info-Gewinn. */
+  .eyebrow{margin-bottom:2px; font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .big-num{font-size:24px;}
+  .big-num small{font-size:11px; margin-left:5px;}
+  .hero-sub{margin-top:3px; font-size:10px; line-height:1.4;}
+  .stat-tile{padding:10px 12px; border-left:none; border-top:1px solid var(--line);}
+  .stat-tile:nth-child(2){border-top:none;}
+  .stat-tile:nth-child(2), .stat-tile:nth-child(4){border-left:1px solid var(--line);}
+  .stat-tile .val{font-size:17px;}
+  .stat-tile .lbl{font-size:9.5px; margin-top:1px; gap:4px;}
+  .stat-tile .delta{font-size:9.5px; margin-top:2px;}
+  .badge{margin-top:4px; padding:3px 9px; font-size:9px;}
   .filters{
     overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;
     padding-right:28px; padding-top:10px; padding-bottom:12px; margin-bottom:14px;
@@ -821,6 +843,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
   /* Läufe-Badge über die neue Bottom-Nav heben, statt sie zu überlappen. */
   .runs-badge{ bottom:calc(var(--bn-total-h) + 14px); }
+  /* Die Kennzahlen-Karte (2×2-Raster) endet auf dem Phone jetzt so weit oben, dass die fix
+     positionierte Läufe-Badge sie beim Öffnen der Seite (Scroll-Position 0) noch überlappt,
+     bevor überhaupt gescrollt wurde — sichtbar in echten Gerätescreenshots als Text-über-Text.
+     Statt die Badge zu verschieben (funktioniert nicht robust über alle Bildschirmhöhen/Filter-
+     Zustände hinweg, da sich die Höhe der Karte mit den Daten ändert), blendet sie sich ganz
+     oben aus und erscheint erst, sobald tatsächlich gescrollt wird — dort, wo für sie ohnehin
+     Platz ist. Per JS gesteuert (.runs-badge.rb-hidden), siehe initRunsBadgeScrollReveal(). */
+  .runs-badge{ transition:opacity .25s var(--ease), transform .25s var(--ease), border-color .2s var(--ease); }
+  .runs-badge.rb-hidden{ opacity:0; transform:translateY(10px) scale(.92); pointer-events:none; }
 }
 
 @media(prefers-reduced-motion: reduce){
@@ -1404,6 +1435,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '24.09-7', d: '24.09.2026', t: 'Läufe-Badge (unten links) überlappte fix positioniert Überschriften/Kennzahlen, sobald diese zufällig hinter ihrer Bildschirmposition lagen — auf dem Phone jetzt erst ab ~80px Scroll sichtbar (blendet sich oben komplett aus), zusätzlich bekommt sie den Weichzeichner-Effekt, den jede andere Glas-Kachel im Board schon hatte (vorher schien Text unverblendet durch, dadurch die "Text-über-Text"-Optik in den Screenshots).' },
+    { v: '24.09-6', d: '24.09.2026', t: 'Mobile, Runde 2 der Kennzahlen-Karte: die "Sessions"-Kachel war noch immer großzügiger gepolstert als die 4 anderen Werte (eigene Zeile, ~364px gesamt) — jetzt gleichberechtigte 6. Zelle im selben 2-Spalten-Raster, gleiche Kachel-Anatomie überall, ~150px für dieselben 5 Werte. "Wetter" startet aus Konsistenz jetzt ebenfalls eingeklappt.' },
     { v: '24.09-5', d: '24.09.2026', t: 'Mobile: Abstands-Kaskade oben (Header/Filter/Titel/Banner) entschlackt und "Aktueller Stand" von 392px auf 152px verkleinert (kleinere Ring-Grafik, Legende als 2×2-Raster statt 4-zeiliger Spalte) — Heute-Tab jetzt ~1390px statt ~4300px am Anfang der Session.' },
     { v: '24.09-4', d: '24.09.2026', t: 'Mobile: Kennzahlen-Karte als kompaktes 2×2-Raster statt 5 vollbreiter Zeilen; Fitness & Form / Recovery & Schlaf / Ziele starten auf dem Phone eingeklappt (per Tap weiter aufklappbar) — Scroll-Länge des Heute-Tabs von ~4300px auf ~1700px reduziert.' },
     { v: '24.09-3', d: '24.09.2026', t: 'Mobile-Redesign: native Bottom-Nav (Heute/Verlauf/Karte) statt Pillen-Leiste, kompakter 2-zeiliger Header, entschärfte Sticky-Filterleiste, Läufe-Badge kollidiert nicht mehr mit der Bottom-Nav.' },
@@ -2097,6 +2130,27 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const runs = [...DATA.filter(a => a.s === 'Run')].sort((a,b) => b._dt - a._dt);
     openDrawer('Alle Läufe', `${runs.length} gesamt · Laufband vs. draußen`, runs);
   });
+
+  // Auf dem Phone sitzt die fix positionierte Läufe-Badge tief genug, dass sie beim Laden
+  // (Scroll-Position 0) die Kennzahlen-Karte überlappt — sichtbar in Screenshots als Text-
+  // über-Text. Statt einer festen Höhe (bricht bei jeder neuen Datenlänge/Filter erneut),
+  // blendet sie sich ein, sobald tatsächlich gescrollt wird, und aus, sobald man zurück ganz
+  // nach oben ist — dort, wo sie sonst über dem ersten Blick auf die Karte läge.
+  function initRunsBadgeScrollReveal(){
+    const badge = document.getElementById('runsBadge');
+    const mq = window.matchMedia('(max-width:640px)');
+    let ticking = false;
+    function update(){
+      ticking = false;
+      if(!mq.matches){ badge.classList.remove('rb-hidden'); return; }
+      badge.classList.toggle('rb-hidden', window.scrollY < 80);
+    }
+    function onScroll(){ if(!ticking){ requestAnimationFrame(update); ticking = true; } }
+    window.addEventListener('scroll', onScroll, { passive:true });
+    mq.addEventListener ? mq.addEventListener('change', update) : mq.addListener(update);
+    update();
+  }
+  initRunsBadgeScrollReveal();
 
   // ---------- Wetter (live, Open-Meteo, Percha/München) ----------
   let WEATHER_DATA = null;
@@ -2853,9 +2907,10 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // Auf dem Phone sind "Fitness & Form", "Recovery & Schlaf" und "Ziele" mit Abstand die
   // schwersten Blöcke (618/697/991px) und machen zusammen über die Hälfte der Scroll-Länge
   // des "Heute"-Tabs aus. Der Desktop-Grundsatz "hier bleibt alles offen" gilt weiter dort, wo
-  // genug Platz ist — auf einem schmalen Screen kollabieren diese drei stattdessen standardmäßig
-  // (weiterhin per Tap aufklappbar, pro Gerät unabhängig in localStorage gemerkt).
-  const MOBILE_COLLAPSE_DEFAULTS = { fitness: false, recovery: false, ziele: false };
+  // genug Platz ist — auf einem schmalen Screen kollabieren diese standardmäßig
+  // (weiterhin per Tap aufklappbar, pro Gerät unabhängig in localStorage gemerkt). "Wetter" ist
+  // zwar leichter, aber ebenfalls nicht der erste Blick am Morgen — kollabiert aus Konsistenz mit.
+  const MOBILE_COLLAPSE_DEFAULTS = { fitness: false, recovery: false, ziele: false, wetter: false };
   const isNarrowViewport = window.innerWidth <= 640;
   Object.keys(SECTION_DEFAULTS).forEach(id => {
     const fallback = isNarrowViewport && (id in MOBILE_COLLAPSE_DEFAULTS) ? MOBILE_COLLAPSE_DEFAULTS[id] : SECTION_DEFAULTS[id];
