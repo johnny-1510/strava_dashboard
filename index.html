@@ -166,7 +166,8 @@ header{
 .theme-toggle button.active{background:var(--text); color:var(--bg);}
 .theme-toggle svg{width:15px; height:15px;}
 .synced{font-family:var(--mono); font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px;}
-.synced .dot{width:6px; height:6px; border-radius:50%; background:var(--outdoor);}
+.synced .dot{width:6px; height:6px; border-radius:50%; background:var(--outdoor); flex-shrink:0;}
+.synced-label{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 
 .btn{
   display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px;
@@ -361,6 +362,12 @@ body:not(.app-ready) [data-skel]{
 .tab-bar .filter-group.segmented{width:100%; max-width:520px; padding:4px;}
 .tab-bar .chip{flex:1; text-align:center; font-size:13px; font-weight:600; padding:11px 12px;}
 .tab-panel[hidden]{display:none;}
+
+/* ---- Native Bottom-Nav (nur Mobile) ----
+   Ersetzt auf dem Telefon die obere Pillen-Tableiste durch eine native, daumenerreichbare
+   Tab-Bar am unteren Bildschirmrand — feuert nur Klicks auf die bestehenden #tabGroup-Chips,
+   dupliziert also keinerlei Render-/State-Logik. */
+.bottom-nav{ display:none; }
 
 .rings-hero{
   display:flex; align-items:center; justify-content:center; gap:52px;
@@ -692,18 +699,71 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   .bento-pair{display:block;} /* Bento-Paarung erst ab Desktop-Breite, auf Tablet gestapelt für genug Platz pro Chart */
 }
 @media(max-width:640px){
+  /* Höhe der Bottom-Nav inkl. Safe-Area — einmal definiert, von .wrap/.runs-badge referenziert,
+     damit beide bei einer künftigen Anpassung der Nav-Höhe automatisch mitziehen. */
+  :root{ --bn-total-h: calc(52px + max(7px, env(safe-area-inset-bottom))); }
   .goals{grid-template-columns:1fr;}
   .big-num{font-size:48px;}
   .hero-main{padding:26px 24px;}
   .stat-tile{padding:22px 24px;}
-  .filters{overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;}
+  .filters{
+    overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch;
+    padding-right:28px;
+    /* Beim Sticky-Pinning ist eine leicht durchscheinende Leiste auf dem Desktop ein hübscher
+       Glass-Effekt, auf dem schmalen Phone-Screen aber ein verwirrendes "Geisterbild" aus
+       darunterliegendem Text. Auf Mobile fast blickdicht -> wirkt wie eine echte native Bar. */
+    background:rgba(var(--bg-rgb), .94);
+    /* Fade am rechten Rand statt hartem Abschnitt -> signalisiert "hier geht's horizontal weiter",
+       ohne einen Pfeil oder zusätzliches UI-Element einzuführen. */
+    mask-image:linear-gradient(to right, #000 calc(100% - 32px), transparent);
+    -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  }
   .filters::-webkit-scrollbar{display:none;}
   .cal-summary{gap:20px;}
-  .wrap{padding:20px 16px 70px;}
+  .wrap{padding:20px 16px calc(var(--bn-total-h) + 20px);}
   .drawer{width:100vw;}
   .recovery-head{grid-template-columns:1fr; justify-items:center; text-align:center;}
   .recovery-metrics{grid-template-columns:repeat(3,1fr); gap:10px; width:100%;}
   #routeMap{height:320px;}
+
+  /* ---- Kompakter Mobile-Header ----
+     Zwei klare Zeilen statt drei zerbrechender: Zeile 1 = Marke (volle Breite), Zeile 2 =
+     Theme-Umschalter + Sync-Status (trunkiert in der Mitte) + Aktualisieren-Icon. Kein einziges
+     JS-gebundenes Element wird umbenannt oder verschoben — nur ihre Reihenfolge/Größe ändert sich. */
+  header{ row-gap:10px; padding-bottom:16px; margin-bottom:20px; }
+  .brand{ flex:1 1 100%; min-width:0; }
+  .brand span.name{ font-size:14.5px; }
+  .brand span.sub{ font-size:9px; }
+  .header-right{ flex:1 1 100%; justify-content:space-between; gap:10px; }
+  .synced{ flex:1 1 auto; min-width:0; order:2; }
+  .theme-toggle{ order:1; flex-shrink:0; }
+  #reloadBtn{ order:3; width:36px; height:36px; padding:0; border-radius:50%; justify-content:center; flex-shrink:0; }
+  #reloadBtn .btn-label{ display:none; }
+
+  /* ---- Native Bottom-Nav ---- */
+  .tab-bar{ display:none; }
+  .bottom-nav{
+    display:flex; position:fixed; left:0; right:0; bottom:0; z-index:40;
+    background:rgba(var(--bg-rgb), .86); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-top:1px solid var(--line-strong);
+    padding:7px max(10px, env(safe-area-inset-left)) max(7px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-right));
+    box-shadow:0 -10px 28px -14px rgba(0,0,0,.4);
+  }
+  .bn-item{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    padding:5px 4px 3px; border-radius:14px; background:none; border:none; color:var(--muted);
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.02em; cursor:pointer; -webkit-tap-highlight-color:transparent;
+    transition:color .2s var(--ease);
+  }
+  .bn-item svg{width:21px; height:21px; transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+  .bn-item:active svg{transform:scale(.88);}
+  .bn-item.active{color:var(--glow-a);}
+  .bn-item.active svg{transform:translateY(-1px);}
+  .bn-dot{width:4px; height:4px; border-radius:50%; background:var(--glow-a); opacity:0; transform:scale(.3); transition:opacity .2s var(--ease), transform .2s var(--ease);}
+  .bn-item.active .bn-dot{opacity:1; transform:scale(1);}
+
+  /* Läufe-Badge über die neue Bottom-Nav heben, statt sie zu überlappen. */
+  .runs-badge{ bottom:calc(var(--bn-total-h) + 14px); }
 }
 
 @media(prefers-reduced-motion: reduce){
@@ -746,10 +806,10 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
         </button>
       </div>
-      <div class="synced" id="syncedText"><span class="dot"></span> Zuletzt synced: gerade eben</div>
+      <div class="synced" id="syncedText"><span class="dot"></span><span class="synced-label">Zuletzt synced: gerade eben</span></div>
       <button id="reloadBtn" class="btn">
         <svg id="reloadIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
-        Aktualisieren
+        <span class="btn-label">Aktualisieren</span>
       </button>
     </div>
   </header>
@@ -832,6 +892,24 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <div class="chip" data-tab="karte">Karte</div>
     </div>
   </div>
+
+  <nav class="bottom-nav" id="bottomNav" aria-label="Hauptnavigation">
+    <button class="bn-item active" data-tab="heute" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9.5 20v-6h5v6"/></svg>
+      <span>Heute</span>
+      <i class="bn-dot"></i>
+    </button>
+    <button class="bn-item" data-tab="verlauf" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      <span>Verlauf</span>
+      <i class="bn-dot"></i>
+    </button>
+    <button class="bn-item" data-tab="karte" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span>Karte</span>
+      <i class="bn-dot"></i>
+    </button>
+  </nav>
 
   <div class="tab-panel" data-tab-panel="heute">
 
@@ -2627,6 +2705,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       document.querySelectorAll('#tabGroup .chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       positionHighlight(document.getElementById('tabGroup'));
+      document.querySelectorAll('.bottom-nav .bn-item').forEach(b => b.classList.toggle('active', b.dataset.tab === target));
 
       document.querySelectorAll('.tab-panel').forEach(p => {
         p.hidden = p.dataset.tabPanel !== target;
@@ -2641,6 +2720,16 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
         positionHighlight(document.getElementById('mapModeGroup'));
         setTimeout(() => { if(leafletMap){ leafletMap.invalidateSize(); updateMap(); } }, 60);
       }
+    });
+  });
+
+  // Native Bottom-Nav (Mobile): feuert nur einen echten Klick auf den passenden #tabGroup-Chip,
+  // statt die Tab-Wechsel-Logik zu duplizieren — jede künftige Änderung am Handler oben gilt
+  // automatisch auch hier.
+  document.querySelectorAll('.bottom-nav .bn-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const chip = document.querySelector(`#tabGroup .chip[data-tab="${btn.dataset.tab}"]`);
+      if(chip) chip.click();
     });
   });
 
@@ -2742,7 +2831,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
   async function syncFromWorker({ silent } = {}){
     btn.disabled = true; btn.classList.add('spinning');
-    if(!silent) synced.innerHTML = '<span class="dot"></span> Synchronisiere…';
+    if(!silent) synced.innerHTML = '<span class="dot"></span><span class="synced-label">Synchronisiere…</span>';
     synced.removeAttribute('title');
     try{
       if(WORKER_URL){
@@ -2764,11 +2853,11 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
         updateFitnessForm();
         renderRingsHero();
         render();
-        synced.innerHTML = `<span class="dot"></span> Synced · ${added} neue Aktivität${added!==1?'en':''}`;
+        synced.innerHTML = `<span class="dot"></span><span class="synced-label">Synced · ${added} neue Aktivität${added!==1?'en':''}</span>`;
       } else {
         // Demo-Modus ohne konfigurierten Worker: nur kurzes Feedback, keine echten neuen Daten
         await new Promise(r => setTimeout(r, 700));
-        synced.innerHTML = '<span class="dot"></span> Zuletzt synced: gerade eben (Worker noch nicht eingerichtet)';
+        synced.innerHTML = '<span class="dot"></span><span class="synced-label">Zuletzt synced: gerade eben (Worker noch nicht eingerichtet)</span>';
       }
     } catch(err){
       // "Failed to fetch" (TypeError) heißt: der Request kam nie beim Server an — kein HTTP-Status,
@@ -2780,7 +2869,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       const reason = err.name === 'AbortError' ? 'Zeitüberschreitung — Worker hat nach 10s (2 Versuche) nicht geantwortet'
         : (err instanceof TypeError) ? 'Verbindung fehlgeschlagen — Netzwerkproblem, Blocker oder fehlende CORS-Freigabe auf dem Worker'
         : err.message;
-      synced.innerHTML = '<span class="dot" style="background:var(--accent-2)"></span> Sync fehlgeschlagen';
+      synced.innerHTML = '<span class="dot" style="background:var(--accent-2)"></span><span class="synced-label">Sync fehlgeschlagen</span>';
       synced.title = reason;
       console.error('Strava-Sync-Fehler:', reason, err);
     }
