@@ -218,7 +218,20 @@ header{
 .chip:focus-visible{outline:2px solid var(--outdoor); outline-offset:2px;}
 .chip.active{ background:var(--glow-grad); border-color:transparent; color:#fff; font-weight:600; }
 .chip.disabled{opacity:.35; pointer-events:none;}
+/* Sport-Filter (Alle/Indoor/Outdoor) laut Rückmeldung "brauch ich fast nie" — bewusst deutlich
+   unauffälliger als die anderen Filter: kein farbiger Segmented-Hintergrund/Rahmen mehr, kleinere
+   Schrift, neutral-grauer statt bunter Akzent-Fill bei aktiver Auswahl. Zusätzlich auf Desktop via
+   `.filters-sep-sport{margin-left:auto}` an den rechten Rand der Filterleiste geschoben — räumlich
+   abgesetzt von Datum/Jahr/Zeitraum, die die eigentlich relevanten Filter sind. */
+#sportGroup.filter-group.segmented{ background:transparent; border:none; box-shadow:none; padding:0; gap:2px; }
+#sportGroup .segmented-highlight{ background:rgba(127,127,127,.16); box-shadow:none; }
+#sportGroup .chip{ font-size:10px; padding:5px 10px; color:var(--muted); }
+#sportGroup .chip.active{ background:transparent !important; color:var(--text-dim) !important; font-weight:600; }
 .filters .sep{width:1px; align-self:stretch; background:var(--line); margin:2px 6px;}
+/* Höhere Selektor-Spezifität als `.filters .sep` nötig, sonst gewinnt dessen `margin:2px 6px`
+   gegen das hier gewünschte `margin-left:auto` (beide 2 Klassen-Selektoren zählen erst ab
+   Gleichstand nach Quellreihenfolge — `.filters-sep-sport` allein hat aber nur 1 Klasse). */
+.filters .filters-sep-sport{ margin-left:auto; }
 /* .filters-row existiert nur, um auf dem Phone den Sport-Filter (Alle/Indoor/Outdoor) aus der
    langen Scroll-Strecke des Datums/Zeitraum-Filters herauszulösen (siehe mobile Regel unten) —
    auf Desktop/Tablet ist es unsichtbar (`display:contents`): die Kinder verhalten sich exakt so,
@@ -828,7 +841,18 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 32px), transparent);
   }
   .filters-row-primary::-webkit-scrollbar{display:none;}
-  .filters-row-sport{ flex-wrap:wrap; }
+  /* Zeitraum-Auswahl (Diese Woche/Aktueller Monat/Letzter Monat/Ganzes Jahr/Custom) ist seit
+     v26.09-2 ein natives <select> statt 5 Segmented-Chips — ein <select> braucht nie horizontales
+     Scrollen, egal wie lang das gewählte Label ist. Trotzdem eigene Zeile (statt Anhängen an
+     `.filters-row-primary`), damit sie so oder so nie mit Datum/Jahr um Breite konkurriert und
+     immer sofort komplett sichtbar ist, ohne jede Scroll-Geste — genau die Vorgabe war "das musst
+     du hinbekommen". */
+  .filters-row-period{ flex-wrap:wrap; }
+  .filters-row-period .period-select{ flex:1; }
+  /* Rechtsbündig statt volle Breite: der Sport-Filter ist ein Nebenschauplatz ("brauch ich fast
+     nie") und soll wie eine kleine, unauffällig in die Ecke gerückte Fußnote wirken statt wie ein
+     gleichwertiger dritter Hauptfilter. */
+  .filters-row-sport{ flex-wrap:wrap; justify-content:flex-end; }
   .cal-summary{gap:20px;}
   .wrap{padding:14px 16px calc(var(--bn-total-h) + 20px);}
   /* Abstands-Kaskade oben insgesamt entschlackt (Kopf → Filter → Abschnitts-Titel → Kennzahlen-
@@ -980,17 +1004,18 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <div class="today-indicator" id="todayIndicator" data-skel>–</div>
       <div class="sep"></div>
       <select class="year-select" id="yearSelect"></select>
-      <div class="sep"></div>
-      <div class="filter-group segmented" id="periodGroup">
-        <div class="segmented-highlight"></div>
-        <div class="chip active" data-period="week">Diese Woche</div>
-        <div class="chip" data-period="7d">Letzte 7 Tage</div>
-        <div class="chip" data-period="30d">Letzte 30 Tage</div>
-        <div class="chip" data-period="year">Ganzes Jahr</div>
-        <div class="chip" data-period="custom">Custom</div>
-      </div>
     </div>
     <div class="sep filters-sep-desktop-only"></div>
+    <div class="filters-row filters-row-period">
+      <select class="year-select period-select" id="periodSelect">
+        <option value="week" selected>Diese Woche</option>
+        <option value="month">Aktueller Monat</option>
+        <option value="lastMonth">Letzter Monat</option>
+        <option value="year">Ganzes Jahr</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+    <div class="sep filters-sep-desktop-only filters-sep-sport"></div>
     <div class="filters-row filters-row-sport">
       <div class="filter-group segmented" id="sportGroup">
         <div class="segmented-highlight"></div>
@@ -1383,15 +1408,27 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     state.customTo = new Date(toEl.value + 'T23:59:59');
   }
 
+  // Monats-Grenzen relativ zu HEUTE (nicht zum gewählten Jahr!) — offset 0 = laufender Monat,
+  // -1 = Vormonat. Wichtig für den Jahreswechsel: liegt "heute" im Januar, ist der Vormonat
+  // Dezember des VORjahres — monthBounds rechnet das über Date(..., getMonth()-1, ...) automatisch
+  // korrekt (JS normalisiert Monat -1 selbst zu Dezember des Vorjahres).
+  function monthBounds(offset){
+    const from = new Date(NOW.getFullYear(), NOW.getMonth() + offset, 1, 0,0,0);
+    const to = new Date(from.getFullYear(), from.getMonth() + 1, 0, 23,59,59);
+    return {from, to};
+  }
+  function monthLabel(offset){
+    return monthBounds(offset).from.toLocaleDateString('de-DE', {month:'long', year:'numeric'});
+  }
+
   function inPeriod(a){
-    if(a._dt.getFullYear() !== state.year) return false;
     switch(state.period){
       case 'week': return state.year === CURRENT_YEAR && a._dt >= startOfWeek(NOW);
-      case '7d': return state.year === CURRENT_YEAR && a._dt >= new Date(NOW - 7*86400000);
-      case '30d': return state.year === CURRENT_YEAR && a._dt >= new Date(NOW - 30*86400000);
-      case 'year': return true;
+      case 'month': { if(state.year !== CURRENT_YEAR) return false; const {from} = monthBounds(0); return a._dt >= from; }
+      case 'lastMonth': { if(state.year !== CURRENT_YEAR) return false; const {from, to} = monthBounds(-1); return a._dt >= from && a._dt <= to; }
+      case 'year': return a._dt.getFullYear() === state.year;
       case 'custom': return a._dt >= state.customFrom && a._dt <= state.customTo;
-      default: return true;
+      default: return a._dt.getFullYear() === state.year;
     }
   }
   function inSport(a){
@@ -1443,7 +1480,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     return { text: 'Lockere Einheit', cls: 'neutral' };
   }
 
-  const PERIOD_LABELS = { week: 'Diese Woche · Mo–So', '7d': 'Letzte 7 Tage (bis heute)', '30d': 'Letzte 30 Tage (bis heute)', custom: 'Custom-Zeitraum' };
+  const PERIOD_LABELS = { week: 'Diese Woche · Mo–So' };
   const SPORT_LABELS = { all: '', indoor: ' · Indoor/Zwift', outdoor: ' · Outdoor' };
 
   function customLabel(){
@@ -1452,8 +1489,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     return `${f} – ${t}`;
   }
   function yearLabel(){ return state.year === CURRENT_YEAR ? `Jahr ${state.year} (YTD)` : `Jahr ${state.year}`; }
+  // Monatslabels sind dynamisch (hängen von HEUTE ab), daher nicht in PERIOD_LABELS als
+  // statischer String hinterlegbar wie bisher bei '7d'/'30d'.
   function periodLabelText(){
-    const base = state.period === 'custom' ? customLabel() : (state.period === 'year' ? yearLabel() : PERIOD_LABELS[state.period]);
+    let base;
+    if(state.period === 'custom') base = customLabel();
+    else if(state.period === 'year') base = yearLabel();
+    else if(state.period === 'month') base = monthLabel(0);
+    else if(state.period === 'lastMonth') base = monthLabel(-1);
+    else base = PERIOD_LABELS[state.period];
     return base + SPORT_LABELS[state.sport];
   }
 
@@ -1519,6 +1563,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '26.09-3', d: '26.09.2026', t: 'Sport-Filter (Alle/Indoor/Outdoor) auf Rückmeldung hin ("brauch ich fast nie") deutlich unauffälliger gemacht: kein bunter Segmented-Hintergrund mehr, kleinere Schrift, neutral-grau statt Akzentfarbe bei aktiver Auswahl. Auf Desktop zusätzlich an den rechten Rand der Filterleiste geschoben (räumlich abgesetzt von Datum/Jahr/Zeitraum), auf dem Phone rechtsbündig in seiner Zeile statt volle Breite einzunehmen.' },
+    { v: '26.09-2', d: '26.09.2026', t: 'Zeitraum-Auswahl komplett überarbeitet: "Letzte 7 Tage" entfernt, "Letzte 30 Tage" ersetzt durch "Aktueller Monat" und "Letzter Monat" (beide mit echtem Monatsnamen/Jahr als Label), "Ganzes Jahr" bleibt. Die bisherigen 5 Segmented-Chips (horizontal scrollbar, auf dem Phone mittendrin abgeschnitten) sind einem nativen <select> gewichen, das nie horizontal gescrollt werden muss — dazu eine eigene, immer komplett sichtbare Zeile bekommen (gleiches Muster wie schon beim Sport-Filter). Nebenbei einen latenten Jahreswechsel-Bug behoben: "Letzter Monat" hätte im Januar (Vormonat = Dezember des Vorjahres) durch eine zu strenge Jahres-Vorfilterung fälschlich leer angezeigt.' },
     { v: '26.09-1', d: '26.09.2026', t: 'Neue, dezente Kennzahl auf Wunsch direkt in der Kennzahlen-Karte ergänzt (keine neue Kachel): bei "Diese Woche"/"Letzte 7 Tage" steht jetzt unter der Distanz ein "Ø X km/Woche im Jahresschnitt" und unter der Sessions-Zeile ein "Ø X h/Woche im Jahresschnitt" — beide klein/gedämpft (neutral-grau statt Akzentfarbe), damit sie als Kontext wahrgenommen werden, nicht als weiterer Hauptwert. Bei 30 Tagen/Jahr/Custom bleiben sie ausgeblendet, da ein Wochen-Schnitt dort die falsche Vergleichsgröße wäre.' },
     { v: '24.09-10', d: '24.09.2026', t: 'Selbst per Scroll-Screenshot-Audit getestet (echte Scroll-Positionen, nicht fullPage) und einen echten Bug gefunden, den v24.09-7 nur zur Hälfte behoben hatte: die fix positionierte Läufe-Badge blendete sich zwar ganz oben aus, blieb aber ab 80px Scrolltiefe permanent sichtbar und überlappte dadurch auf dem Phone quer durch die ganze Seite Karteninhalte (Fitness-Chart, Recovery-Schlaflegende, Ziele-Ring samt Zahlen, Jahresziel-Chart). Jetzt komplett anders gelöst: auf dem Phone ist die schwebende Badge aus, stattdessen gibt es einen vierten Bottom-Nav-Eintrag "Läufe" mit Notification-Punkt — Teil der fixen Chrome, kann also keine Karte mehr verdecken. Desktop/Tablet unverändert.' },
     { v: '24.09-9', d: '24.09.2026', t: 'Bottom-Nav verschwand auf dem Karte-Tab hinter der Leaflet-Karte (die Karte setzt intern z-index bis 1000, ohne eigenen Stapelkontext reichte das bis zur fix positionierten Navigation durch) — behoben, die Nav bleibt jetzt immer sichtbar.' },
@@ -1555,16 +1601,17 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     document.getElementById('brandSub').textContent = `Rad · Zwift · Lauf — Saison ${state.year}`;
     document.getElementById('calYearLabel').textContent = state.year;
 
-    // Zeitraum-Chips: Woche/7T/30T nur sinnvoll im laufenden Jahr
+    // Zeitraum-Optionen "relativ zu heute" (Woche/Aktueller Monat/Letzter Monat) nur sinnvoll
+    // im laufenden Jahr — bei einem vergangenen Jahr in der Jahresauswahl werden sie im <select>
+    // deaktiviert und auf "Ganzes Jahr" umgeschaltet.
     const isCurrentYear = state.year === CURRENT_YEAR;
-    document.querySelectorAll('#periodGroup .chip[data-period="week"], #periodGroup .chip[data-period="7d"], #periodGroup .chip[data-period="30d"]').forEach(c => {
-      c.classList.toggle('disabled', !isCurrentYear);
+    ['week','month','lastMonth'].forEach(p => {
+      const opt = periodSelectEl.querySelector(`option[value="${p}"]`);
+      if(opt) opt.disabled = !isCurrentYear;
     });
-    if(!isCurrentYear && ['week','7d','30d'].includes(state.period)){
+    if(!isCurrentYear && ['week','month','lastMonth'].includes(state.period)){
       state.period = 'year';
-      document.querySelectorAll('#periodGroup .chip').forEach(c => c.classList.remove('active'));
-      document.querySelector('#periodGroup .chip[data-period="year"]').classList.add('active');
-      positionHighlight(document.getElementById('periodGroup'));
+      periodSelectEl.value = 'year';
     }
 
     if(!hasData) return;
@@ -1590,10 +1637,10 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
     // Ø im Jahresschnitt, dezent unter der Distanz-Kachel und der Sessions-Kachel — auf Wunsch
     // direkt dort ergänzt, wo die km/Std für den gewählten Zeitraum ohnehin schon stehen, statt
-    // eine eigene neue Kachel aufzumachen. Bewusst NUR bei "Diese Woche"/"Letzte 7 Tage" sichtbar:
-    // bei 30 Tagen/Jahr/Custom wäre ein Wochen-Schnitt direkt unter einer Nicht-Wochen-Zahl
-    // verwirrend statt hilfreich — lieber ganz weg als an der falschen Stelle.
-    const showWeeklyCompare = isCurrentYear && (state.period === 'week' || state.period === '7d');
+    // eine eigene neue Kachel aufzumachen. Bewusst NUR bei "Diese Woche" sichtbar: bei Monat/
+    // Jahr/Custom wäre ein Wochen-Schnitt direkt unter einer Nicht-Wochen-Zahl verwirrend statt
+    // hilfreich — lieber ganz weg als an der falschen Stelle.
+    const showWeeklyCompare = isCurrentYear && state.period === 'week';
     const kpiDistYearAvgEl = document.getElementById('kpiDistYearAvg');
     if(showWeeklyCompare && yStats.dist > 0){
       const yWeeks = weeksElapsedInYear(state.year);
@@ -1656,6 +1703,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // ---------- Filter-Interaktionen ----------
   const customRangeEl = document.getElementById('customRange');
   const yearSelectEl = document.getElementById('yearSelect');
+  const periodSelectEl = document.getElementById('periodSelect');
 
   // Jahr-Dropdown dynamisch befüllen: von der ersten echten Aktivität bis zum tatsächlich
   // aktuellen Jahr (nicht mehr hartkodiert) — damit das Board auch in einem späteren Jahr
@@ -1676,14 +1724,13 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     render();
   });
 
-  document.querySelectorAll('#periodGroup .chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      if(chip.classList.contains('disabled')) return;
-      state.period = chip.dataset.period;
-      setActive('#periodGroup', chip);
-      customRangeEl.style.display = (state.period === 'custom') ? 'flex' : 'none';
-      render();
-    });
+  // Natives <select> statt Segmented-Chips (seit v26.09-2) — braucht nur einen einzigen
+  // 'change'-Listener statt eines Klick-Handlers pro Chip, und keinen Highlight-Positionierungs-
+  // Code, da ein <select> seine aktive Option selbst rendert.
+  periodSelectEl.addEventListener('change', () => {
+    state.period = periodSelectEl.value;
+    customRangeEl.style.display = (state.period === 'custom') ? 'flex' : 'none';
+    render();
   });
   document.querySelectorAll('#sportGroup .chip').forEach(chip => {
     chip.addEventListener('click', () => { state.sport = chip.dataset.sport; setActive('#sportGroup', chip); render(); });
@@ -2705,14 +2752,13 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // (Indoor/Outdoor) ergibt hier keinen Sinn und wird bewusst ignoriert.
   function inRecoveryPeriod(dateStr){
     const d = new Date(dateStr + 'T12:00:00');
-    if(d.getFullYear() !== state.year) return false;
     switch(state.period){
-      case 'week': return d >= startOfWeek(NOW);
-      case '7d': return d >= new Date(NOW - 7*86400000);
-      case '30d': return d >= new Date(NOW - 30*86400000);
-      case 'year': return true;
+      case 'week': return state.year === CURRENT_YEAR && d >= startOfWeek(NOW);
+      case 'month': { if(state.year !== CURRENT_YEAR) return false; const {from} = monthBounds(0); return d >= from; }
+      case 'lastMonth': { if(state.year !== CURRENT_YEAR) return false; const {from, to} = monthBounds(-1); return d >= from && d <= to; }
+      case 'year': return d.getFullYear() === state.year;
       case 'custom': return d >= state.customFrom && d <= state.customTo;
-      default: return true;
+      default: return d.getFullYear() === state.year;
     }
   }
 
@@ -3034,14 +3080,13 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   render();
 
   // Segmented-Control-Highlights initial positionieren (vor jedem Klick) + bei Resize neu berechnen
-  positionHighlight(document.getElementById('periodGroup'));
+  // (periodGroup entfällt seit v26.09-2 — das native Zeitraum-<select> braucht keinen Highlight-Pin)
   positionHighlight(document.getElementById('sportGroup'));
   positionHighlight(document.getElementById('tabGroup'));
   let _resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(_resizeTimer);
     _resizeTimer = setTimeout(() => {
-      positionHighlight(document.getElementById('periodGroup'));
       positionHighlight(document.getElementById('sportGroup'));
       positionHighlight(document.getElementById('tabGroup'));
     }, 100);
