@@ -412,12 +412,17 @@ body:not(.app-ready) [data-skel]{
 .rl-item i{width:12px; height:12px; border-radius:50%; flex-shrink:0; box-shadow:0 0 10px currentColor;}
 .rl-lbl{font-family:var(--mono); font-size:12px; color:var(--muted); flex:1;}
 .rl-val{font-size:22px; font-weight:800; font-variant-numeric:tabular-nums;}
+/* Wrapt Wert + kleines Qualitäts-Label (z.B. "Gut erholt"/"Frisch") übereinander, statt nur eine
+   nackte Zahl zu zeigen, die ohne Radsport-Vorwissen nicht einzuordnen ist. */
+.rl-val-wrap{display:flex; flex-direction:column; align-items:flex-end;}
+.rl-sub{font-family:var(--mono); font-size:9.5px; margin-top:1px; white-space:nowrap;}
 .rl-item.rl-static{opacity:.7;}
 .rl-item.rl-static i{box-shadow:none;}
 @media(max-width:640px){
   .rings-hero{padding:26px 18px; gap:24px;}
   .rings-svg{width:190px; height:190px;}
   .rl-val{font-size:19px;}
+  .rl-val-wrap{align-items:flex-start;}
 }
 
 /* Section-Header: eine echte, ruhige Überschrift statt einer winzigen Mono-Zeile mit
@@ -1064,7 +1069,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     </div>
     <div class="stat-tile">
       <div>
-        <div class="lbl">Trainingsintensität</div>
+        <div class="lbl">Trainingsintensität<span title="Wie hart deine Einheiten in diesem Zeitraum im Schnitt waren (Strava-Belastungspunkte pro Minute), verglichen mit deinem eigenen Jahresschnitt. Zeigt Intensität, nicht Gesamtumfang." style="cursor:help; opacity:.6;"> ⓘ</span></div>
         <div class="val" id="statEffort" data-skel>–</div>
       </div>
       <div class="badge" id="statEffortBadge" data-skel>–</div>
@@ -1117,9 +1122,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     <svg class="rings-svg" id="ringsSvg" viewBox="0 0 280 280"></svg>
     <div class="rings-legend">
       <div class="rl-item"><i style="background:var(--ring-a)"></i><span class="rl-lbl">Wochenziel Rad</span><span class="rl-val" id="rlGoal" data-skel>–</span></div>
-      <div class="rl-item"><i style="background:var(--ring-b)"></i><span class="rl-lbl">Recovery</span><span class="rl-val" id="rlRecovery" data-skel>–</span></div>
-      <div class="rl-item"><i style="background:var(--ring-c)"></i><span class="rl-lbl">Form</span><span class="rl-val" id="rlForm" data-skel>–</span></div>
-      <div class="rl-item rl-static"><i style="background:var(--muted-2)"></i><span class="rl-lbl">FTP (Referenz)</span><span class="rl-val">253 W</span></div>
+      <div class="rl-item">
+        <i style="background:var(--ring-b)"></i><span class="rl-lbl">Recovery<span title="Wie erholt dein Körper gerade ist, auf einer Skala von 0–100 (höher = besser erholt). Berechnet aus Herzfrequenz-Werten und Schlaf der letzten Nacht." style="cursor:help; opacity:.6;"> ⓘ</span></span>
+        <span class="rl-val-wrap"><span class="rl-val" id="rlRecovery" data-skel>–</span><span class="rl-sub" id="rlRecoverySub"></span></span>
+      </div>
+      <div class="rl-item">
+        <i style="background:var(--ring-c)"></i><span class="rl-lbl">Form<span title="Deine aktuelle Frische: Trainingsaufbau minus akute Ermüdung. Positiv = erholt & leistungsbereit, negativ = du trainierst gerade auf Substanz." style="cursor:help; opacity:.6;"> ⓘ</span></span>
+        <span class="rl-val-wrap"><span class="rl-val" id="rlForm" data-skel>–</span><span class="rl-sub" id="rlFormSub"></span></span>
+      </div>
+      <div class="rl-item rl-static"><i style="background:var(--muted-2)"></i><span class="rl-lbl">FTP (Referenz)<span title="Functional Threshold Power: die Leistung in Watt, die du etwa eine Stunde am Limit durchhalten kannst — Referenzwert für Trainingszonen. Hier ein fixer Wert, keine Live-Berechnung." style="cursor:help; opacity:.6;"> ⓘ</span></span><span class="rl-val">253 W</span></div>
     </div>
   </div>
 
@@ -1163,8 +1174,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
         <div class="rr-val"><div class="rr-num" id="recoveryNum" data-skel>–</div><div class="rr-pct">Recovery</div></div>
       </div>
       <div class="recovery-metrics">
-        <div class="rm-item"><div class="rm-lbl">HRV</div><div class="rm-val" id="rmHrv" data-skel>–</div><div class="rm-sub" id="rmHrvSub" data-skel>–</div></div>
-        <div class="rm-item"><div class="rm-lbl">Ruhepuls</div><div class="rm-val" id="rmRhr" data-skel>–</div><div class="rm-sub" id="rmRhrSub" data-skel>–</div></div>
+        <div class="rm-item"><div class="rm-lbl">HRV<span title="Herzfrequenzvariabilität: wie unterschiedlich die Abstände zwischen Herzschlägen sind. Höher als der eigene Schnitt = besser erholt." style="cursor:help; opacity:.6;"> ⓘ</span></div><div class="rm-val" id="rmHrv" data-skel>–</div><div class="rm-sub" id="rmHrvSub" data-skel>–</div></div>
+        <div class="rm-item"><div class="rm-lbl">Ruhepuls<span title="Puls in Ruhe, morgens gemessen. Niedriger als der eigene Schnitt = besser erholt." style="cursor:help; opacity:.6;"> ⓘ</span></div><div class="rm-val" id="rmRhr" data-skel>–</div><div class="rm-sub" id="rmRhrSub" data-skel>–</div></div>
         <div class="rm-item"><div class="rm-lbl">Schlaf</div><div class="rm-val" id="rmSleep" data-skel>–</div><div class="rm-sub" id="rmSleepSub" data-skel>–</div></div>
       </div>
     </div>
@@ -1257,7 +1268,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   <div class="cal-summary">
     <div class="item"><div class="val" id="calHours" data-skel>275</div><div class="lbl">Stunden</div></div>
     <div class="item"><div class="val" id="calKm" data-skel>7.638</div><div class="lbl">Kilometer<br><span style="font-size:8.5px; opacity:.7; text-transform:none;">nur Rad/Zwift</span></div></div>
-    <div class="item"><div class="val accent" id="calPR" data-skel>1030</div><div class="lbl">Persönliche Rekorde<br><span style="font-size:8.5px; opacity:.7; text-transform:none;">auf Streckenabschnitten, kumulativ</span></div></div>
+    <div class="item"><div class="val accent" id="calPR" data-skel>1030</div><div class="lbl">Persönliche Rekorde<br><span style="font-size:8.5px; opacity:.7; text-transform:none;">schnellste Zeit auf einem Strecken­abschnitt, kumuliert über alle Fahrten</span></div></div>
     <div class="item"><div class="val" id="calN" data-skel>261</div><div class="lbl">Aktivitäten</div></div>
   </div>
   <div class="cal-grid" id="calGrid"></div>
@@ -1438,7 +1449,11 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     return true;
   }
   function filtered(){ return DATA.filter(a => inPeriod(a) && inSport(a)); }
-  function yearAll(){ return DATA.filter(a => a._dt.getFullYear() === state.year); }
+  // Für den "Ø im Jahresschnitt"-Vergleichswert: WICHTIG, denselben Sport-Filter anzuwenden wie
+  // auf die Hauptzahl (inSport) — sonst würde z.B. bei "Indoor" die gefilterte Indoor-Distanz
+  // gegen einen unrealistischen Jahresschnitt ALLER Sportarten verglichen (Äpfel-Birnen-Vergleich,
+  // genau die Art Inkonsistenz, die beim generellen Board-Review bemängelt wurde).
+  function yearAll(){ return DATA.filter(a => a._dt.getFullYear() === state.year && inSport(a)); }
   // Für den "Ø im Jahresschnitt"-Vergleichswert (siehe render()): Anzahl der seit Jahresbeginn
   // verstrichenen Wochen, im laufenden Jahr bis JETZT, in vergangenen Jahren bis Silvester.
   // Bewusst Kalenderwochen (Tage/7), nicht Anzahl Kalenderwochen-Nummern — vermeidet Off-by-one
@@ -1447,6 +1462,19 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const start = new Date(year, 0, 1);
     const end = (year === CURRENT_YEAR) ? NOW : new Date(year, 11, 31, 23, 59, 59);
     return Math.max(1, (end - start) / 86400000) / 7;
+  }
+  // Analog zu weeksElapsedInYear, aber für den gerade gewählten Zeitraum selbst (Monat/Custom) —
+  // damit "Ø X km/Woche" IMMER dieselbe, leicht vergleichbare Einheit ist, egal welcher
+  // Zeitraum-Filter aktiv ist (siehe Vergleichszeile in render()). Bewusst NICHT für 'week'
+  // verwendet: eine noch laufende Teilwoche (z.B. Montagmorgen) durch <1 Wochen-Anteil zu teilen
+  // würde die Zahl explodieren lassen — dort bleibt die rohe Wochen-Summe stehen wie bisher.
+  function periodWeeksSpan(){
+    switch(state.period){
+      case 'month': { const {from} = monthBounds(0); return Math.max(1, (NOW - from) / 86400000) / 7; }
+      case 'lastMonth': { const {from, to} = monthBounds(-1); return Math.max(1, (to - from) / 86400000) / 7; }
+      case 'custom': return Math.max(1, (state.customTo - state.customFrom) / 86400000) / 7;
+      default: return 1;
+    }
   }
 
   const fmtInt = n => Math.round(n).toLocaleString('de-DE');
@@ -1563,6 +1591,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '26.09-4', d: '26.09.2026', t: 'Größerer Verständlichkeits-Durchgang: (1) Die "Ø .../Jahresschnitt"-Vergleichszeile verschwand bisher außerhalb von "Diese Woche" komplett — jetzt passt sie sich dem Zeitraum an statt zu verschwinden (Monat/Letzter Monat/Custom zeigen eigene Wochen-Rate + Jahresschnitt zum Vergleich, Jahr zeigt "seit Jahresbeginn", immer dieselbe Einheit km/Woche). (2) Echten Bug gefixt: der Jahresschnitt-Vergleich ignorierte bisher den Sport-Filter (verglich z.B. gefilterte Indoor-Distanz gegen den Jahresschnitt ALLER Sportarten) — jetzt konsistent. (3) Board für Laien ohne Radsport-Vorwissen verständlicher gemacht: Recovery/Form im "Aktueller Stand"-Ring haben jetzt eine Klartext-Einordnung ("Gut erholt"/"Frisch") statt nackter Zahlen, FTP/HRV/Ruhepuls/Trainingsintensität haben Erklär-Tooltips (ⓘ) bekommen, HRV/Ruhepuls-Abweichungen sind grün/rot statt neutral eingefärbt (je nachdem ob die Richtung gut oder schlecht ist).' },
     { v: '26.09-3', d: '26.09.2026', t: 'Sport-Filter (Alle/Indoor/Outdoor) auf Rückmeldung hin ("brauch ich fast nie") deutlich unauffälliger gemacht: kein bunter Segmented-Hintergrund mehr, kleinere Schrift, neutral-grau statt Akzentfarbe bei aktiver Auswahl. Auf Desktop zusätzlich an den rechten Rand der Filterleiste geschoben (räumlich abgesetzt von Datum/Jahr/Zeitraum), auf dem Phone rechtsbündig in seiner Zeile statt volle Breite einzunehmen.' },
     { v: '26.09-2', d: '26.09.2026', t: 'Zeitraum-Auswahl komplett überarbeitet: "Letzte 7 Tage" entfernt, "Letzte 30 Tage" ersetzt durch "Aktueller Monat" und "Letzter Monat" (beide mit echtem Monatsnamen/Jahr als Label), "Ganzes Jahr" bleibt. Die bisherigen 5 Segmented-Chips (horizontal scrollbar, auf dem Phone mittendrin abgeschnitten) sind einem nativen <select> gewichen, das nie horizontal gescrollt werden muss — dazu eine eigene, immer komplett sichtbare Zeile bekommen (gleiches Muster wie schon beim Sport-Filter). Nebenbei einen latenten Jahreswechsel-Bug behoben: "Letzter Monat" hätte im Januar (Vormonat = Dezember des Vorjahres) durch eine zu strenge Jahres-Vorfilterung fälschlich leer angezeigt.' },
     { v: '26.09-1', d: '26.09.2026', t: 'Neue, dezente Kennzahl auf Wunsch direkt in der Kennzahlen-Karte ergänzt (keine neue Kachel): bei "Diese Woche"/"Letzte 7 Tage" steht jetzt unter der Distanz ein "Ø X km/Woche im Jahresschnitt" und unter der Sessions-Zeile ein "Ø X h/Woche im Jahresschnitt" — beide klein/gedämpft (neutral-grau statt Akzentfarbe), damit sie als Kontext wahrgenommen werden, nicht als weiterer Hauptwert. Bei 30 Tagen/Jahr/Custom bleiben sie ausgeblendet, da ein Wochen-Schnitt dort die falsche Vergleichsgröße wäre.' },
@@ -1635,23 +1664,42 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const yAll = yearAll();
     const yStats = computeStats(yAll);
 
-    // Ø im Jahresschnitt, dezent unter der Distanz-Kachel und der Sessions-Kachel — auf Wunsch
-    // direkt dort ergänzt, wo die km/Std für den gewählten Zeitraum ohnehin schon stehen, statt
-    // eine eigene neue Kachel aufzumachen. Bewusst NUR bei "Diese Woche" sichtbar: bei Monat/
-    // Jahr/Custom wäre ein Wochen-Schnitt direkt unter einer Nicht-Wochen-Zahl verwirrend statt
-    // hilfreich — lieber ganz weg als an der falschen Stelle.
-    const showWeeklyCompare = isCurrentYear && state.period === 'week';
+    // Ø-Vergleichszeile unter Distanz- und Sessions-Kachel: übersetzt die aktuell gezeigte Zahl
+    // IMMER in eine Wochen-Rate (km/Woche, h/Woche) — die am leichtesten einzuordnende Einheit,
+    // egal ob gerade Woche/Monat/Jahr/Custom gewählt ist. Vorher verschwand diese Zeile komplett
+    // außerhalb von "Diese Woche" (Rückmeldung: "der Jahresschnitt verschwindet hier leider") —
+    // jetzt passt sie sich an, statt zu verschwinden:
+    //  - Woche: Jahresschnitt als Vergleichswert (unverändert, funktioniert bereits).
+    //  - Monat/Letzter Monat/Custom: eigene Wochen-Rate für den gewählten Zeitraum + Jahresschnitt
+    //    daneben zum Vergleich — gleiche Einheit, egal welcher Filter aktiv ist.
+    //  - Ganzes Jahr: Jahresschnitt UND gewählter Zeitraum sind identisch (beide = das ganze Jahr),
+    //    daher nur einmal als "seit Jahresbeginn" gezeigt statt einer redundanten Doppelzeile.
     const kpiDistYearAvgEl = document.getElementById('kpiDistYearAvg');
-    if(showWeeklyCompare && yStats.dist > 0){
+    let distCompareText = '', hoursCompareText = '';
+    if(yStats.dist > 0){
       const yWeeks = weeksElapsedInYear(state.year);
-      const kmPerWeek = yStats.dist / yWeeks;
-      const hoursPerWeek = yStats.hours / yWeeks;
-      kpiDistYearAvgEl.textContent = `Ø ${fmtKm(kmPerWeek)} km/Woche im Jahresschnitt`;
-      heroHoursYearAvg.textContent = `Ø ${hoursPerWeek.toFixed(1).replace('.', ',')} h/Woche im Jahresschnitt`;
-    } else {
-      kpiDistYearAvgEl.textContent = '';
-      heroHoursYearAvg.textContent = '';
+      const yKmPerWeek = yStats.dist / yWeeks;
+      const yHoursPerWeek = yStats.hours / yWeeks;
+      if(state.period === 'week'){
+        distCompareText = `Ø ${fmtKm(yKmPerWeek)} km/Woche im Jahresschnitt`;
+        hoursCompareText = `Ø ${yHoursPerWeek.toFixed(1).replace('.', ',')} h/Woche im Jahresschnitt`;
+      } else if(state.period === 'year'){
+        if(stats.dist > 0){
+          distCompareText = `Ø ${fmtKm(yKmPerWeek)} km/Woche seit Jahresbeginn`;
+          hoursCompareText = `Ø ${yHoursPerWeek.toFixed(1).replace('.', ',')} h/Woche seit Jahresbeginn`;
+        }
+      } else {
+        const pWeeks = periodWeeksSpan();
+        if(stats.dist > 0 && pWeeks > 0){
+          const pKmPerWeek = stats.dist / pWeeks;
+          const pHoursPerWeek = stats.hours / pWeeks;
+          distCompareText = `Ø ${fmtKm(pKmPerWeek)} km/Woche · Jahresschnitt ${fmtKm(yKmPerWeek)} km/Woche`;
+          hoursCompareText = `Ø ${pHoursPerWeek.toFixed(1).replace('.', ',')} h/Woche · Jahresschnitt ${yHoursPerWeek.toFixed(1).replace('.', ',')} h/Woche`;
+        }
+      }
     }
+    kpiDistYearAvgEl.textContent = distCompareText;
+    heroHoursYearAvg.textContent = hoursCompareText;
     const effortEl = document.getElementById('statEffort');
     const effortBadge = document.getElementById('statEffortBadge');
     if(stats.n > 0 && yStats.effortPerMin > 0){
@@ -2683,6 +2731,9 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     if(tsb > -25) return { badge:'tired', label:'Ermüdet', text:'Die letzten Tage waren fordernd. Eine lockere oder freie Einheit würde jetzt guttun.' };
     return { badge:'overreach', label:'Stark ermüdet', text:'Deutlich erhöhtes Übertrainings-Risiko — plane bewusst Regeneration ein.' };
   }
+  // Textfarbe je Form-Status, dieselbe Zuordnung wie .form-badge.<status> in CSS — für das kleine
+  // Qualitäts-Label im Ringe-Hero (s. renderRingsHero), das die nackte "+50"-Zahl einordnet.
+  const FORM_STATUS_COLOR = { fresh:'var(--outdoor)', balanced:'var(--glow-a)', tired:'var(--indoor)', overreach:'var(--accent-2)' };
 
   function renderFormChart(series){
     const recent = series.slice(-120);
@@ -2805,9 +2856,26 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const rhrBase = rhrWindow.length ? rhrWindow.reduce((s,d)=>s+d.rhr,0)/rhrWindow.length : null;
 
     document.getElementById('rmHrv').textContent = latest.hrv ? Math.round(latest.hrv) + ' ms' : '–';
-    document.getElementById('rmHrvSub').textContent = hrvBase ? (latest.hrv >= hrvBase ? '+' : '') + Math.round(latest.hrv - hrvBase) + ' vs. Ø' : '–';
+    // Grün/Rot statt neutralem Grau: bei HRV ist "höher als der Schnitt" gut, bei Ruhepuls
+    // "niedriger als der Schnitt" — ohne diese Einordnung sieht "+3 vs. Ø" bei beiden Werten
+    // gleich aus, dabei bedeutet es einmal "besser erholt" und einmal "schlechter erholt".
+    const rmHrvSubEl = document.getElementById('rmHrvSub');
+    if(hrvBase){
+      const diff = Math.round(latest.hrv - hrvBase);
+      const good = diff >= 0;
+      rmHrvSubEl.innerHTML = `<span style="color:${good ? 'var(--outdoor)' : 'var(--accent-2)'}">${diff >= 0 ? '+' : ''}${diff} vs. Ø</span>`;
+    } else {
+      rmHrvSubEl.textContent = '–';
+    }
     document.getElementById('rmRhr').textContent = latest.rhr ? Math.round(latest.rhr) + ' bpm' : '–';
-    document.getElementById('rmRhrSub').textContent = rhrBase ? (latest.rhr <= rhrBase ? '' : '+') + Math.round(latest.rhr - rhrBase) + ' vs. Ø' : '–';
+    const rmRhrSubEl = document.getElementById('rmRhrSub');
+    if(rhrBase){
+      const diff = Math.round(latest.rhr - rhrBase);
+      const good = diff <= 0;
+      rmRhrSubEl.innerHTML = `<span style="color:${good ? 'var(--outdoor)' : 'var(--accent-2)'}">${diff > 0 ? '+' : ''}${diff} vs. Ø</span>`;
+    } else {
+      rmRhrSubEl.textContent = '–';
+    }
     document.getElementById('rmSleep').textContent = latest.sh + ' h';
     document.getElementById('rmSleepSub').textContent = latest.eff + '% Effizienz';
 
@@ -2900,6 +2968,26 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     document.getElementById('rlGoal').textContent = fmtKm(weekKm) + ' / 180 km';
     document.getElementById('rlRecovery').textContent = recoveryVal !== null ? recoveryVal : '–';
     document.getElementById('rlForm').textContent = (formVal >= 0 ? '+' : '') + formVal;
+
+    // Kleine Einordnung unter den nackten Zahlen — "73" oder "+50" sagen ohne Radsport-Vorwissen
+    // nichts, "Gut erholt" / "Frisch" schon. Nutzt dieselbe Logik wie die ausführlicheren
+    // Recovery-/Fitness&Form-Sektionen weiter unten, nur kompakt.
+    const rlRecoverySub = document.getElementById('rlRecoverySub');
+    if(recoveryVal !== null){
+      const band = recoveryBand(recoveryVal);
+      rlRecoverySub.textContent = band.label.split(' · ')[1] || band.label;
+      rlRecoverySub.style.color = band.color;
+    } else {
+      rlRecoverySub.textContent = '';
+    }
+    const rlFormSub = document.getElementById('rlFormSub');
+    if(fitSeries.length){
+      const status = formStatusFor(formVal);
+      rlFormSub.textContent = status.label;
+      rlFormSub.style.color = FORM_STATUS_COLOR[status.badge] || 'var(--muted)';
+    } else {
+      rlFormSub.textContent = '';
+    }
   }
 
   function renderBodyComp(){
