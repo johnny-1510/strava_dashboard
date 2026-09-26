@@ -283,6 +283,12 @@ html[data-theme="light"] .custom-range input[type="date"]{ color-scheme:light; }
   color:var(--glow-a); background:var(--glow-grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
 .big-num small{font-size:19px; color:var(--muted); font-weight:500; margin-left:9px; letter-spacing:0; -webkit-text-fill-color:var(--muted); background:none;}
 .hero-sub{font-family:var(--mono); font-size:12.5px; color:var(--outdoor); margin-top:16px; line-height:1.6; transition:opacity .2s var(--ease);}
+/* Dezenter Vergleichswert unter der Sessions-Kachel — bewusst gedämpfter (--muted statt --outdoor,
+   kleinere Schrift) als .hero-sub, damit er als Kontext-Info wahrgenommen wird, nicht als weiterer
+   Hauptwert. Nur befüllt/sichtbar, wenn der gewählte Zeitraum ohnehin "eine Woche" ist (Diese Woche /
+   Letzte 7 Tage) — sonst leer, per JS (siehe render()). */
+.hero-sub-compare{font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:5px; line-height:1.5; min-height:1px; transition:opacity .2s var(--ease);}
+.hero-sub-compare:empty{margin-top:0;}
 
 .stat-tile{
   flex:1 1 160px; padding:22px 24px;
@@ -785,6 +791,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   .big-num{font-size:24px;}
   .big-num small{font-size:11px; margin-left:5px;}
   .hero-sub{margin-top:3px; font-size:10px; line-height:1.4;}
+  .hero-sub-compare{font-size:8.5px; margin-top:2px; line-height:1.3;}
   .stat-tile{padding:10px 12px; border-left:none; border-top:1px solid var(--line);}
   .stat-tile:nth-child(2){border-top:none;}
   .stat-tile:nth-child(2), .stat-tile:nth-child(4){border-left:1px solid var(--line);}
@@ -1012,11 +1019,13 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
       <div class="eyebrow" id="heroLabel">Diese Woche</div>
       <div class="big-num"><span id="heroSessions" data-skel>–</span><small>Sessions</small></div>
       <div class="hero-sub" id="heroSub" data-skel>–</div>
+      <div class="hero-sub-compare" id="heroHoursYearAvg"></div>
     </div>
     <div class="stat-tile clickable-tile" data-metric="dist">
       <div class="lbl">Distanz (Rad) <span class="hint">↗</span></div>
       <div class="val" id="kpiDist" data-skel>–</div>
       <div class="delta up" id="kpiDistSub" data-skel>–</div>
+      <div class="delta neutral" id="kpiDistYearAvg"></div>
     </div>
     <div class="stat-tile clickable-tile" data-metric="elev">
       <div class="lbl">Höhenmeter <span class="hint">↗</span></div>
@@ -1393,6 +1402,15 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   }
   function filtered(){ return DATA.filter(a => inPeriod(a) && inSport(a)); }
   function yearAll(){ return DATA.filter(a => a._dt.getFullYear() === state.year); }
+  // Für den "Ø im Jahresschnitt"-Vergleichswert (siehe render()): Anzahl der seit Jahresbeginn
+  // verstrichenen Wochen, im laufenden Jahr bis JETZT, in vergangenen Jahren bis Silvester.
+  // Bewusst Kalenderwochen (Tage/7), nicht Anzahl Kalenderwochen-Nummern — vermeidet Off-by-one
+  // an Jahresgrenzen und liefert einen stetig wachsenden Nenner statt Sprüngen am Wochenwechsel.
+  function weeksElapsedInYear(year){
+    const start = new Date(year, 0, 1);
+    const end = (year === CURRENT_YEAR) ? NOW : new Date(year, 11, 31, 23, 59, 59);
+    return Math.max(1, (end - start) / 86400000) / 7;
+  }
 
   const fmtInt = n => Math.round(n).toLocaleString('de-DE');
   const fmtKm = n => n.toLocaleString('de-DE', {minimumFractionDigits: n < 100 ? 1 : 0, maximumFractionDigits: 1});
@@ -1501,6 +1519,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '26.09-1', d: '26.09.2026', t: 'Neue, dezente Kennzahl auf Wunsch direkt in der Kennzahlen-Karte ergänzt (keine neue Kachel): bei "Diese Woche"/"Letzte 7 Tage" steht jetzt unter der Distanz ein "Ø X km/Woche im Jahresschnitt" und unter der Sessions-Zeile ein "Ø X h/Woche im Jahresschnitt" — beide klein/gedämpft (neutral-grau statt Akzentfarbe), damit sie als Kontext wahrgenommen werden, nicht als weiterer Hauptwert. Bei 30 Tagen/Jahr/Custom bleiben sie ausgeblendet, da ein Wochen-Schnitt dort die falsche Vergleichsgröße wäre.' },
     { v: '24.09-10', d: '24.09.2026', t: 'Selbst per Scroll-Screenshot-Audit getestet (echte Scroll-Positionen, nicht fullPage) und einen echten Bug gefunden, den v24.09-7 nur zur Hälfte behoben hatte: die fix positionierte Läufe-Badge blendete sich zwar ganz oben aus, blieb aber ab 80px Scrolltiefe permanent sichtbar und überlappte dadurch auf dem Phone quer durch die ganze Seite Karteninhalte (Fitness-Chart, Recovery-Schlaflegende, Ziele-Ring samt Zahlen, Jahresziel-Chart). Jetzt komplett anders gelöst: auf dem Phone ist die schwebende Badge aus, stattdessen gibt es einen vierten Bottom-Nav-Eintrag "Läufe" mit Notification-Punkt — Teil der fixen Chrome, kann also keine Karte mehr verdecken. Desktop/Tablet unverändert.' },
     { v: '24.09-9', d: '24.09.2026', t: 'Bottom-Nav verschwand auf dem Karte-Tab hinter der Leaflet-Karte (die Karte setzt intern z-index bis 1000, ohne eigenen Stapelkontext reichte das bis zur fix positionierten Navigation durch) — behoben, die Nav bleibt jetzt immer sichtbar.' },
     { v: '24.09-8', d: '24.09.2026', t: 'Sport-Filter (Alle/Indoor/Outdoor) saß am Ende derselben langen Scroll-Leiste wie Datum + Zeitraum-Chips und war erst nach viel Scrollen erreichbar ("weggeschnitten"-Eindruck) — jetzt eigene, immer komplett sichtbare Zeile darunter. Dabei einen echten Bug gefunden: ein Flexbox-Vererbungsfehler hatte die komplette Seite auf 904px Breite aufgebläht statt sie auf dem Phone-Bildschirm zu halten — mitbehoben.' },
@@ -1558,7 +1577,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     const heroLabel = document.getElementById('heroLabel');
     const heroSessions = document.getElementById('heroSessions');
     const heroSub = document.getElementById('heroSub');
-    [heroLabel, heroSessions, heroSub].forEach(el => { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); });
+    const heroHoursYearAvg = document.getElementById('heroHoursYearAvg');
+    [heroLabel, heroSessions, heroSub, heroHoursYearAvg].forEach(el => { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); });
     heroLabel.textContent = periodLabel;
     heroSessions.textContent = stats.n;
     heroSub.textContent = stats.n > 0
@@ -1567,6 +1587,24 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 
     const yAll = yearAll();
     const yStats = computeStats(yAll);
+
+    // Ø im Jahresschnitt, dezent unter der Distanz-Kachel und der Sessions-Kachel — auf Wunsch
+    // direkt dort ergänzt, wo die km/Std für den gewählten Zeitraum ohnehin schon stehen, statt
+    // eine eigene neue Kachel aufzumachen. Bewusst NUR bei "Diese Woche"/"Letzte 7 Tage" sichtbar:
+    // bei 30 Tagen/Jahr/Custom wäre ein Wochen-Schnitt direkt unter einer Nicht-Wochen-Zahl
+    // verwirrend statt hilfreich — lieber ganz weg als an der falschen Stelle.
+    const showWeeklyCompare = isCurrentYear && (state.period === 'week' || state.period === '7d');
+    const kpiDistYearAvgEl = document.getElementById('kpiDistYearAvg');
+    if(showWeeklyCompare && yStats.dist > 0){
+      const yWeeks = weeksElapsedInYear(state.year);
+      const kmPerWeek = yStats.dist / yWeeks;
+      const hoursPerWeek = yStats.hours / yWeeks;
+      kpiDistYearAvgEl.textContent = `Ø ${fmtKm(kmPerWeek)} km/Woche im Jahresschnitt`;
+      heroHoursYearAvg.textContent = `Ø ${hoursPerWeek.toFixed(1).replace('.', ',')} h/Woche im Jahresschnitt`;
+    } else {
+      kpiDistYearAvgEl.textContent = '';
+      heroHoursYearAvg.textContent = '';
+    }
     const effortEl = document.getElementById('statEffort');
     const effortBadge = document.getElementById('statEffortBadge');
     if(stats.n > 0 && yStats.effortPerMin > 0){
