@@ -345,13 +345,19 @@ html[data-theme="light"] .custom-range input[type="date"]{ color-scheme:light; }
 .sleep-legend{display:flex; gap:14px; margin-top:10px; font-family:var(--mono); font-size:10px; color:var(--muted); flex-wrap:wrap;}
 .sleep-legend span{display:inline-flex; align-items:center; gap:5px;}
 .sleep-legend i{width:8px; height:8px; border-radius:2px;}
-#recoveryChart{width:100%; height:140px; display:block; margin-top:18px;}
+/* Gleicher Verzerrungs-Bug wie beim Jahresziel-Chart (siehe dort): feste Höhe + viewBox 1000x140 +
+   preserveAspectRatio="none" verzerrte auf schmalen Panels nicht-uniform. aspect-ratio statt fester
+   Höhe behebt es grundsätzlich, bei jeder Panel-Breite. */
+#recoveryChart{width:100%; aspect-ratio:1000/140; height:auto; display:block; margin-top:18px;}
 .recovery-note{font-family:var(--mono); font-size:10.5px; color:var(--muted); margin-top:14px; line-height:1.5;}
 .bodycomp-strip{display:flex; align-items:center; gap:20px; margin-top:16px; padding-top:16px; border-top:1px solid var(--line); flex-wrap:wrap;}
 .bc-stat .bc-lbl{font-family:var(--mono); font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
 .bc-stat .bc-val{font-size:15px; font-weight:700; margin-top:2px;}
 .bc-stat .bc-delta{font-family:var(--mono); font-size:10px; margin-top:1px;}
-#bodyWeightSpark{height:32px; width:120px; margin-left:auto;}
+/* viewBox 300x60 (5:1) vs. fixer 120x32 (3.75:1) Box war immer leicht verzerrt, auf jeder
+   Bildschirmgröße (fixe px, nicht width:100% — also kein Mobile-spezifisches Problem wie bei den
+   anderen Charts, aber derselbe Grundfehler: Box-Verhältnis ≠ viewBox-Verhältnis). */
+#bodyWeightSpark{width:120px; aspect-ratio:300/60; height:auto; margin-left:auto;}
 
 /* ---- Bento-Paarung (weniger Scrollen auf breiten Screens) ---- */
 .bento-pair{display:block;}
@@ -542,8 +548,18 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .timeline-projection{
   font-family:var(--mono); font-size:12px; color:var(--outdoor); font-weight:600;
   background:color-mix(in srgb, var(--outdoor) 10%, transparent); padding:8px 14px; border-radius:100px; white-space:nowrap;
+  max-width:100%;
 }
-#timelineChart{width:100%; height:290px; display:block; margin-top:10px; overflow:visible;}
+/* Fester height:290px + viewBox 1000x290 + preserveAspectRatio="none" passte nur zufällig auf breiten
+   Desktop-Panels (dort ist die tatsächliche Breite von Natur aus grob im selben ~3.45:1-Verhältnis wie
+   die SVG-Koordinaten). Auf dem Phone (Panel ~300-360px breit, aber weiterhin 290px hoch erzwungen)
+   verzerrt preserveAspectRatio="none" Text/Kreise/Labels massiv nicht-uniform (Screenshot-Meldung
+   "sieht super verzerrt aus"). aspect-ratio hält Breite:Höhe IMMER exakt im viewBox-Verhältnis, auf
+   jeder Bildschirmgröße — Verzerrung dadurch grundsätzlich unmöglich, nicht nur auf Mobile kaschiert. */
+#timelineChart{width:100%; aspect-ratio:1000/290; height:auto; display:block; margin-top:10px; overflow:visible;}
+@media(max-width:640px){
+  .timeline-projection{ white-space:normal; line-height:1.4; border-radius:14px; }
+}
 .timeline-legend{display:flex; gap:18px; margin-top:6px; font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-wrap:wrap;}
 .timeline-legend span{display:inline-flex; align-items:center; gap:6px;}
 .timeline-legend i{width:14px; height:2px; border-radius:2px; display:inline-block;}
@@ -581,7 +597,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .cal-trend-legend span{display:inline-flex; align-items:center; gap:6px;}
 .cal-trend-legend i{width:14px; height:2px; border-radius:2px; display:inline-block;}
 .cal-trend-best{margin-left:auto; color:var(--text-dim); font-weight:600;}
-#calTrendChart{width:100%; height:250px; display:block; margin-top:10px; overflow:visible; cursor:crosshair;}
+/* Gleicher Verzerrungs-Bug wie beim Jahresziel-Chart (siehe dort). */
+#calTrendChart{width:100%; aspect-ratio:1000/250; height:auto; display:block; margin-top:10px; overflow:visible; cursor:crosshair;}
 .cal-trend-tip{
   position:absolute; top:8px; transform:translateX(-50%);
   background:var(--panel-2); border:1px solid var(--line-strong); border-radius:8px;
@@ -701,7 +718,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
 .form-metric.form .fm-val{color:var(--outdoor);}
 .form-explain{font-family:var(--mono); font-size:11.5px; color:var(--text-dim); line-height:1.6; max-width:520px; margin-bottom:18px;}
 .form-chart-wrap{position:relative;}
-#formChart{width:100%; height:180px; display:block;}
+/* Gleicher Verzerrungs-Bug wie beim Jahresziel-Chart (siehe dort). */
+#formChart{width:100%; aspect-ratio:1000/180; height:auto; display:block;}
 .form-legend{display:flex; gap:18px; margin-top:10px; font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-wrap:wrap;}
 .form-legend span{display:inline-flex; align-items:center; gap:6px;}
 .form-legend i{width:14px; height:3px; border-radius:2px; display:inline-block;}
@@ -1591,6 +1609,8 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '27.09-3', d: '27.09.2026', t: 'Nach dem Timeline-Chart-Fix gezielt nach dem gleichen Bug-Muster im ganzen File gesucht (fester Pixel-Höhe + breites viewBox + preserveAspectRatio="none") statt nur die eine gemeldete Stelle zu flicken — 3 weitere Charts hatten exakt denselben Fehler und waren auf dem Phone ebenso verzerrt (Fitness/Form-Chart, Recovery-Trend-Sparkline, Kilometer-&-Trainingsdauer-Chart im Kalender-Tab), plus eine kleinere, bildschirmgrößen-unabhängige Verzerrung bei der winzigen Gewichts-Sparkline. Alle vier auf dieselbe aspect-ratio-Lösung umgestellt.' },
+    { v: '27.09-2', d: '27.09.2026', t: 'Echten Verzerrungs-Bug im "Weg zum Jahresziel"-Chart gefunden und behoben (per Screenshot gemeldet): das SVG hatte eine feste Höhe von 290px bei einem viewBox-Seitenverhältnis von ca. 3,45:1 und preserveAspectRatio="none" — auf dem Phone (Panel nur ~300-360px breit) quetschte das Zahlen, Kreise und Beschriftungen massiv nicht-uniform zusammen, weil Breite und Höhe komplett unterschiedlich skaliert wurden. Zufällig fiel das auf Desktop kaum auf (dort liegt die tatsächliche Panel-Breite von Natur aus näher am viewBox-Verhältnis). Jetzt per CSS `aspect-ratio:1000/290` statt fester Höhe — das Chart behält sein Seitenverhältnis exakt bei jeder Bildschirmbreite bei, Verzerrung ist dadurch grundsätzlich ausgeschlossen statt nur zufällig unauffällig. Zusätzlich: die grüne "Bei aktuellem Tempo..."-Sprechblase war fest einzeilig (white-space:nowrap) und lief auf dem Phone über den Bildschirmrand hinaus (im Screenshot am Text "...sogar über" sichtbar abgeschnitten) — auf Mobile darf sie jetzt umbrechen.' },
     { v: '27.09-1', d: '27.09.2026', t: 'Neuer Apple-Health-Export eingespielt: 3 neue Nächte (23.–25.09.) inkl. Recovery Score ergänzt, dazu 2 neue Gewichts- und 1 neuer Körperfett-Messpunkt der Waage. Die Nacht vom 26.09. fehlt noch (Ruhepuls-Tageswert für den 27.09. war zum Exportzeitpunkt noch nicht berechnet) und kommt mit dem nächsten Export nach. Ab dieser Nacht (23.09.) fließt erstmals der neue RMSSD-Wert der Watch mit in den Recovery Score ein, zusätzlich zum bisherigen SDNN-Wert — beide zusammen ergeben ein saubereres HRV-Bild. Nebenbei den Datenstand-Hinweis über "Recovery & Schlaf" von Hand-Text auf eine live aus den Daten berechnete Anzeige umgestellt, damit er nach künftigen Exports nicht mehr vergessen werden kann.' },
     { v: '26.09-4', d: '26.09.2026', t: 'Größerer Verständlichkeits-Durchgang: (1) Die "Ø .../Jahresschnitt"-Vergleichszeile verschwand bisher außerhalb von "Diese Woche" komplett — jetzt passt sie sich dem Zeitraum an statt zu verschwinden (Monat/Letzter Monat/Custom zeigen eigene Wochen-Rate + Jahresschnitt zum Vergleich, Jahr zeigt "seit Jahresbeginn", immer dieselbe Einheit km/Woche). (2) Echten Bug gefixt: der Jahresschnitt-Vergleich ignorierte bisher den Sport-Filter (verglich z.B. gefilterte Indoor-Distanz gegen den Jahresschnitt ALLER Sportarten) — jetzt konsistent. (3) Board für Laien ohne Radsport-Vorwissen verständlicher gemacht: Recovery/Form im "Aktueller Stand"-Ring haben jetzt eine Klartext-Einordnung ("Gut erholt"/"Frisch") statt nackter Zahlen, FTP/HRV/Ruhepuls/Trainingsintensität haben Erklär-Tooltips (ⓘ) bekommen, HRV/Ruhepuls-Abweichungen sind grün/rot statt neutral eingefärbt (je nachdem ob die Richtung gut oder schlecht ist).' },
     { v: '26.09-3', d: '26.09.2026', t: 'Sport-Filter (Alle/Indoor/Outdoor) auf Rückmeldung hin ("brauch ich fast nie") deutlich unauffälliger gemacht: kein bunter Segmented-Hintergrund mehr, kleinere Schrift, neutral-grau statt Akzentfarbe bei aktiver Auswahl. Auf Desktop zusätzlich an den rechten Rand der Filterleiste geschoben (räumlich abgesetzt von Datum/Jahr/Zeitraum), auf dem Phone rechtsbündig in seiner Zeile statt volle Breite einzunehmen.' },
