@@ -807,6 +807,52 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   .cal-grid{grid-template-columns:repeat(2,1fr);}
   .bento-pair{display:block;} /* Bento-Paarung erst ab Desktop-Breite, auf Tablet gestapelt für genug Platz pro Chart */
 }
+
+/* ---- Alle Aktivitäten: sortierbare Tabelle (Rad/Lauf, komplette Historie, Top-10 + "mehr") ---- */
+.act-controls{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
+.act-sport-toggle{display:flex; gap:6px;}
+.act-count-note{font-family:var(--mono); font-size:11px; color:var(--muted);}
+.act-sort-mobile{display:none;}
+.act-table-wrap{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md);
+  box-shadow:var(--shadow-sm); overflow-x:auto;
+}
+.act-table{width:100%; border-collapse:collapse; font-family:var(--mono);}
+.act-table thead th{
+  text-align:left; font-size:10.5px; letter-spacing:.03em; text-transform:uppercase; color:var(--muted);
+  padding:12px 14px; border-bottom:1px solid var(--line-strong); cursor:pointer; user-select:none;
+  white-space:nowrap; transition:color .15s var(--ease);
+}
+.act-table thead th.num{text-align:right;}
+.act-table thead th:hover{color:var(--text-dim);}
+.act-table thead th.sorted{color:var(--glow-a);}
+.act-table thead th .act-arrow{display:inline-block; margin-left:4px; font-size:9px; opacity:.8;}
+.act-table tbody td{padding:11px 14px; border-bottom:1px solid var(--line); font-size:12.5px; white-space:nowrap;}
+.act-table tbody tr:last-child td{border-bottom:none;}
+.act-table tbody tr{transition:background .15s var(--ease);}
+.act-table tbody tr:hover{background:var(--panel-hover);}
+.act-table td.num{text-align:right; color:var(--text-dim); font-variant-numeric:tabular-nums;}
+.act-table td.act-name{
+  font-family:var(--sans); font-weight:600; max-width:260px;
+  display:flex; align-items:center; gap:7px;
+}
+.act-name .act-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0; background:var(--outdoor);}
+.act-name.indoor .act-dot{background:var(--indoor);}
+.act-name-text{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:1;}
+.eff-badge{display:inline-block; padding:3px 8px; border-radius:100px; font-size:10px; font-weight:600; font-family:var(--mono); white-space:nowrap;}
+.eff-badge.neutral{background:color-mix(in srgb, var(--muted) 16%, transparent); color:var(--muted);}
+.eff-badge.up{background:color-mix(in srgb, var(--outdoor) 16%, transparent); color:var(--outdoor);}
+.eff-badge.warn2{background:color-mix(in srgb, var(--indoor) 16%, transparent); color:var(--indoor);}
+.eff-badge.down{background:var(--accent-soft); color:var(--accent-2);}
+.act-more-btn{
+  display:block; width:100%; margin-top:10px; padding:12px; border-radius:var(--r-md);
+  border:1px dashed var(--line-strong); background:transparent; color:var(--text-dim);
+  font-family:var(--mono); font-size:12px; cursor:pointer;
+  transition:border-color .18s var(--ease), color .18s var(--ease), background .18s var(--ease);
+}
+.act-more-btn:hover{border-color:var(--glow-a); color:var(--glow-a); background:rgba(144,133,233,.06);}
+.act-more-btn:disabled{opacity:.4; cursor:default; pointer-events:none;}
+
 @media(max-width:640px){
   /* Höhe der Bottom-Nav inkl. Safe-Area — einmal definiert, von .wrap/.runs-badge referenziert,
      damit beide bei einer künftigen Anpassung der Nav-Höhe automatisch mitziehen. */
@@ -961,6 +1007,26 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     font-size:8.5px; font-weight:700; display:flex; align-items:center; justify-content:center;
     line-height:1; box-shadow:0 0 0 2px var(--bg);
   }
+
+  /* Aktivitäten-Tabelle: echte <table> auf Mobile unlesbar (7 Spalten auf 361px) — stattdessen
+     jede Zeile als eigene Karte, Name+Datum volle Breite oben, die 5 Kennzahlen darunter im
+     2-Spalten-Raster mit kleinem Label (dasselbe Muster wie die KPI-Kacheln oben im File). */
+  .act-sort-mobile{display:block; width:100%; margin-bottom:10px; padding:11px 14px; border-radius:100px; border:1px solid var(--line); background:var(--panel); color:var(--text-dim); font-family:var(--mono); font-size:12px;}
+  .act-table thead{display:none;}
+  .act-table-wrap{background:transparent; border:none; box-shadow:none; overflow:visible;}
+  .act-table, .act-table tbody{display:block; width:100%;}
+  .act-table tbody tr{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:9px 14px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md);
+    margin-bottom:8px; padding:13px 14px; box-shadow:var(--shadow-sm);
+  }
+  .act-table tbody td{border-bottom:none; padding:0; white-space:normal; text-align:left;}
+  .act-table td.act-name{grid-column:1/-1; max-width:none;}
+  .act-table td.num{text-align:left; color:var(--text);}
+  .act-table td.num::before{content:attr(data-label); display:block; font-size:8.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); margin-bottom:2px;}
+  /* Nach der generischen .num-Regel deklariert (gleiche Spezifität, 2 Klassen) -> gewinnt hier
+     gezielt für die Datum-Zelle, die zusätzlich beide Klassen "num act-date" trägt. */
+  .act-table td.act-date{grid-column:1/-1; margin-top:-5px; color:var(--muted); font-size:11px;}
 }
 
 @media(prefers-reduced-motion: reduce){
@@ -1304,6 +1370,50 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   </div>
   </div>
 
+  <div class="section-lbl collapsible" data-collapse-head="aktivitaeten"><span>Alle Aktivitäten</span> <span class="note">— komplette Historie, unabhängig vom Zeitraum-Filter oben · Spaltenkopf anklicken zum Sortieren</span><div class="chevron"></div></div>
+  <div class="collapse-body" data-collapse-body="aktivitaeten">
+  <div class="act-controls">
+    <div class="act-sport-toggle" id="actSportGroup">
+      <div class="chip active" data-act-sport="ride">Rad</div>
+      <div class="chip" data-act-sport="run">Lauf</div>
+    </div>
+    <span class="act-count-note" id="actCountNote"></span>
+  </div>
+  <select class="act-sort-mobile" id="actSortMobile" aria-label="Sortierung">
+    <option value="t:desc">Datum ↓ (neueste zuerst)</option>
+    <option value="t:asc">Datum ↑ (älteste zuerst)</option>
+    <option value="d:desc">Km ↓</option>
+    <option value="d:asc">Km ↑</option>
+    <option value="e:desc">Höhenmeter ↓</option>
+    <option value="e:asc">Höhenmeter ↑</option>
+    <option value="m:desc">Dauer ↓</option>
+    <option value="m:asc">Dauer ↑</option>
+    <option value="avg:desc">Ø ↓</option>
+    <option value="avg:asc">Ø ↑</option>
+    <option value="r:desc">Belastung ↓</option>
+    <option value="r:asc">Belastung ↑</option>
+    <option value="n:asc">Titel A–Z</option>
+    <option value="n:desc">Titel Z–A</option>
+  </select>
+  <div class="act-table-wrap">
+    <table class="act-table" id="actTable">
+      <thead>
+        <tr>
+          <th data-sort="n">Titel<span class="act-arrow"></span></th>
+          <th data-sort="d" class="num">km<span class="act-arrow"></span></th>
+          <th data-sort="e" class="num">Hm<span class="act-arrow"></span></th>
+          <th data-sort="m" class="num">Dauer<span class="act-arrow"></span></th>
+          <th data-sort="t" class="num">Datum<span class="act-arrow"></span></th>
+          <th data-sort="avg" class="num">Ø<span class="act-arrow"></span></th>
+          <th data-sort="r" class="num">Belastung<span class="act-arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="actTableBody"></tbody>
+    </table>
+  </div>
+  <button class="act-more-btn" id="actMoreBtn" type="button">Mehr anzeigen</button>
+  </div>
+
   </div>
 
   <div class="tab-panel" data-tab-panel="karte" hidden>
@@ -1603,12 +1713,131 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   document.getElementById('drawerClose').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
 
+  // ---------- Alle Aktivitäten: sortierbare Tabelle (Rad/Lauf, komplette Historie) ----------
+  // Bewusst UNABHÄNGIG vom Zeitraum-/Sport-Filter oben auf "Heute" — dieselbe Logik wie
+  // "Fitness & Form" ("immer aus der gesamten Historie") -> eigener State, eigenes Rendering.
+  const actState = { sport: 'ride', sortKey: 't', sortDir: 'desc', visible: 10 };
+
+  function actFilteredData(){
+    return actState.sport === 'ride'
+      ? DATA.filter(a => a.s === 'Ride' || a.s === 'VirtualRide')
+      : DATA.filter(a => a.s === 'Run');
+  }
+  // Rad: Ø-Geschwindigkeit in km/h (höher = schneller) · Lauf: Ø-Tempo in min/km (niedriger = schneller).
+  function actAvgValue(a){
+    if(a.m <= 0 || a.d <= 0) return 0;
+    return actState.sport === 'ride' ? (a.d / (a.m/60)) : (a.m / a.d);
+  }
+  function actAvgText(a){
+    if(a.m <= 0 || a.d <= 0) return '–';
+    if(actState.sport === 'ride') return fmtKm(actAvgValue(a)) + ' km/h';
+    const totalSec = Math.round(actAvgValue(a) * 60);
+    const mm = Math.floor(totalSec/60), ss = totalSec % 60;
+    return `${mm}:${String(ss).padStart(2,'0')} /km`;
+  }
+  function actSortValue(a, key){
+    switch(key){
+      case 'n': return a.n.toLowerCase();
+      case 'd': return a.d;
+      case 'e': return a.e;
+      case 'm': return a.m;
+      case 't': return a._dt.getTime();
+      case 'avg': return actAvgValue(a);
+      case 'r': return a.r || 0;
+      default: return 0;
+    }
+  }
+  // Rohes relative_effort ist ohne Kontext nicht einschätzbar (siehe effortLabel() oben) — dieselbe
+  // Perzentil-Einordnung, nur als kurzes Badge statt des langen Fließtexts aus dem Läufe-Drawer.
+  function actEffortBadge(r){
+    const full = effortLabel(r);
+    const shortMap = { 'Erholung':'Erholung', 'Lockere Einheit':'Locker', 'Moderate Anstrengung':'Moderat', 'Hohe Anstrengung':'Hoch', 'Maximale Anstrengung':'Maximal' };
+    return `<span class="eff-badge ${full.cls}">${shortMap[full.text] || full.text}</span>`;
+  }
+
+  function renderActivityTable(){
+    const tbody = document.getElementById('actTableBody');
+    const moreBtn = document.getElementById('actMoreBtn');
+    const countNote = document.getElementById('actCountNote');
+    if(!tbody || !moreBtn || !countNote) return;
+
+    const all = actFilteredData();
+    const sorted = [...all].sort((x,y) => {
+      const vx = actSortValue(x, actState.sortKey), vy = actSortValue(y, actState.sortKey);
+      const cmp = typeof vx === 'string' ? vx.localeCompare(vy) : vx - vy;
+      return actState.sortDir === 'asc' ? cmp : -cmp;
+    });
+    const shown = sorted.slice(0, actState.visible);
+    const sportNoun = actState.sport === 'ride' ? 'Fahrten' : 'Läufe';
+
+    if(shown.length === 0){
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:24px; white-space:normal;">Keine ${sportNoun} vorhanden.</td></tr>`;
+    } else {
+      tbody.innerHTML = shown.map(a => `
+        <tr>
+          <td class="act-name${a.i ? ' indoor' : ''}" title="${a.i ? 'Indoor' : 'Outdoor'}">
+            <span class="act-dot"></span><span class="act-name-text">${esc(a.n)}</span>
+          </td>
+          <td class="num" data-label="km">${fmtKm(a.d)}</td>
+          <td class="num" data-label="Hm">${fmtInt(a.e)}</td>
+          <td class="num" data-label="Dauer">${fmtDuration(a.m)}</td>
+          <td class="num act-date" data-label="Datum">${a._dt.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'})}</td>
+          <td class="num" data-label="Ø">${actAvgText(a)}</td>
+          <td class="num" data-label="Belastung">${actEffortBadge(a.r)}</td>
+        </tr>`).join('');
+    }
+
+    document.querySelectorAll('#actTable thead th[data-sort]').forEach(th => {
+      const key = th.dataset.sort;
+      th.classList.toggle('sorted', key === actState.sortKey);
+      const arrow = th.querySelector('.act-arrow');
+      if(arrow) arrow.textContent = key === actState.sortKey ? (actState.sortDir === 'asc' ? '↑' : '↓') : '';
+    });
+
+    const remaining = all.length - shown.length;
+    moreBtn.disabled = remaining <= 0;
+    moreBtn.textContent = remaining > 0 ? `Mehr anzeigen (+${Math.min(10, remaining)} von ${remaining})` : 'Alle angezeigt';
+    countNote.textContent = `${all.length} ${sportNoun} insgesamt · zeigt ${shown.length}`;
+
+    const mobileSel = document.getElementById('actSortMobile');
+    if(mobileSel) mobileSel.value = actState.sortKey + ':' + actState.sortDir;
+  }
+
+  document.querySelectorAll('#actTable thead th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if(actState.sortKey === key){ actState.sortDir = actState.sortDir === 'asc' ? 'desc' : 'asc'; }
+      else { actState.sortKey = key; actState.sortDir = (key === 'n') ? 'asc' : 'desc'; }
+      actState.visible = 10;
+      renderActivityTable();
+    });
+  });
+  document.querySelectorAll('#actSportGroup .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#actSportGroup .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      actState.sport = chip.dataset.actSport;
+      actState.sortKey = 't'; actState.sortDir = 'desc'; actState.visible = 10;
+      renderActivityTable();
+    });
+  });
+  document.getElementById('actMoreBtn').addEventListener('click', () => {
+    actState.visible += 10;
+    renderActivityTable();
+  });
+  document.getElementById('actSortMobile').addEventListener('change', function(){
+    const [key, dir] = this.value.split(':');
+    actState.sortKey = key; actState.sortDir = dir; actState.visible = 10;
+    renderActivityTable();
+  });
+
   // ---------- Versions-Badge & Änderungsverlauf ----------
   // Zweck: rein diagnostisch sichtbar machen, welcher Stand gerade wirklich ausgeliefert wird —
   // nach jedem Push hier oben einen neuen Eintrag ergänzen (neueste zuerst), APP_VERSION mitziehen.
   // So lässt sich ein Cache-/Deploy-Verzögerungs-Problem (alte Version sichtbar trotz frischem
   // Push) von einem echten Regressions-Bug unterscheiden, ohne den Seitenquelltext durchsuchen zu müssen.
   const CHANGELOG = [
+    { v: '04.10-2', d: '04.10.2026', t: 'Neue Sektion "Alle Aktivitäten" im Verlauf-Tab: sortierbare Tabelle über die komplette Rad-/Lauf-Historie (Rad/Lauf per Umschalter getrennt, wie bei der Kilometer-Regel sonst auch nie gemischt), Spaltenkopf anklicken zum Sortieren (Titel, km, Hm, Dauer, Datum, Ø-Tempo, Trainingsbelastung). Startet eingeklappt und zeigt zunächst nur 10 Einträge, "Mehr anzeigen" lädt jeweils 10 weitere nach — unabhängig vom Zeitraum-Filter oben, immer die gesamte Historie. Auf dem Handy wird aus der Tabelle automatisch eine Kartenliste mit Dropdown-Sortierung, da 7 Spalten auf 361px nicht lesbar wären.' },
     { v: '04.10-1', d: '04.10.2026', t: 'Neuer Apple-Health-Export eingespielt: 3 Nächte ergänzt (01.–03.10., Recovery 67/86/74). Neuer Gewichts-/Körperfett-Messpunkt vom 02.10. übernommen (87.95 kg/14.5%). Hinweis: der Tages-Ruhepuls für die bereits committete Nacht vom 30.09. wurde von Apple im Nachhinein von 61 auf 66 bpm revidiert — wie schon dokumentiert wird so ein rückwirkender Wert nicht mehr nachträglich geändert (nur neue Nächte werden angehängt), daher bleibt die Nacht vom 30.09. unverändert bei 61 bpm/Recovery 69 stehen.' },
     { v: '01.10-1', d: '01.10.2026', t: 'Neuer Apple-Health-Export eingespielt: gleich 4 Nächte ergänzt (27.–30.09.), darunter die zuletzt zurückgestellte Nacht vom 27.09. (Ruhepuls war inzwischen da). Neue Gewichts-/Körperfett-Messpunkte vom 29.09. und 01.10. übernommen (88.55 kg/15.5% bzw. 88.38 kg/15.8%). Dabei einen weiteren Folgefehler im "Daten bis Nacht ..."-Hinweis gefunden: die letzte Nacht (30.09.) reicht in den Oktober hinein, aber die Monatsangabe wurde nur vom Bettgeh-Datum übernommen, nicht vom Aufwach-Datum — Anzeige war "30./01.09." statt "30.09./01.10.". Tritt nur an Monatsgrenzen auf, deshalb bisher nie aufgefallen. Jetzt zeigt der Hinweis beide Monate an, wenn Bettgeh- und Aufwach-Nacht in unterschiedliche Monate fallen.' },
     { v: '28.09-1', d: '28.09.2026', t: 'Neuer Apple-Health-Export eingespielt: die Nacht vom 26.09. (letztes Mal noch ohne Ruhepuls-Wert, deshalb zurückgestellt) ist jetzt komplett und ergänzt. Die Nacht vom 27.09. fehlt aus demselben Grund noch (Ruhepuls-Tageswert für den 28.09. war beim Export noch nicht berechnet) und kommt mit dem nächsten Export. Keine neuen Gewichts-/Körperfett-Messpunkte diesmal. Dabei einen echten Folgefehler der letzten Live-Umstellung gefunden: der "Daten bis Nacht ..."-Hinweis und die "Basis: N Nächte"-Zahl wurden nur aktualisiert, wenn die aktuelle Zeitraum-Auswahl (z.B. "Diese Woche") mindestens eine Nacht enthält — direkt nach einem Wochenwechsel (wie heute, Montag) ist "Diese Woche" aber noch leer, wodurch beide wieder auf ihrem alten Platzhalter-Wert eingefroren wären. Jetzt vor diesem Frühausstieg aktualisiert, zeigt also immer den echten Datenstand, unabhängig vom gewählten Zeitraum.' },
@@ -3107,6 +3336,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
     // Im Verlauf-Tab ist die Kopfsektion die Schlagzeile (offen), Zusatzsektionen starten
     // eingeklappt — entschlackt den ersten Eindruck pro Tab, ohne dass eine Funktion verschwindet.
     kalender: false,
+    aktivitaeten: false,
     karte: true   // Karte wird ohnehin erst beim ersten Wechsel auf den Karte-Tab geladen (Performance)
   };
   function initCollapsible(id, defaultOpen){
@@ -3194,6 +3424,7 @@ footer{font-family:var(--mono); font-size:10.5px; color:var(--muted-2); text-ali
   renderRecovery();
   renderBodyComp();
   renderRingsHero();
+  renderActivityTable();
   initTimelineScrub();
   loadWeather();
   // Auf dem Phone sind "Fitness & Form", "Recovery & Schlaf" und "Ziele" mit Abstand die
