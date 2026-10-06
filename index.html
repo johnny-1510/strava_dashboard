@@ -692,6 +692,7 @@ footer{font-size:11px;color:var(--muted);text-align:center;padding:16px 8px 4px;
           <button class="chip" type="button" data-span="7">7 Tage</button>
           <button class="chip" type="button" data-span="30">30 Tage</button>
           <button class="chip" type="button" data-span="90">90 Tage</button>
+          <button class="chip" type="button" data-span="365">1 Jahr</button>
         </div>
         <button class="link-btn" id="btLatest" type="button" hidden>Zum neuesten Stand</button>
       </div>
@@ -1932,6 +1933,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     const dcls = (n, upGood) => Math.abs(n) < 0.0001 ? 'neutral' : ((n > 0) === upGood ? 'good' : 'bad');
     const dlt = (n, upGood, dig, unit) => `<span class="${dcls(n, upGood)}">${sg(n, dig)}${unit ? ' ' + unit : ''}</span>`;
     const dm = isoToDM;
+    const yearOf2 = iso => iso.slice(0,4) === D.slice(0,4) ? dm(iso) : isoToDMY(iso);
     const yearOf = iso => iso.slice(0,4) === D.slice(0,4) ? dm(iso) : isoToDMY(iso);
     const tiles = [];
     const tile = (card, label, val, sub, when, color) => tiles.push(`<button class="tile" type="button" data-card="${card}"><span class="tl">${label}</span><span class="tv"${color ? ` style="color:${color}"` : ''}>${val}</span><span class="ts">${sub}</span><span class="tw">${when}</span></button>`);
@@ -2001,7 +2003,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
         const rs = recIn(S, D).filter(x => x.rhr);
         if(rs.length){
           const m = avg(rs, x => x.rhr), pm = avg(recIn(S2, E2), x => x.rhr);
-          v = `${Math.round(m)}<small> bpm</small>`; sub = pm !== null ? `${dlt(Math.round(m - pm), false, 0)} vs. davor` : '–';
+          v = `${Math.round(m)}<small> bpm</small>`; sub = pm !== null ? `${dlt(Math.round(m - pm), false, 0)} vs. davor` : 'kein Vergleich möglich';
           when = nightsAvg(rs.length);
         }
       }
@@ -2032,7 +2034,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       if(k >= 0){
         const m = VO2_DATA[k]; v = fmt1c(m[1]); when = `gemessen ${yearOf(m[0])}`;
         if(single){ sub = k > 0 ? `${dlt(m[1] - VO2_DATA[k-1][1], true, 1)} zur Messung davor` : 'erste Messung'; }
-        else { const k0 = lastIdx(VO2_DATA, addDaysIso(S, -1)); sub = (k0 >= 0 && k0 !== k) ? `${dlt(m[1] - VO2_DATA[k0][1], true, 1)} seit ${dm(S)}` : 'keine neue Messung im Zeitraum'; }
+        else { const k0 = lastIdx(VO2_DATA, addDaysIso(S, -1)); { const k1 = k0 >= 0 ? k0 : VO2_DATA.findIndex(p => p[0] >= S); sub = (k1 >= 0 && k1 !== k) ? `${dlt(m[1] - VO2_DATA[k1][1], true, 1)} seit ${yearOf(VO2_DATA[k1][0])}` : 'keine neue Messung im Zeitraum'; } }
       }
       tile('herz', 'Ausdauer (VO₂max)', v, sub, when);
     }
@@ -2046,7 +2048,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
           const okRef = p => !jump || !jd || (m[0] >= jd) === (p[0] >= jd);
           let ref = null;
           if(single){ for(let q = k; q >= 0; q--){ if(daysBetween(arr[q][0], m[0]) >= 28 && okRef(arr[q])){ ref = arr[q]; break; } } }
-          else { const k0 = lastIdx(arr, addDaysIso(S, -1)); if(k0 >= 0 && k0 !== k && okRef(arr[k0])) ref = arr[k0]; }
+          else { let k0 = lastIdx(arr, addDaysIso(S, -1)); if(k0 < 0) k0 = arr.findIndex(p => p[0] >= S && okRef(p)); if(k0 >= 0 && k0 !== k && okRef(arr[k0])) ref = arr[k0]; }
           if(ref){ const d = m[1] - ref[1]; sub = `${dlt(d, upGood, 1, unitDelta)} seit ${yearOf(ref[0])}`; }
           else sub = single ? 'keine Vergleichsmessung' : 'keine neue Messung im Zeitraum';
         }
@@ -2070,9 +2072,9 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       $('btRel').textContent = rel + (D === last ? ' · neuester Stand' : '');
       $('btNote').innerHTML = `<b>So liest du die Kacheln:</b> Schlaf, Erholung und Ruhepuls gehören zur <b>Nacht ${nightLabel(addDaysIso(D, -1))}</b> (aufgewacht am ${dm(D)}). Bewegen und Frische zählen den Tag ${dm(D)} selbst. Gewicht, Körperfett und VO₂max zeigen die letzte Messung bis dahin.`;
     } else {
-      $('btDate').textContent = `${dm(S)} – ${isoToDMY(D)}`;
+      $('btDate').textContent = `${yearOf2(S)} – ${isoToDMY(D)}`;
       $('btRel').textContent = `${N} Tage bis ${rel === 'Heute' || rel === 'Gestern' ? rel.toLowerCase() : dm(D)} · Durchschnitt`;
-      $('btNote').innerHTML = `<b>Zeitraum ${dm(S)} – ${dm(D)}:</b> Erholung, Ruhepuls, Schlaf und Bewegen sind Durchschnitte, „vs. davor“ vergleicht mit den ${N} Tagen zuvor (${dm(S2)} – ${dm(E2)}). Die Pfeile springen um ${N} Tage.`;
+      $('btNote').innerHTML = `<b>Zeitraum ${yearOf2(S)} – ${yearOf2(D)}:</b> Erholung, Ruhepuls, Schlaf und Bewegen sind Durchschnitte, „vs. davor“ vergleicht mit den ${N} Tagen zuvor (${yearOf2(S2)} – ${yearOf2(E2)}). Die Pfeile springen um ${N} Tage.`;
     }
     $('vitalsSub').textContent = '';
   }
@@ -2831,6 +2833,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   // Änderungsverlauf
   // ============================================================
   const CHANGELOG = [
+    { v: '06.10-3', d: '06.10.2026', t: 'Körper-Seite: Zeitraum „1 Jahr“ (365 Tage) ergänzt, neben Tag, 7, 30 und 90 Tage.' },
     { v: '06.10-2', d: '06.10.2026', t: 'Neue Daten aus Export_9 (06.10. 10:41): Nacht 05./06.10. (Erholung 78, HRV 121 ms, Ruhepuls 64), Ring-Tag 05.10. (466 kcal, 18 min, 17 Std.), Ruhepuls-Monatsmittel Oktober aktualisiert. Strava: Zwift-Fahrt vom 06.10. nachgetragen. Hinweis: Apple hat den Ruhepuls der Nacht 04.10. nachträglich von 59 auf 60 korrigiert (wie schon bei 30.09. und 03.10.); die gespeicherten Werte und Noten bleiben wie berechnet.' },
     { v: '06.10-1', d: '06.10.2026', t: 'Körper-Seite: „Dein Körper“ ist jetzt zeitlich wählbar. Oben Tag per Pfeil oder Kalender auswählen, darunter Tag, 7, 30 oder 90 Tage. Jede Kachel nennt, worauf sie sich bezieht (zum Beispiel „Nacht 04./05.10. · 23:51–05:48“ beim Schlaf, „Tag 04.10.“ beim Bewegen, „gemessen 02.10.“ beim Gewicht). Schlaf, Erholung und Ruhepuls gehören zur Nacht, in der du am gewählten Tag aufgewacht bist. Bei Zeiträumen siehst du Durchschnitte und den Vergleich mit dem Zeitraum davor, bei Gewicht, Körperfett und VO₂max die Veränderung im Zeitraum. Ein Hinweistext unter den Kacheln erklärt die Zuordnung. Tipp auf „Bewegen“ springt zu den Ringen genau dieses Tages. Fehlt für einen Tag etwas, steht dort „–“ mit Grund (zum Beispiel „noch nicht im Export“).' },
     { v: '05.10-2', d: '05.10.2026', t: 'Körper-Seite ausgebaut: oben „Dein Körper heute“ mit 8 Kacheln (Erholung, Frische, Bewegen, Ruhepuls, Schlaf, Ausdauer, Gewicht, Körperfett; antippen springt zur Karte). Aktivitätsringe wie in der Apple-Fitness-App: Tag per Pfeil oder Kalender wählen, Monatskalender mit Mini-Ringen, Monatsbilanz, Verlauf bis zum gewählten Tag (14 Tage bis Alles, ab 1 Jahr als Wochen-/Monatsmittel), längste Serien und bester Tag. Historie komplett seit 18.01.2018; Bewegen-Ziel wird je Tag mit dem damals gültigen Wert gerechnet (750/550/490/440/500 kcal). Neu: Ausdauer (VO₂max, 245 Messwerte seit 2018) und Ruhepuls-Monatsmittel aus dem Apple-Health-Export. Ziele neu: großer Fortschrittsring mit Plan-Markierung, 1.000-km-Meilensteine mit Datum, Zuspruch nur aus echten Zahlen, Woche und Lauf als eigene Ringe. Karte: „Auswahl aus Training“ entfernt; stattdessen Ordner-Auswahl Jahr > Monat > Fahrt (mit Anzahl je Eintrag), die Heatmap folgt dem gewählten Jahr oder Monat. Zeitfilter ergänzt: Gewicht und Körperfett (30 Tage, 90 Tage, 6 Monate, Alles, Veränderung passend zum Zeitraum), Erholung (ab 14 Tage), Frische (30 Tage bis Alles). Neue Daten aus Export_8 (05.10. 06:54): Nacht 04./05.10. (Note 69), Ring-Tag 04.10., Gewicht und Körperfett vom 05.10., Ruhepuls 04.10.; Ruhepuls der Nacht 03.10. hat Apple nachträglich von 60 auf 61 korrigiert (Note 74 bleibt wie berechnet). Strava nachgetragen: 13 Aktivitäten vom 22.09. bis 04.10. (5 draußen, 8 Zwift) waren im Board noch nicht enthalten; Woche, Monat, Jahreskilometer, Frische und Karte (jetzt 54 Fahrten) sind damit wieder aktuell. Schrift auf Apple-Systemschrift umgestellt, größere Rundungen und mehr Luft.' },
