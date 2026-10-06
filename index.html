@@ -475,6 +475,12 @@ footer{font-size:11px;color:var(--muted);text-align:center;padding:16px 8px 4px;
 .bt-note{margin:12px 2px 0;font-size:12.5px;line-height:1.45;color:var(--muted);}
 .bt-note b{color:var(--text);font-weight:600;}
 #btSpan .chip,#btCalSeg .chip{padding:0 10px;}#btSpan{gap:3px;}
+
+.bt-chartbox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+.bt-metric{margin-bottom:10px;}
+.bt-metric .chip{height:32px;padding:0 11px;}
+.bt-chart-head{font-size:12.5px;color:var(--muted);line-height:1.4;margin-bottom:6px;}
+.bt-chart-head b{color:var(--text);font-weight:600;}
 </style>
 </head>
 <body>
@@ -705,6 +711,20 @@ footer{font-size:11px;color:var(--muted);text-align:center;padding:16px 8px 4px;
         <button class="link-btn" id="btLatest" type="button" hidden>Zum neuesten Stand</button>
       </div>
       <div class="tiles" id="bodyTiles"></div>
+      <div class="bt-chartbox">
+        <div class="seg bt-metric" id="btMetric" role="group" aria-label="Kennzahl für die Grafik">
+          <button class="chip active" type="button" data-m="erholung">Erholung</button>
+          <button class="chip" type="button" data-m="frische">Frische</button>
+          <button class="chip" type="button" data-m="bewegen">Bewegen</button>
+          <button class="chip" type="button" data-m="ruhepuls">Ruhepuls</button>
+          <button class="chip" type="button" data-m="schlaf">Schlaf</button>
+          <button class="chip" type="button" data-m="gewicht">Gewicht</button>
+          <button class="chip" type="button" data-m="fett">Körperfett</button>
+          <button class="chip" type="button" data-m="vo2">VO₂max</button>
+        </div>
+        <div class="bt-chart-head" id="btChartHead"></div>
+        <div class="chart" id="btChart"></div>
+      </div>
       <p class="bt-note" id="btNote"></p>
     </section>
     <div class="panel-tools"><button class="link-btn" type="button" data-coll-all="koerper">Alles aufklappen</button></div>
@@ -1593,7 +1613,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     addScrub(el, w, pts.map(p => p[0]), i => `<b>${isoToDMY(series[i][0])}</b><br>${series[i][1].toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})} ${unit}`, padT, h-padB);
   }
 
-  const CHART_DRAWS = [drawTimeline, drawForm, drawRecovery, drawCalTrend, drawRings, drawHerz, drawBody];
+  const CHART_DRAWS = [drawTimeline, drawForm, drawRecovery, drawCalTrend, drawRings, drawHerz, drawBody, drawBt];
   let _lastW = window.innerWidth;
   function redrawCharts(){ CHART_DRAWS.forEach(fn => { try{ fn(); }catch(err){ console.error('Chart-Fehler', fn.name, err); } }); }
   let _rzTimer;
@@ -2112,7 +2132,135 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       $('btRel').textContent = `${N} Tage bis ${rel === 'Heute' || rel === 'Gestern' ? rel.toLowerCase() : dm(D)} · Durchschnitt`;
       $('btNote').innerHTML = `<b>Zeitraum ${yearOf2(S)} – ${yearOf2(D)}:</b> Erholung, Ruhepuls, Schlaf und Bewegen sind Durchschnitte, „vs. davor“ vergleicht mit den ${N} Tagen zuvor (${yearOf2(S2)} – ${yearOf2(E2)}). Die Pfeile springen um ${N} Tage.`;
     }
+    bodyWin = { S, D, N, single, cal, calEnd };
     $('vitalsSub').textContent = '';
+    drawBt();
+  }
+
+
+  // ---------- Verlauf-Grafik zur Zeitwahl ----------
+  let btMetric = 'erholung', bodyWin = null;
+  const BT_DEF = {
+    erholung: { label:'Erholung', unit:'', color:'var(--good)', kind:'line', dec:0, per:'pro Nacht' },
+    frische:  { label:'Frische', unit:'', color:'var(--glow-a)', kind:'line', dec:0, per:'pro Tag' },
+    bewegen:  { label:'Bewegen', unit:'kcal', color:'var(--ring-move)', kind:'bar', dec:0, per:'pro Tag' },
+    ruhepuls: { label:'Ruhepuls', unit:'bpm', color:'var(--bad)', kind:'line', dec:0, per:'pro Nacht' },
+    schlaf:   { label:'Schlaf', unit:'h', color:'var(--indoor)', kind:'bar', dec:1, per:'pro Nacht' },
+    gewicht:  { label:'Gewicht', unit:'kg', color:'var(--glow-a)', kind:'meas', dec:1, per:'je Messung' },
+    fett:     { label:'Körperfett', unit:'%', color:'var(--warn)', kind:'meas', dec:1, per:'je Messung' },
+    vo2:      { label:'VO₂max', unit:'', color:'var(--glow-b)', kind:'meas', dec:1, per:'je Messung' }
+  };
+  function drawBt(){
+    const el = $('btChart'); if(!el || !bodyWin) return;
+    const w = Math.floor(el.clientWidth); if(w < 80) return;
+    $$('#btMetric .chip').forEach(c => c.classList.toggle('active', c.dataset.m === btMetric));
+    const def = BT_DEF[btMetric];
+    const { S, D, single } = bodyWin;
+    const Sc = single ? addDaysIso(D, -29) : S;            // Tag: die 30 Tage bis zum gewählten Tag
+    const spanD = daysBetween(Sc, D) + 1;
+    const bucket = (def.kind === 'meas' || spanD <= 120) ? 1 : 7;
+    const fmtV = v => def.dec ? fmt1c(v) : fmtInt(v);
+    const head = $('btChartHead');
+    // Tageswerte
+    const recMap = new Map(RECOVERY_DATA.filter(d => d.r !== null).map(d => [addDaysIso(d.d, 1), d]));
+    const fm = btMetric === 'frische' ? new Map((fitModel ? fitModel.series : []).map(x => [isoLocal(x.date), x.tsb])) : null;
+    const dayVal = d => {
+      if(btMetric === 'erholung'){ const r = recMap.get(d); return r ? r.r : null; }
+      if(btMetric === 'ruhepuls'){ const r = recMap.get(d); return r && r.rhr ? r.rhr : null; }
+      if(btMetric === 'schlaf'){ const r = recMap.get(d); return r ? r.sh : null; }
+      if(btMetric === 'frische'){ const v = fm.get(d); return v === undefined ? null : v; }
+      if(btMetric === 'bewegen'){ const r = RING_MAP.get(d); return r && !ringEmpty(r) ? r[1] : null; }
+      return null;
+    };
+    let pts = []; // {i, t, v, lab, hit}
+    if(def.kind === 'meas'){
+      const arr = btMetric === 'gewicht' ? (bodyModel ? bodyModel.weight : []) : btMetric === 'fett' ? (bodyModel ? bodyModel.fat : []) : VO2_DATA;
+      arr.filter(p => p[0] >= Sc && p[0] <= D).forEach(p => pts.push({ t: new Date(p[0] + 'T12:00:00').getTime(), v: p[1], lab: isoToDMY(p[0]), d: p[0] }));
+    } else {
+      const nB = Math.ceil(spanD / bucket);
+      for(let b = 0; b < nB; b++){
+        const d0 = addDaysIso(Sc, b * bucket), vals = [];
+        const dEnd = addDaysIso(d0, Math.min(bucket, spanD - b * bucket) - 1);
+        for(let k = 0; k < bucket && b * bucket + k < spanD; k++){ const v = dayVal(addDaysIso(d0, k)); if(v !== null) vals.push(v); }
+        if(!vals.length) continue;
+        const v = vals.reduce((a, c) => a + c, 0) / vals.length;
+        const r = btMetric === 'bewegen' && bucket === 1 ? RING_MAP.get(d0) : null;
+        const lab = bucket === 1 ? (btMetric === 'erholung' || btMetric === 'ruhepuls' || btMetric === 'schlaf' ? `Nacht ${nightLabel(addDaysIso(d0, -1))}` : isoToDMY(d0)) : `${isoToDM(d0)} – ${isoToDMY(dEnd)} (Wochenmittel)`;
+        pts.push({ i: b, t: new Date(d0 + 'T12:00:00').getTime() + (bucket - 1) * 43200000, v, lab, d: d0, hit: r ? ringHitK(r) : null, goal: r ? ringGoalK(r) : null });
+      }
+    }
+    const t0 = new Date(Sc + 'T12:00:00').getTime(), t1 = new Date(D + 'T12:00:00').getTime();
+    const rangeTxt = `${isoToDMY(Sc)} – ${isoToDMY(D)}`;
+    const h = w < 520 ? 200 : 240;
+    if(pts.length < (def.kind === 'bar' ? 1 : 2)){
+      shell(el, w, 70, 'Zu wenige Daten', T(10, 36, pts.length ? 'Nur ein Messwert in diesem Zeitraum.' : 'Keine Daten in diesem Zeitraum.', {}));
+      head.textContent = `${def.label} · ${rangeTxt}`;
+      return;
+    }
+    const padL = 38, padR = 12, padT = 14, padB = 22;
+    const cw = w - padL - padR, ch = h - padT - padB;
+    const vmin = Math.min(...pts.map(p => p.v)), vmax = Math.max(...pts.map(p => p.v));
+    let lo, hi;
+    if(btMetric === 'erholung'){ lo = 0; hi = 100; }
+    else if(def.kind === 'bar'){ lo = 0; hi = vmax * 1.1 || 1; }
+    else { const pad = (vmax - vmin) * 0.15 || 1; lo = vmin - pad; hi = vmax + pad; }
+    const nSlots = bucket === 1 ? spanD : Math.ceil(spanD / bucket);
+    const slotW = cw / Math.max(nSlots, 1);
+    const tx = p => def.kind === 'bar' ? padL + (p.i + 0.5) * slotW : padL + (p.t - t0) / ((t1 - t0) || 1) * cw;
+    const y = v => padT + ch - (v - lo) / (hi - lo) * ch;
+    let g = '';
+    yTicks(lo, hi, 4).forEach(v => { g += `<line x1="${padL}" x2="${w-padR}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--line)"/>` + T(padL-6, y(v)+4, def.dec ? fmt1c(v) : fmtInt(v), { anchor:'end' }); });
+    if(btMetric === 'erholung') [34, 67].forEach(v => { g += `<line x1="${padL}" x2="${w-padR}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--line-strong)" stroke-dasharray="2 4"/>`; });
+    if(btMetric === 'frische' && lo < 0 && hi > 0) g += `<line x1="${padL}" x2="${w-padR}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="var(--line-strong)"/>`;
+    // X-Achse
+    let lastLab = -99;
+    if(spanD <= 45){
+      const nT = Math.max(2, Math.floor(cw / 62)), step = [1,2,3,5,7,10,14].find(k => spanD / k <= nT) || 14;
+      for(let k = spanD - 1; k >= 0; k -= step){ const d = addDaysIso(Sc, k), px = padL + (def.kind === 'bar' ? (k + 0.5) * slotW : k / Math.max(spanD - 1, 1) * cw); if(px - padL < 14 && k !== 0) continue; g += T(px, h-7, isoToDM(d).slice(0,5), { anchor:'middle' }); }
+    } else {
+      const sd = new Date(t0);
+      for(let yr = sd.getFullYear(), mo = sd.getMonth() + 1; ; mo++){
+        if(mo > 11){ mo = 0; yr++; }
+        const t = new Date(yr, mo, 1, 12).getTime(); if(t > t1) break;
+        const px = padL + (t - t0) / ((t1 - t0) || 1) * cw;
+        if(px - lastLab > 40 && px - padL > 8){ g += T(px, h-7, mo === 0 ? String(yr) : MONTH_SHORT[mo], { anchor:'middle' }); lastLab = px; }
+      }
+    }
+    // Durchschnitt
+    const avgV = pts.reduce((a, p) => a + p.v, 0) / pts.length;
+    if(def.kind !== 'meas') g += `<line x1="${padL}" x2="${w-padR}" y1="${y(avgV).toFixed(1)}" y2="${y(avgV).toFixed(1)}" stroke="var(--text-dim)" stroke-dasharray="5 4" stroke-width="1.2" opacity=".75"/>`;
+    const xs = pts.map(tx);
+    const hasSel = single && def.kind !== 'meas' && pts.some(p => p.d === D);
+    if(def.kind === 'bar'){
+      const bw = Math.max(2, Math.min(26, slotW * 0.72));
+      pts.forEach((p, k) => {
+        const hh = Math.max(1.5, (y(lo) - y(p.v))), rx = Math.min(4, bw / 2);
+        const col = (btMetric === 'bewegen' && p.hit === false) ? 'var(--muted)' : def.color;
+        const sel = single && p.d === D;
+        g += `<rect x="${(xs[k] - bw/2).toFixed(1)}" y="${(y(lo) - hh).toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="${rx.toFixed(1)}" fill="${col}" opacity="${hasSel && !sel ? .45 : (btMetric === 'bewegen' && p.hit === false ? .55 : 1)}"/>`;
+      });
+    } else {
+      // Linie in Segmenten (Lücken bei fehlenden Nächten nicht überbrücken)
+      let seg = [];
+      const flush = () => { if(seg.length > 1) g += `<path d="${pathOf(seg)}" fill="none" stroke="${def.color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`; seg = []; };
+      pts.forEach((p, k) => { if(def.kind === 'line' && k > 0 && p.i - pts[k-1].i > 1) flush(); seg.push([xs[k], y(p.v)]); });
+      flush();
+      if(pts.length <= 60 || def.kind === 'meas') pts.forEach((p, k) => { g += `<circle cx="${xs[k].toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${def.kind === 'meas' ? 3.4 : 2.4}" fill="${def.color}"/>`; });
+    }
+    if(single){
+      const sp = pts.find(p => p.d === D || (def.kind === 'meas' && false));
+      if(sp){ const k = pts.indexOf(sp); g += `<circle cx="${xs[k].toFixed(1)}" cy="${y(sp.v).toFixed(1)}" r="5" fill="${def.color}" stroke="var(--panel)" stroke-width="2.2"/>`; }
+    } else {
+      const lp = pts[pts.length-1], k = pts.length - 1;
+      if(def.kind !== 'bar') g += `<circle cx="${xs[k].toFixed(1)}" cy="${y(lp.v).toFixed(1)}" r="4.5" fill="${def.color}" stroke="var(--panel)" stroke-width="2"/>`;
+    }
+    shell(el, w, h, `${def.label} im gewählten Zeitraum`, g);
+    addScrub(el, w, xs, i => {
+      const p = pts[i];
+      const extra = (btMetric === 'bewegen' && p.goal) ? `<br><span style="opacity:.7">Ziel ${fmtInt(p.goal)} kcal ${p.hit ? 'erreicht' : 'nicht erreicht'}</span>` : '';
+      return `<b>${p.lab}</b><br>${btMetric === 'frische' ? signed(p.v, fmtInt) : fmtV(p.v)}${def.unit ? ' ' + def.unit : ''}${bucket > 1 ? ' (Ø)' : ''}${extra}`;
+    }, padT, h - padB);
+    head.innerHTML = `<b>${def.label}</b> ${def.per}${bucket > 1 ? ' (Wochenmittel)' : ''} · ${rangeTxt}${def.kind !== 'meas' ? ` · <span class="bt-avg">- - Ø ${btMetric === 'frische' ? signed(avgV, fmtInt) : fmtV(avgV)}${def.unit ? ' ' + def.unit : ''}</span>` : ''}${hasSel ? ' · markiert: gewählter Tag' : ''}`;
   }
 
   // ---------- Kennzahlen (Training-Tab) ----------
@@ -2836,6 +2984,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   $('btPick').addEventListener('change', e => { if(e.target.value){ bodyView.day = e.target.value; renderBodyTiles(); } });
   $('btSpan').addEventListener('click', e => { const c = e.target.closest('[data-span]'); if(!c) return; bodyView.span = +c.dataset.span; bodyView.cal = null; renderBodyTiles(); });
   $('btCalSeg').addEventListener('click', e => { const c = e.target.closest('[data-cal]'); if(!c) return; bodyView.cal = c.dataset.cal; renderBodyTiles(); });
+  $('btMetric').addEventListener('click', e => { const c = e.target.closest('[data-m]'); if(!c) return; btMetric = c.dataset.m; drawBt(); });
   $('btCal').addEventListener('change', e => { bodyView.day = e.target.value; renderBodyTiles(); });
   $$('#bcMetric .chip').forEach(b => b.addEventListener('click', () => {
     bodyMetric = b.dataset.m; $$('#bcMetric .chip').forEach(c => c.classList.toggle('active', c === b)); drawBody();
@@ -2871,6 +3020,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   // Änderungsverlauf
   // ============================================================
   const CHANGELOG = [
+    { v: '06.10-5', d: '06.10.2026', t: 'Körper-Seite: Verlaufsgrafik unter den Kacheln. Sie zeigt den gewählten Zeitraum für Erholung, Frische, Bewegen, Ruhepuls, Schlaf, Gewicht, Körperfett oder VO₂max, mit gestrichelter Durchschnittslinie. Bei „Tag“ siehst du die 30 Tage bis zum gewählten Tag, der Tag ist markiert. Bei Jahren werden Wochenmittel gezeigt. Antippen oder Wischen zeigt die Werte.' },
     { v: '06.10-4', d: '06.10.2026', t: 'Körper-Seite: Kalendermonat und Kalenderjahr wählbar (zum Beispiel Oktober 2026, 2026, 2025 … zurück bis 2018) mit Auswahlliste und Pfeilen. Der Vergleich geht gegen den Vormonat beziehungsweise das Vorjahr; läuft der Zeitraum noch, wird mit dem gleich langen Abschnitt davor verglichen. Der Rollierende Zeitraum heißt jetzt „365 Tage“.' },
     { v: '06.10-3', d: '06.10.2026', t: 'Körper-Seite: Zeitraum „1 Jahr“ (365 Tage) ergänzt, neben Tag, 7, 30 und 90 Tage.' },
     { v: '06.10-2', d: '06.10.2026', t: 'Neue Daten aus Export_9 (06.10. 10:41): Nacht 05./06.10. (Erholung 78, HRV 121 ms, Ruhepuls 64), Ring-Tag 05.10. (466 kcal, 18 min, 17 Std.), Ruhepuls-Monatsmittel Oktober aktualisiert. Strava: Zwift-Fahrt vom 06.10. nachgetragen. Hinweis: Apple hat den Ruhepuls der Nacht 04.10. nachträglich von 59 auf 60 korrigiert (wie schon bei 30.09. und 03.10.); die gespeicherten Werte und Noten bleiben wie berechnet.' },
