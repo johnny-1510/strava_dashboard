@@ -2288,6 +2288,24 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       flush();
       if(pts.length <= 60 || (def.kind === 'meas' && bucket === 1)) pts.forEach((p, k) => { g += `<circle cx="${xs[k].toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${def.kind === 'meas' ? (bucket > 1 ? 2 : 3.4) : 2.4}" fill="${def.color}"/>`; });
     }
+    // Trend: Ausgleichsgerade durch die Messwerte des Zeitraums (nur Messkennzahlen)
+    let trendTxt = '';
+    if(def.kind === 'meas' && !single){
+      const jd2 = btMetric === 'fett' && bodyModel ? bodyModel.jumpDate : null;
+      const tp = pts.filter(p => !(jd2 && p.d < jd2 && pts[pts.length-1].d >= jd2));
+      if(tp.length >= 6 && tp[tp.length-1].t - tp[0].t > 60 * 864e5){
+        const X = tp.map(p => p.t / 864e5), Y = tp.map(p => p.v), nn = tp.length;
+        const mx = X.reduce((q, c) => q + c, 0) / nn, my = Y.reduce((q, c) => q + c, 0) / nn;
+        let sxy = 0, sxx = 0; X.forEach((xv, i2) => { sxy += (xv - mx) * (Y[i2] - my); sxx += (xv - mx) * (xv - mx); });
+        const sl = sxx ? sxy / sxx : 0, ic = my - sl * mx;
+        const xa = tp[0].t, xb = tp[tp.length-1].t;
+        const px1 = padL + (xa - t0) / ((t1 - t0) || 1) * cw, px2 = padL + (xb - t0) / ((t1 - t0) || 1) * cw;
+        g += `<line x1="${px1.toFixed(1)}" y1="${y(ic + sl * xa / 864e5).toFixed(1)}" x2="${px2.toFixed(1)}" y2="${y(ic + sl * xb / 864e5).toFixed(1)}" stroke="var(--text-dim)" stroke-width="1.4" stroke-dasharray="6 4" opacity=".9"/>`;
+        const perY = sl * 365.25, perM = sl * 30.44, useY = (xb - xa) / 864e5 > 420, dv = useY ? perY : perM;
+        const sgn = Math.abs(dv) < 0.05 ? '±0,0' : (dv > 0 ? '+' : '−') + fmt1c(Math.abs(dv));
+        trendTxt = ` · <span class="bt-avg">Trend ${sgn}${btMetric === 'fett' ? ' Pkt.' : def.unit ? ' ' + def.unit : ''} pro ${useY ? 'Jahr' : 'Monat'}${jd2 && pts[0].d < jd2 ? ' (nach dem Sprung)' : ''}</span>`;
+      }
+    }
     if(single){
       const sp = pts.find(p => p.d === D || (def.kind === 'meas' && false));
       if(sp){ const k = pts.indexOf(sp); g += `<circle cx="${xs[k].toFixed(1)}" cy="${y(sp.v).toFixed(1)}" r="5" fill="${def.color}" stroke="var(--panel)" stroke-width="2.2"/>`; }
@@ -2301,7 +2319,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       const extra = (btMetric === 'bewegen' && p.goal) ? `<br><span style="opacity:.7">Ziel ${fmtInt(p.goal)} kcal ${p.hit ? 'erreicht' : 'nicht erreicht'}</span>` : '';
       return `<b>${p.lab}</b><br>${btMetric === 'frische' ? signed(p.v, fmtInt) : fmtV(p.v)}${def.unit ? ' ' + def.unit : ''}${bucket > 1 ? ' (Ø)' : ''}${extra}`;
     }, padT, h - padB);
-    head.innerHTML = `<b>${def.label}</b> ${def.per}${bucket > 1 ? (bucket === 7 ? ' (Wochenmittel)' : def.kind === 'meas' ? ' (Monatsmittel, gepunktet = keine Messung)' : ' (30-Tage-Mittel)') : ''} · ${rangeTxt}${def.kind !== 'meas' ? ` · <span class="bt-avg">- - Ø ${btMetric === 'frische' ? signed(avgV, fmtInt) : fmtV(avgV)}${def.unit ? ' ' + def.unit : ''}</span>` : ''}${hasSel ? ' · markiert: gewählter Tag' : ''}`;
+    head.innerHTML = `<b>${def.label}</b> ${def.per}${bucket > 1 ? (bucket === 7 ? ' (Wochenmittel)' : def.kind === 'meas' ? ' (Monatsmittel, gepunktet = keine Messung)' : ' (30-Tage-Mittel)') : ''} · ${rangeTxt}${def.kind !== 'meas' ? ` · <span class="bt-avg">- - Ø ${btMetric === 'frische' ? signed(avgV, fmtInt) : fmtV(avgV)}${def.unit ? ' ' + def.unit : ''}</span>` : ''}${hasSel ? ' · markiert: gewählter Tag' : ''}${trendTxt}`;
   }
 
   // ---------- Kennzahlen (Training-Tab) ----------
@@ -3061,7 +3079,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   // Änderungsverlauf
   // ============================================================
   const CHANGELOG = [
-    { v: '06.10-7', d: '06.10.2026', t: 'Gewicht und Körperfett komplett: Aus dem Apple-Health-Export stammen jetzt 562 Gewichtstage ab Februar 2018 (2018 bis 2021 manuell eingetragen, ab 2024 Withings-Waage) und 304 Körperfett-Tage ab Januar 2024. Mehrere Wägungen am Tag werden gemittelt. Drei bereits gespeicherte Werte (21.02., 12.06., 16.09.2026) wurden durch nachgetragene Abendwägungen leicht korrigiert. Im Gewichts-Diagramm gibt es zusätzlich 1 Jahr und 3 Jahre. Von 2022 bis 2023 existieren nur je zwei Messungen; Lücken ohne Messung (über 75 Tage) sind im Diagramm gepunktet verbunden.' },
+    { v: '06.10-7', d: '06.10.2026', t: 'Gewicht und Körperfett komplett: Aus dem Apple-Health-Export stammen jetzt 562 Gewichtstage ab Februar 2018 (2018 bis 2021 manuell eingetragen, ab 2024 Withings-Waage) und 304 Körperfett-Tage ab Januar 2024. Mehrere Wägungen am Tag werden gemittelt. Drei bereits gespeicherte Werte (21.02., 12.06., 16.09.2026) wurden durch nachgetragene Abendwägungen leicht korrigiert. Im Gewichts-Diagramm gibt es zusätzlich 1 Jahr und 3 Jahre. Von 2022 bis 2023 existieren nur je zwei Messungen; Lücken ohne Messung (über 75 Tage) sind im Diagramm gepunktet verbunden. Neu: grau gestrichelte Trendlinie (Ausgleichsgerade) bei Gewicht, Körperfett und VO₂max, mit Zahl „pro Monat“ bzw. „pro Jahr“ über dem Diagramm.' },
     { v: '06.10-6', d: '06.10.2026', t: 'Daten nachgeladen und „Gesamt“: Aus dem Apple-Health-Export stammen jetzt 728 weitere Nächte mit Schlafphasen (14.03.2024 bis 30.03.2026), vorher begann der Schlaf erst am 31.03.2026. Erholung, Schlaf, HRV-Basis und Frische-Vergleiche gelten damit seit März 2024. Der Ruhepuls geht täglich bis 2018 zurück. Neuer Zeitraum „Gesamt“ zeigt alles seit 2018 auf einen Blick (Verlauf als 30-Tage-Mittel). Vor 2024 gibt es nur „Zeit im Bett“ ohne Schlafphasen, daraus wird kein Schlaf gerechnet. Nächte unter 3 Stunden Aufzeichnung (Nickerchen, Uhr nur kurz getragen) sind ausgelassen. Die Erholungsnote der nachgetragenen Nächte nutzt dieselbe Formel wie die der letzten Wochen, Basis sind die bis zu 14 Nächte der vorangegangenen drei Wochen. Korrigiert: Nacht 30./31.03. (Export war damals abgeschnitten) und Nacht 13./14.06. (Schlaf 7,19 auf 8,38 h, Note 61 auf 65, weil Apple die Schlafphasen nachträglich vervollständigt hat).' },
     { v: '06.10-5', d: '06.10.2026', t: 'Körper-Seite: Verlaufsgrafik unter den Kacheln. Sie zeigt den gewählten Zeitraum für Erholung, Frische, Bewegen, Ruhepuls, Schlaf, Gewicht, Körperfett oder VO₂max, mit gestrichelter Durchschnittslinie. Bei „Tag“ siehst du die 30 Tage bis zum gewählten Tag, der Tag ist markiert. Bei Jahren werden Wochenmittel gezeigt. Antippen oder Wischen zeigt die Werte.' },
     { v: '06.10-4', d: '06.10.2026', t: 'Körper-Seite: Kalendermonat und Kalenderjahr wählbar (zum Beispiel Oktober 2026, 2026, 2025 … zurück bis 2018) mit Auswahlliste und Pfeilen. Der Vergleich geht gegen den Vormonat beziehungsweise das Vorjahr; läuft der Zeitraum noch, wird mit dem gleich langen Abschnitt davor verglichen. Der Rollierende Zeitraum heißt jetzt „365 Tage“.' },
