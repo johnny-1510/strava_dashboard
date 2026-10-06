@@ -474,6 +474,7 @@ footer{font-size:11px;color:var(--muted);text-align:center;padding:16px 8px 4px;
 .tile .tw .bad,.tile .ts .bad{color:var(--bad);}
 .bt-note{margin:12px 2px 0;font-size:12.5px;line-height:1.45;color:var(--muted);}
 .bt-note b{color:var(--text);font-weight:600;}
+#btSpan .chip,#btCalSeg .chip{padding:0 10px;}#btSpan{gap:3px;}
 </style>
 </head>
 <body>
@@ -692,8 +693,15 @@ footer{font-size:11px;color:var(--muted);text-align:center;padding:16px 8px 4px;
           <button class="chip" type="button" data-span="7">7 Tage</button>
           <button class="chip" type="button" data-span="30">30 Tage</button>
           <button class="chip" type="button" data-span="90">90 Tage</button>
-          <button class="chip" type="button" data-span="365">1 Jahr</button>
+          <button class="chip" type="button" data-span="365">365 Tage</button>
         </div>
+      </div>
+      <div class="bt-row">
+        <div class="seg" id="btCalSeg" role="group" aria-label="Kalenderzeitraum">
+          <button class="chip" type="button" data-cal="M">Monat</button>
+          <button class="chip" type="button" data-cal="Y">Jahr</button>
+        </div>
+        <select class="sel" id="btCal" aria-label="Monat oder Jahr wählen" hidden></select>
         <button class="link-btn" id="btLatest" type="button" hidden>Zum neuesten Stand</button>
       </div>
       <div class="tiles" id="bodyTiles"></div>
@@ -1912,7 +1920,12 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
 
   // ---------- Körper auf einen Blick (Kacheln) ----------
   // ---------- Körper-Kacheln mit Zeitwahl (Tag oder Zeitraum) ----------
-  const bodyView = { day: null, span: 1 };
+  const bodyView = { day: null, span: 1, cal: null };
+  // Kalendermonat/-jahr, in dem der Tag `day` liegt
+  function calBounds(day, cal){
+    const y = +day.slice(0,4), m = +day.slice(5,7);
+    return cal === 'Y' ? { S: `${y}-01-01`, E: `${y}-12-31` } : { S: `${y}-${String(m).padStart(2,'0')}-01`, E: isoLocal(new Date(y, m, 0)) };
+  }
   function bodyRange(){
     const wakes = RECOVERY_DATA.filter(d => d.r !== null).map(d => addDaysIso(d.d, 1));
     const f = [wakes[0], RINGS.length ? RING_FIRST : null].filter(Boolean).sort();
@@ -1923,15 +1936,24 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     const { first, last } = bodyRange();
     if(!bodyView.day || bodyView.day > last) bodyView.day = last;
     if(bodyView.day < first) bodyView.day = first;
-    const D = bodyView.day, N = bodyView.span, single = N === 1;
-    const S = addDaysIso(D, -(N-1)), E2 = addDaysIso(S, -1), S2 = addDaysIso(E2, -(N-1));
+    const cal = bodyView.cal;
+    let D = bodyView.day, N = bodyView.span, S, E2, S2, calEnd = null, vsTxt = 'vs. davor';
+    if(cal){
+      const cb = calBounds(D, cal), y = +D.slice(0,4), m = +D.slice(5,7);
+      S = cb.S; calEnd = cb.E; D = calEnd < last ? calEnd : last; N = daysBetween(S, D) + 1;
+      S2 = cal === 'Y' ? `${y-1}-01-01` : isoLocal(new Date(y, m-2, 1));
+      const pEnd = cal === 'Y' ? `${y-1}-12-31` : isoLocal(new Date(y, m-1, 0));
+      E2 = addDaysIso(S2, N-1); if(E2 > pEnd) E2 = pEnd;
+      vsTxt = cal === 'Y' ? 'vs. Vorjahr' : 'vs. Vormonat';
+    } else { S = addDaysIso(D, -(N-1)); E2 = addDaysIso(S, -1); S2 = addDaysIso(E2, -(N-1)); }
+    const single = !cal && N === 1;
     const inR = (k, a, b) => k >= a && k <= b;
     const recMap = new Map(RECOVERY_DATA.filter(d => d.r !== null).map(d => [addDaysIso(d.d, 1), d]));
     const recIn = (a, b) => [...recMap].filter(([k]) => inR(k, a, b)).map(([,v]) => v);
     const avg = (arr, f) => { const v = arr.map(f).filter(x => x !== null && x !== undefined && !isNaN(x)); return v.length ? v.reduce((a,b) => a+b, 0)/v.length : null; };
     const sg = (n, dig) => `${n > 0.0001 ? '+' : n < -0.0001 ? '−' : '±'}${(dig ? fmt1c(Math.abs(n)) : fmtInt(Math.abs(n)))}`;
     const dcls = (n, upGood) => Math.abs(n) < 0.0001 ? 'neutral' : ((n > 0) === upGood ? 'good' : 'bad');
-    const dlt = (n, upGood, dig, unit) => `<span class="${dcls(n, upGood)}">${sg(n, dig)}${unit ? ' ' + unit : ''}</span>`;
+    const dlt = (n0, upGood, dig, unit) => { const n = dig ? Math.round(n0*10)/10 : Math.round(n0); return `<span class="${dcls(n, upGood)}">${sg(n, dig)}${unit ? ' ' + unit : ''}</span>`; };
     const dm = isoToDM;
     const yearOf2 = iso => iso.slice(0,4) === D.slice(0,4) ? dm(iso) : isoToDMY(iso);
     const yearOf = iso => iso.slice(0,4) === D.slice(0,4) ? dm(iso) : isoToDMY(iso);
@@ -1942,7 +1964,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
 
     // Erholung
     {
-      let v = '–', sub = 'keine Messung', col = '', when = nightWhen || `Ø ${N} Nächte`;
+      let v = '–', sub = 'keine Messung', col = '', when = nightWhen || 'keine Daten in diesem Zeitraum';
       if(single){
         const r = recMap.get(D);
         if(r){ const b = recoveryBand(r.r); v = `${r.r}<small> / 100</small>`; sub = `<span class="${b.cls}">${b.word}</span>`; col = b.color; }
@@ -1951,7 +1973,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
         if(rs.length){
           const m = Math.round(avg(rs, x => x.r)), b = recoveryBand(m), pm = avg(recIn(S2, E2), x => x.r);
           v = `${m}<small> / 100</small>`; sub = `<span class="${b.cls}">${b.word}</span>`; col = b.color;
-          when = nightsAvg(rs.length, pm !== null ? dlt(Math.round(m - pm), true, 0) + ' vs. davor' : '');
+          when = nightsAvg(rs.length, pm !== null ? dlt(Math.round(m - pm), true, 0) + ' ' + vsTxt : '');
         }
       }
       tile('erholung', 'Erholung', v, sub, when, col);
@@ -1982,14 +2004,14 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
           const m = avg(rs, r => r[1]), hits = rs.filter(ringHitK).length;
           const pr = RINGS.filter(r => inR(r[0], S2, E2) && !ringEmpty(r)), pm = pr.length ? avg(pr, r => r[1]) : null;
           v = `${fmtInt(m)}<small> kcal</small>`; sub = `Ziel an ${hits} von ${rs.length} Tagen`;
-          when = `Ø pro Tag${pm !== null ? ' · ' + dlt(Math.round(m - pm), true, 0) + ' vs. davor' : ''}`;
+          when = `Ø pro Tag${pm !== null ? ' · ' + dlt(Math.round(m - pm), true, 0) + ' ' + vsTxt : ''}`;
         }
       }
       tile('ringe', 'Bewegen', v, sub, when, v === '–' ? '' : 'var(--ring-move)');
     }
     // Ruhepuls
     {
-      let v = '–', sub = 'keine Messung', when = nightWhen || `Ø ${N} Nächte`;
+      let v = '–', sub = 'keine Messung', when = nightWhen || 'keine Daten in diesem Zeitraum';
       if(single){
         const r = recMap.get(D);
         if(r && r.rhr){
@@ -2003,7 +2025,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
         const rs = recIn(S, D).filter(x => x.rhr);
         if(rs.length){
           const m = avg(rs, x => x.rhr), pm = avg(recIn(S2, E2), x => x.rhr);
-          v = `${Math.round(m)}<small> bpm</small>`; sub = pm !== null ? `${dlt(Math.round(m - pm), false, 0)} vs. davor` : 'kein Vergleich möglich';
+          v = `${Math.round(m)}<small> bpm</small>`; sub = pm !== null ? `${dlt(Math.round(m - pm), false, 0)} ${vsTxt}` : 'kein Vergleich möglich';
           when = nightsAvg(rs.length);
         }
       }
@@ -2011,7 +2033,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     }
     // Schlaf
     {
-      let v = '–', sub = 'keine Messung', when = nightWhen || `Ø ${N} Nächte`;
+      let v = '–', sub = 'keine Messung', when = nightWhen || 'keine Daten in diesem Zeitraum';
       const c = x => String(x).replace('.', ',');
       if(single){
         const r = recMap.get(D);
@@ -2021,7 +2043,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
         if(rs.length){
           const m = avg(rs, x => x.sh), pm = avg(recIn(S2, E2), x => x.sh);
           v = `${fmt1c(m)}<small> h</small>`; sub = `Ø Tief ${fmt1c(avg(rs, x => x.dh))} · REM ${fmt1c(avg(rs, x => x.rh))} h`;
-          when = nightsAvg(rs.length, pm !== null ? dlt(m - pm, true, 1, 'h') + ' vs. davor' : '');
+          when = nightsAvg(rs.length, pm !== null ? dlt(m - pm, true, 1, 'h') + ' ' + vsTxt : '');
         }
       }
       tile('erholung', 'Schlaf', v, sub, when);
@@ -2060,17 +2082,31 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     $('bodyTiles').innerHTML = tiles.join('');
 
     // Zeitwahl-Kopf
-    const pick = $('btPick'); pick.min = first; pick.max = last; pick.value = D;
-    $('btPrev').disabled = addDaysIso(D, -N) < first && D <= first;
-    $('btNext').disabled = D >= last;
-    $('btLatest').hidden = D === last;
-    $$('#btSpan .chip').forEach(c => c.classList.toggle('active', +c.dataset.span === N));
+    const pick = $('btPick'); pick.min = first; pick.max = last; pick.value = bodyView.day;
+    $('btPrev').disabled = cal ? S <= first : (addDaysIso(D, -N) < first && D <= first);
+    $('btNext').disabled = cal ? calEnd >= last : D >= last;
+    $('btLatest').hidden = cal ? calEnd >= last : D === last;
+    $$('#btSpan .chip').forEach(c => c.classList.toggle('active', !cal && +c.dataset.span === N));
+    $$('#btCalSeg .chip').forEach(c => c.classList.toggle('active', c.dataset.cal === cal));
+    const sel = $('btCal'); sel.hidden = !cal;
+    if(cal){
+      const y1 = +first.slice(0,4), y2 = +last.slice(0,4), opts = [];
+      if(cal === 'Y'){ for(let y = y2; y >= y1; y--) opts.push([`${y}-01-01`, String(y)]); }
+      else { for(let y = y2; y >= y1; y--) for(let m = 12; m >= 1; m--){ const k = `${y}-${String(m).padStart(2,'0')}`; if(k + '-31' < first.slice(0,7) + '-00' || k > last.slice(0,7) || k < first.slice(0,7)) continue; opts.push([k + '-01', `${MONTH_FULL[m-1]} ${y}`]); } }
+      const cur = cal === 'Y' ? `${S.slice(0,4)}-01-01` : S;
+      sel.innerHTML = opts.map(([v, t]) => `<option value="${v}"${v === cur ? ' selected' : ''}>${t}</option>`).join('');
+    }
     const ago = daysBetween(D, TODAY_ISO);
     const rel = D === TODAY_ISO ? 'Heute' : D === YESTERDAY_ISO ? 'Gestern' : `vor ${ago} Tagen`;
     if(single){
       $('btDate').textContent = dateLong(D);
       $('btRel').textContent = rel + (D === last ? ' · neuester Stand' : '');
       $('btNote').innerHTML = `<b>So liest du die Kacheln:</b> Schlaf, Erholung und Ruhepuls gehören zur <b>Nacht ${nightLabel(addDaysIso(D, -1))}</b> (aufgewacht am ${dm(D)}). Bewegen und Frische zählen den Tag ${dm(D)} selbst. Gewicht, Körperfett und VO₂max zeigen die letzte Messung bis dahin.`;
+    } else if(cal){
+      $('btDate').textContent = cal === 'Y' ? S.slice(0,4) : `${MONTH_FULL[+S.slice(5,7)-1]} ${S.slice(0,4)}`;
+      const part = calEnd > last;
+      $('btRel').textContent = `${cal === 'Y' ? 'Kalenderjahr' : 'Kalendermonat'} · ${part ? 'bis ' + dm(D) + ' (läuft noch)' : 'komplett'} · Durchschnitt`;
+      $('btNote').innerHTML = `<b>${N} Tage (${yearOf2(S)} – ${yearOf2(D)}):</b> Erholung, Ruhepuls, Schlaf und Bewegen sind Durchschnitte. „${vsTxt}“ vergleicht mit ${part ? 'dem gleichen Abschnitt des ' + (cal === 'Y' ? 'Vorjahres' : 'Vormonats') : 'dem ' + (cal === 'Y' ? 'Vorjahr' : 'Vormonat')} (${yearOf2(S2)} – ${yearOf2(E2)}). Die Pfeile springen ${cal === 'Y' ? 'ein Jahr' : 'einen Monat'}.`;
     } else {
       $('btDate').textContent = `${yearOf2(S)} – ${isoToDMY(D)}`;
       $('btRel').textContent = `${N} Tage bis ${rel === 'Heute' || rel === 'Gestern' ? rel.toLowerCase() : dm(D)} · Durchschnitt`;
@@ -2793,12 +2829,14 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   $$('#herzMetric .chip').forEach(b => b.addEventListener('click', () => {
     herzMetric = b.dataset.m; $$('#herzMetric .chip').forEach(c => c.classList.toggle('active', c === b)); drawHerz();
   }));
-  $('bodyTiles').addEventListener('click', e => { const t = e.target.closest('[data-card]'); if(!t) return; if(t.dataset.card === 'ringe' && bodyView.span === 1 && RING_MAP.has(bodyView.day)) setRingsDate(bodyView.day); setColl(t.dataset.card, true, true); scrollToColl(t.dataset.card); });
-  $('btPrev').addEventListener('click', () => { bodyView.day = addDaysIso(bodyView.day, -bodyView.span); renderBodyTiles(); });
-  $('btNext').addEventListener('click', () => { bodyView.day = addDaysIso(bodyView.day, bodyView.span); renderBodyTiles(); });
+  $('bodyTiles').addEventListener('click', e => { const t = e.target.closest('[data-card]'); if(!t) return; if(t.dataset.card === 'ringe' && bodyView.span === 1 && !bodyView.cal && RING_MAP.has(bodyView.day)) setRingsDate(bodyView.day); setColl(t.dataset.card, true, true); scrollToColl(t.dataset.card); });
+  $('btPrev').addEventListener('click', () => { bodyView.day = bodyView.cal ? addDaysIso(calBounds(bodyView.day, bodyView.cal).S, -1) : addDaysIso(bodyView.day, -bodyView.span); renderBodyTiles(); });
+  $('btNext').addEventListener('click', () => { bodyView.day = bodyView.cal ? addDaysIso(calBounds(bodyView.day, bodyView.cal).E, 1) : addDaysIso(bodyView.day, bodyView.span); renderBodyTiles(); });
   $('btLatest').addEventListener('click', () => { bodyView.day = null; renderBodyTiles(); });
   $('btPick').addEventListener('change', e => { if(e.target.value){ bodyView.day = e.target.value; renderBodyTiles(); } });
-  $('btSpan').addEventListener('click', e => { const c = e.target.closest('[data-span]'); if(!c) return; bodyView.span = +c.dataset.span; renderBodyTiles(); });
+  $('btSpan').addEventListener('click', e => { const c = e.target.closest('[data-span]'); if(!c) return; bodyView.span = +c.dataset.span; bodyView.cal = null; renderBodyTiles(); });
+  $('btCalSeg').addEventListener('click', e => { const c = e.target.closest('[data-cal]'); if(!c) return; bodyView.cal = c.dataset.cal; renderBodyTiles(); });
+  $('btCal').addEventListener('change', e => { bodyView.day = e.target.value; renderBodyTiles(); });
   $$('#bcMetric .chip').forEach(b => b.addEventListener('click', () => {
     bodyMetric = b.dataset.m; $$('#bcMetric .chip').forEach(c => c.classList.toggle('active', c === b)); drawBody();
   }));
@@ -2833,6 +2871,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   // Änderungsverlauf
   // ============================================================
   const CHANGELOG = [
+    { v: '06.10-4', d: '06.10.2026', t: 'Körper-Seite: Kalendermonat und Kalenderjahr wählbar (zum Beispiel Oktober 2026, 2026, 2025 … zurück bis 2018) mit Auswahlliste und Pfeilen. Der Vergleich geht gegen den Vormonat beziehungsweise das Vorjahr; läuft der Zeitraum noch, wird mit dem gleich langen Abschnitt davor verglichen. Der Rollierende Zeitraum heißt jetzt „365 Tage“.' },
     { v: '06.10-3', d: '06.10.2026', t: 'Körper-Seite: Zeitraum „1 Jahr“ (365 Tage) ergänzt, neben Tag, 7, 30 und 90 Tage.' },
     { v: '06.10-2', d: '06.10.2026', t: 'Neue Daten aus Export_9 (06.10. 10:41): Nacht 05./06.10. (Erholung 78, HRV 121 ms, Ruhepuls 64), Ring-Tag 05.10. (466 kcal, 18 min, 17 Std.), Ruhepuls-Monatsmittel Oktober aktualisiert. Strava: Zwift-Fahrt vom 06.10. nachgetragen. Hinweis: Apple hat den Ruhepuls der Nacht 04.10. nachträglich von 59 auf 60 korrigiert (wie schon bei 30.09. und 03.10.); die gespeicherten Werte und Noten bleiben wie berechnet.' },
     { v: '06.10-1', d: '06.10.2026', t: 'Körper-Seite: „Dein Körper“ ist jetzt zeitlich wählbar. Oben Tag per Pfeil oder Kalender auswählen, darunter Tag, 7, 30 oder 90 Tage. Jede Kachel nennt, worauf sie sich bezieht (zum Beispiel „Nacht 04./05.10. · 23:51–05:48“ beim Schlaf, „Tag 04.10.“ beim Bewegen, „gemessen 02.10.“ beim Gewicht). Schlaf, Erholung und Ruhepuls gehören zur Nacht, in der du am gewählten Tag aufgewacht bist. Bei Zeiträumen siehst du Durchschnitte und den Vergleich mit dem Zeitraum davor, bei Gewicht, Körperfett und VO₂max die Veränderung im Zeitraum. Ein Hinweistext unter den Kacheln erklärt die Zuordnung. Tipp auf „Bewegen“ springt zu den Ringen genau dieses Tages. Fehlt für einen Tag etwas, steht dort „–“ mit Grund (zum Beispiel „noch nicht im Export“).' },
