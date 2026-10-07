@@ -486,42 +486,31 @@ html[data-theme="light"] .tf-seg button[aria-checked="true"]{background:#fff;box
 .rd-cell.inp{background:var(--carbon-hi);}
 .goal-hero.solo{grid-template-columns:1fr;}
 
-/* ---------- Körper: Kachel mit Mini-Verlauf, Detail-Blatt ---------- */
-.tile .tl{display:flex;justify-content:space-between;align-items:center;width:100%;}
-.tile .tchev{font-style:normal;font-size:17px;line-height:1;color:var(--muted-2);font-weight:500;}
+/* ---------- Körper: Kennzahl-Leiste, große Grafik, Kacheln mit Mini-Verlauf ---------- */
+.bt-metrics{display:flex;gap:6px;overflow-x:auto;margin:12px -16px 0;padding:2px 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);}
+.bt-metrics::-webkit-scrollbar{display:none;}
+.bt-metrics .chip{flex-shrink:0;height:34px;}
+.bt-sep{flex-shrink:0;width:1px;margin:6px 2px;background:var(--line-strong);}
+.bt-chartbox{margin-top:10px;display:flex;flex-direction:column;gap:10px;}
+.bt-chartbox > *{flex:none;}
 .tile .spark{display:block;width:100%;height:26px;margin-top:6px;opacity:.9;}
 .tile:hover{border-color:var(--line-strong);}
-.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s var(--ease);z-index:92;}
-.sheet-overlay.open{opacity:1;pointer-events:auto;}
-.sheet{position:fixed;left:0;right:0;bottom:0;max-height:92vh;display:flex;flex-direction:column;background:var(--panel);border-radius:22px 22px 0 0;border-top:1px solid var(--line-strong);
-  transform:translateY(105%);visibility:hidden;transition:transform .32s var(--ease),visibility 0s .32s;z-index:93;padding-bottom:env(safe-area-inset-bottom);}
-.sheet.open{transform:translateY(0);visibility:visible;transition:transform .32s var(--ease),visibility 0s;}
-.sheet-grab{padding:6px 16px 0;flex-shrink:0;border-bottom:1px solid var(--line);}
-.grab-bar{display:block;width:38px;height:5px;border-radius:3px;background:var(--line-strong);margin:2px auto 8px;}
-.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
-.sheet-head h4{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.02em;}
-.sheet-head p{font-size:12px;color:var(--muted);}
-.sheet-metrics{display:flex;gap:6px;overflow-x:auto;padding:10px 0 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-.sheet-metrics::-webkit-scrollbar{display:none;}
-.sheet-metrics .chip{flex-shrink:0;height:32px;}
-.sheet-metrics .chip[aria-current="true"]{background:var(--text);color:var(--bg);border-color:var(--text);}
-.sheet-body{overflow-y:auto;padding:12px 16px 20px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:10px;}
-.sheet-body .tf-nav{margin-top:0;}
-.tf-label b{display:block;}
-.sheet-hero{display:flex;flex-direction:column;gap:2px;padding:4px 2px 0;}
-.sheet-hero .sv{font-family:var(--display);font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1.1;}
-.sheet-hero .sv small{font-size:15px;font-weight:600;color:var(--muted);margin-left:3px;letter-spacing:0;}
-.sheet-hero .sv.dim{color:var(--muted-2);}
-.sheet-hero .ss{font-size:12.5px;color:var(--muted);line-height:1.35;}
-html.sheet-lock,html.sheet-lock body{overflow:hidden;}
+@media (min-width:760px){ .bt-metrics{flex-wrap:wrap;overflow:visible;margin:12px 0 0;padding:0;-webkit-mask-image:none;mask-image:none;} }
+
+/* ---------- Am Computer: volle Bildschirmbreite (Handy bleibt unverändert) ---------- */
 @media (min-width:760px){
-  .sheet{left:50%;right:auto;bottom:auto;top:50%;width:min(760px,92vw);max-height:88vh;border-radius:22px;border:1px solid var(--line-strong);
-    transform:translate(-50%,-46%) scale(.98);opacity:0;transition:transform .25s var(--ease),opacity .2s var(--ease),visibility 0s .25s;}
-  .sheet.open{transform:translate(-50%,-50%);opacity:1;transition:transform .25s var(--ease),opacity .2s var(--ease),visibility 0s;}
-  .grab-bar{display:none;}
-  .sheet-grab{padding-top:14px;}
+  .app{max-width:none;padding-left:max(28px,env(safe-area-inset-left));padding-right:max(28px,env(safe-area-inset-right));}
+  .tiles{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));}
+  .stat-row{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
+  .stat-row.two{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
 }
-.sheet-body > *{flex:none;}
+@media (min-width:1200px){
+  .app{padding-left:max(40px,env(safe-area-inset-left));padding-right:max(40px,env(safe-area-inset-right));}
+  .cal-grid{grid-template-columns:repeat(12,1fr);}
+  .metrics3{grid-template-columns:repeat(3,minmax(0,320px));}
+  .wx-strip{max-width:900px;}
+}
 </style>
 </head>
 <body>
@@ -713,6 +702,13 @@ html.sheet-lock,html.sheet-lock body{overflow:hidden;}
   <main class="panel" data-panel="koerper" hidden>
     <section class="card card-pad vitals" aria-label="Körper auf einen Blick">
       <div class="card-title">Dein Körper <span class="sub" id="vitalsSub"></span></div>
+      <div class="bt-metrics" id="btMetrics" role="tablist" aria-label="Kennzahl für die Grafik"></div>
+      <div class="bt-chartbox" id="btBox">
+        <div class="bt-chart-head" id="btChartHead"></div>
+        <div class="chart" id="btChart"></div>
+        <div class="stat-row" id="btStats"></div>
+        <p class="explain" id="btExplain"></p>
+      </div>
       <div id="bodyTiles"></div>
       <p class="bt-note" id="btNote"></p>
     </section>
@@ -864,27 +860,6 @@ html.sheet-lock,html.sheet-lock body{overflow:hidden;}
   <div class="changelog-panel" role="dialog" aria-label="Änderungsverlauf">
     <div class="changelog-head"><h4>Änderungsverlauf</h4><button class="drawer-close" id="changelogClose" type="button" aria-label="Schließen">✕</button></div>
     <div class="changelog-list" id="changelogList"></div>
-  </div>
-</div>
-
-<!-- Detailansicht einer Körper-Kennzahl -->
-<div class="sheet-overlay" id="sheetOverlay"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="sheet-grab" id="sheetGrab">
-    <span class="grab-bar" aria-hidden="true"></span>
-    <div class="sheet-head"><div><h4 id="sheetTitle">–</h4><p id="sheetSub">–</p></div><button class="drawer-close" id="sheetClose" type="button" aria-label="Schließen">✕</button></div>
-    <div class="sheet-metrics" id="sheetMetrics" role="tablist" aria-label="Kennzahl wählen"></div>
-  </div>
-  <div class="sheet-body">
-    <div class="tf-seg" id="sheetSeg" role="radiogroup" aria-label="Zeitraum-Einheit">
-      <button type="button" role="radio" data-u="D">Tag</button><button type="button" role="radio" data-u="W">Woche</button><button type="button" role="radio" data-u="M">Monat</button><button type="button" role="radio" data-u="Y">Jahr</button><button type="button" role="radio" data-u="A">Gesamt</button>
-    </div>
-    <div class="tf-nav"><button class="tf-arrow" id="sheetPrev" type="button" aria-label="Zeitraum zurück">‹</button><div class="tf-label" id="sheetPeriod"></div><button class="tf-arrow" id="sheetNext" type="button" aria-label="Zeitraum vor">›</button></div>
-    <div class="sheet-hero" id="sheetHero"></div>
-    <div class="bt-chart-head" id="btChartHead"></div>
-    <div class="chart" id="btChart"></div>
-    <div class="stat-row" id="sheetStats"></div>
-    <p class="explain" id="sheetExplain"></p>
   </div>
 </div>
 
@@ -1217,7 +1192,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   }
   drawerOverlay.addEventListener('click', closeDrawer);
   $('drawerClose').addEventListener('click', closeDrawer);
-  document.addEventListener('keydown', e => { if(e.key === 'Escape'){ closeDrawer(); $('changelogOverlay').classList.remove('open'); if(typeof closeSheet === 'function') closeSheet(); } });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape'){ closeDrawer(); $('changelogOverlay').classList.remove('open'); } });
 
   // ============================================================
   // Charts: werden in ECHTER Pixelbreite des Containers gezeichnet (viewBox = Pixelgröße),
@@ -1816,31 +1791,24 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       html += `<div class="tgroup"><h3>${title}</h3><div class="tiles">`;
       Object.keys(M).filter(k => M[k].group === g).forEach(k => {
         const t = tileData(k, b), m = M[k];
-        html += `<button class="tile" type="button" data-m="${k}" aria-label="${m.label}: Verlauf öffnen"><span class="tl">${m.label}<i class="tchev" aria-hidden="true">›</i></span><span class="tv${t.val === '–' ? ' dim' : ''}"${t.col ? ` style="color:${t.col}"` : ''}>${t.val}</span><span class="ts">${t.sub || '&nbsp;'}</span>${sparkSvg(k)}${t.when ? `<span class="tw">${t.when}</span>` : ''}</button>`;
+        html += `<button class="tile" type="button" data-m="${k}" aria-label="${m.label}: in der Grafik oben zeigen"><span class="tl">${m.label}</span><span class="tv${t.val === '–' ? ' dim' : ''}"${t.col ? ` style="color:${t.col}"` : ''}>${t.val}</span><span class="ts">${t.sub || '&nbsp;'}</span>${sparkSvg(k)}${t.when ? `<span class="tw">${t.when}</span>` : ''}</button>`;
       });
       html += '</div></div>';
     });
     $('bodyTiles').innerHTML = html;
     const D = b.Ec;
-    if(b.unit === 'D') $('btNote').innerHTML = `<b>So liest du die Kacheln:</b> Schlaf, Erholung, Ruhepuls, Atmung und Temperatur gehören zur <b>Nacht ${nightLabel(nightOf(D))}</b> (aufgewacht am ${dm(D)}). Bewegen, Schritte, HRV, Blutsauerstoff und Tageslicht zählen den Tag ${dm(D)} selbst. Gewicht, Körperfett und VO₂max zeigen die letzte Messung bis dahin. „vs. Ø 14 Tage“ vergleicht mit deinem Schnitt der 14 Tage davor. Die kleine Linie zeigt die 30 Tage bis dahin; Kachel antippen öffnet den Verlauf.`;
-    else if(b.unit === 'A') $('btNote').innerHTML = `<b>Alle Daten seit ${isoToDMY(b.S)}:</b> Durchschnitte über alle Tage mit Messwert, ohne Vergleichszeitraum. Die Kennzahlen beginnen unterschiedlich: Ringe, Ruhepuls, HRV, Schritte und Gehpuls 2018, Blutsauerstoff und Atemfrequenz 2021, Schlafphasen, Erholung und Handgelenk-Temperatur 2024, Frische mit Strava ab Juli 2025. Kachel antippen öffnet den Verlauf.`;
-    else $('btNote').innerHTML = `<b>${tfLabel(b).main}:</b> Durchschnitte über die Tage mit Messwert. „${b.vs}“ vergleicht mit ${b.partial ? 'dem gleich langen Abschnitt davor' : 'dem ganzen Zeitraum davor'} (${dmY(b.S2)} – ${dmY(b.E2)}). Nacht-Werte zählen zum Aufwach-Tag. Kachel antippen öffnet den Verlauf.`;
+    if(b.unit === 'D') $('btNote').innerHTML = `<b>So liest du die Kacheln:</b> Schlaf, Erholung, Ruhepuls, Atmung und Temperatur gehören zur <b>Nacht ${nightLabel(nightOf(D))}</b> (aufgewacht am ${dm(D)}). Bewegen, Schritte, HRV, Blutsauerstoff und Tageslicht zählen den Tag ${dm(D)} selbst. Gewicht, Körperfett und VO₂max zeigen die letzte Messung bis dahin. „vs. Ø 14 Tage“ vergleicht mit deinem Schnitt der 14 Tage davor. Die kleine Linie zeigt die 30 Tage bis dahin; Kachel antippen zeigt sie oben groß.`;
+    else if(b.unit === 'A') $('btNote').innerHTML = `<b>Alle Daten seit ${isoToDMY(b.S)}:</b> Durchschnitte über alle Tage mit Messwert, ohne Vergleichszeitraum. Die Kennzahlen beginnen unterschiedlich: Ringe, Ruhepuls, HRV, Schritte und Gehpuls 2018, Blutsauerstoff und Atemfrequenz 2021, Schlafphasen, Erholung und Handgelenk-Temperatur 2024, Frische mit Strava ab Juli 2025. Kachel antippen zeigt sie oben groß.`;
+    else $('btNote').innerHTML = `<b>${tfLabel(b).main}:</b> Durchschnitte über die Tage mit Messwert. „${b.vs}“ vergleicht mit ${b.partial ? 'dem gleich langen Abschnitt davor' : 'dem ganzen Zeitraum davor'} (${dmY(b.S2)} – ${dmY(b.E2)}). Nacht-Werte zählen zum Aufwach-Tag. Kachel antippen zeigt sie oben groß.`;
     $('vitalsSub').textContent = tfShort(b);
-    if(sheetOpen()) renderSheet();
+    renderBtPanel();
   }
 
-  // ---------- Detailansicht einer Kennzahl (Blatt von unten wie in der Health-App) ----------
-  const sheetOpen = () => $('sheet').classList.contains('open');
-  function renderSheet(){
-    const key = btMetric, m = M[key], b = tfBounds(), t = tileData(key, b), lab = tfLabel(b);
-    $('sheetTitle').textContent = m.label;
-    $('sheetSub').textContent = { rec:'Erholung & Schlaf', act:'Aktivität', body:'Körper & Ausdauer' }[m.group];
-    $$('#sheetSeg [data-u]').forEach(x => x.setAttribute('aria-checked', String(x.dataset.u === TF.unit)));
-    $('sheetPeriod').innerHTML = `<b>${lab.main}</b><small>${lab.sub}</small>`;
-    $('sheetPrev').disabled = TF.unit === 'A' || b.S <= TF_FIRST; $('sheetNext').disabled = TF.unit === 'A' || b.E >= TODAY_ISO;
-    $('sheetPrev').style.visibility = $('sheetNext').style.visibility = TF.unit === 'A' ? 'hidden' : '';
-    $('sheetHero').innerHTML = `<span class="sv${t.val === '–' ? ' dim' : ''}"${t.col ? ` style="color:${t.col}"` : ''}>${t.val}</span><span class="ss">${[t.sub, t.when].filter(Boolean).join(' · ')}</span>`;
-    // Kennzahlen im Zeitraum
+  // ---------- Große Grafik: Kennzahl per Chip (oder Kachel) wählen ----------
+  function renderBtPanel(){
+    const key = btMetric, m = M[key], b = tfBounds();
+    $$('#btMetrics [data-m]').forEach(x => { const on = x.dataset.m === key; x.classList.toggle('active', on); x.setAttribute('aria-selected', String(on)); });
+    $$('#bodyTiles .tile').forEach(t => t.classList.toggle('on', t.dataset.m === key));
     const st = (l, v, s) => `<div class="stat"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s || '&nbsp;'}</div></div>`;
     const u = m.unit ? `<small> ${m.unit}</small>` : '';
     let stats = '';
@@ -1859,23 +1827,22 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
         stats = st('Durchschnitt', fmtVal(m, mean(days.map(p => p[1]))) + u, `${fmtInt(days.length)} ${m.kind === 'night' ? 'Nächte' : 'Tage'} mit Wert`) + st('Niedrigster', fmtVal(m, lo[1]) + u, when(lo[0])) + st('Höchster', fmtVal(m, hi[1]) + u, when(hi[0]));
       }
     }
-    $('sheetStats').innerHTML = stats;
-    $('sheetStats').hidden = !stats;
-    $('sheetExplain').textContent = INFO[key] || '';
-    $$('#sheetMetrics [data-m]').forEach(x => x.setAttribute('aria-current', String(x.dataset.m === key)));
+    $('btStats').innerHTML = stats; $('btStats').hidden = !stats;
+    $('btExplain').textContent = INFO[key] || '';
     drawBt();
   }
-  function openSheet(key){
+  function selectBtMetric(key, scroll){
     if(!M[key]) return;
     btMetric = key; store.set('bt-metric', key);
-    const sh = $('sheet');
-    if(!sheetOpen()){ sh.classList.add('open'); $('sheetOverlay').classList.add('open'); document.documentElement.classList.add('sheet-lock'); }
-    renderSheet();
-    const cur = $('sheetMetrics').querySelector(`[data-m="${key}"]`); if(cur) cur.scrollIntoView({ inline:'center', block:'nearest' });
+    renderBtPanel();
+    const chip = $('btMetrics').querySelector(`[data-m="${key}"]`);
+    if(chip){ const row = $('btMetrics'); row.scrollTo({ left: chip.offsetLeft - (row.clientWidth - chip.offsetWidth) / 2, behavior: scroll ? 'smooth' : 'auto' }); }
+    if(scroll){
+      const top = $('tfbar').getBoundingClientRect().bottom, r = $('btMetrics').getBoundingClientRect();
+      if(r.top < top || r.top > window.innerHeight * 0.4) window.scrollTo({ top: window.scrollY + r.top - top - 10, behavior:'smooth' });
+    }
   }
-  function closeSheet(){ $('sheet').classList.remove('open'); $('sheetOverlay').classList.remove('open'); document.documentElement.classList.remove('sheet-lock'); }
-  // Kennzahlen-Leiste oben im Blatt: zwischen Kennzahlen wechseln, ohne das Blatt zu schließen
-  $('sheetMetrics').innerHTML = Object.keys(M).map(k => `<button type="button" class="chip" data-m="${k}">${M[k].label}</button>`).join('');
+  $('btMetrics').innerHTML = GROUPS.map(([g]) => Object.keys(M).filter(k => M[k].group === g).map(k => `<button type="button" class="chip" role="tab" data-m="${k}">${M[k].label}</button>`).join('')).join('<span class="bt-sep" aria-hidden="true"></span>');
 
   // Verlauf einer Kennzahl im Grafik-Fenster des Zeitraums (Tageswerte, ab >120 Tagen Wochen-, ab >420 Tagen 30-Tage-Mittel)
   function btSeries(key){
@@ -1919,10 +1886,10 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     const key = btMetric, { m, win, Sc, Ec, spanD, bucket, pts } = btSeries(key);
     const head = $('btChartHead');
     const rangeTxt = `${dmY(Sc)} – ${dmY(Ec)}`;
-    const h = w < 520 ? 210 : 250;
+    const h = w < 520 ? 210 : Math.min(360, Math.max(250, Math.round(w * 0.2)));
     if(pts.length < (m.chart === 'bar' ? 1 : 2)){
       const sp0 = DATA_SPAN[key], why = !pts.length && sp0 && Ec < sp0.first ? `${m.label} gibt es erst ab ${isoToDMY(sp0.first)}.` : (pts.length ? 'Nur ein Messwert in diesem Zeitraum.' : `Keine ${m.label}-Daten in diesem Zeitraum.`);
-      shell(el, w, 70, 'Zu wenige Daten', T(10, 30, why, {}) + T(10, 52, 'Wähle eine andere Kennzahl oder einen anderen Zeitraum.', { size:10.5 }));
+      shell(el, w, 70, 'Zu wenige Daten', T(10, 30, why, {}) + T(10, 52, 'Wähle oben eine andere Kennzahl oder einen anderen Zeitraum.', { size:10.5 }));
       head.innerHTML = `<b>${m.label}</b> · ${rangeTxt}`;
       return;
     }
@@ -2752,7 +2719,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   $('glanceRows').addEventListener('click', e => {
     const row = e.target.closest('[data-go]'); if(!row || !row.dataset.go) return;
     const go = row.dataset.go;
-    const toBody = (coll, metric) => { setTab('koerper'); if(coll){ setColl(coll, true, true); scrollToColl(coll); } else if(metric) openSheet(metric); };
+    const toBody = (coll, metric) => { setTab('koerper'); if(coll){ setColl(coll, true, true); scrollToColl(coll); } else if(metric) selectBtMetric(metric, true); };
     if(go === 'train') setTab('training');
     else if(go === 'rec') toBody('erholung', 'erholung');
     else if(go === 'form') toBody('fitness', 'frische');
@@ -2863,19 +2830,9 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   }));
   $('rdGrid').addEventListener('click', e => { const b = e.target.closest('.rd-cell'); if(b && !b.disabled) setTF('D', b.dataset.d); });
 
-  // Körper: Kachel antippen = Detailansicht mit großem Verlauf
-  $('bodyTiles').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if(t) openSheet(t.dataset.m); });
-  $('sheetMetrics').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if(t) openSheet(t.dataset.m); });
-  $('sheetSeg').addEventListener('click', e => { const x = e.target.closest('[data-u]'); if(x) setTF(x.dataset.u); });
-  $('sheetPrev').addEventListener('click', () => shiftTF(-1));
-  $('sheetNext').addEventListener('click', () => shiftTF(1));
-  $('sheetClose').addEventListener('click', closeSheet);
-  $('sheetOverlay').addEventListener('click', closeSheet);
-  // Blatt nach unten wischen schließt es (am Griff bzw. Kopf)
-  (function(){ let y0 = null; const head = $('sheetGrab');
-    head.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; }, { passive:true });
-    head.addEventListener('touchend', e => { if(y0 !== null && e.changedTouches[0].clientY - y0 > 60) closeSheet(); y0 = null; }, { passive:true });
-  })();
+  // Körper: Chip oder Kachel antippen = diese Kennzahl in der großen Grafik oben
+  $('btMetrics').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if(t) selectBtMetric(t.dataset.m, false); });
+  $('bodyTiles').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if(t) selectBtMetric(t.dataset.m, true); });
   $('formHardBtn').addEventListener('click', () => {
     const b = tfBounds();
     openDrawer('Die anstrengendsten Einheiten', tfLabel(b).main + ' · prägen die Ermüdung am stärksten', actsIn(b, false).filter(a => a.r > 0).sort((a,c) => c.r - a.r).slice(0,10));
@@ -2916,7 +2873,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   // Änderungsverlauf
   // ============================================================
   const CHANGELOG = [
-    { v: '07.10-2', d: '07.10.2026', t: 'Körper neu bedient wie in der Health-App: Jede Kachel zeigt ihren Mini-Verlauf im gewählten Zeitraum direkt in der Kachel. Antippen öffnet eine Detailansicht (Handy: Blatt von unten, Desktop: Fenster) mit großem Verlauf, Durchschnitt, niedrigstem und höchstem Wert samt Datum und einer kurzen Erklärung. Oben im Blatt wechselt man zwischen allen 15 Kennzahlen und kann den Zeitraum direkt dort ändern (gilt wie immer fürs ganze Board). Schließen mit ✕, Tippen daneben, Escape oder nach unten wischen. Die große Grafik steht nicht mehr fern über den Kacheln.' },
+    { v: '07.10-2', d: '07.10.2026', t: 'Körper: Unter der Zeitleiste wählt eine Kennzahl-Leiste (alle 15 Werte, gruppiert) die große Grafik; darunter Durchschnitt, niedrigster und höchster Wert mit Datum und eine kurze Erklärung. Danach folgen die Kacheln, jetzt mit Mini-Verlauf; Kachel antippen zeigt sie oben groß. Am Computer nutzt das Board jetzt die volle Bildschirmbreite (Kacheln, Kalender und Kennzahlen verteilen sich auf mehr Spalten); am Handy bleibt alles wie gehabt.' },
     { v: '07.10-1', d: '07.10.2026', t: 'Ein Zeitraum für alles: Oben gibt es jetzt nur noch eine Zeitleiste (Tag, Woche, Monat, Jahr, Gesamt) mit Pfeilen, Datumssprung, Wischen und „Heute“. Sie bleibt beim Scrollen stehen und gilt in allen Tabs: Überblick, Kennzahlen, Tabelle, Kalender, Körper-Kacheln, Ringe, Erholung, Trainingszustand, Gewicht und Karte. Die vielen einzelnen Zeit-Chips, die eigenen Datums-Pfeile der Ringe und die Jahr/Monat-Auswahl der Karte sind entfernt. Doppelte Diagramme (Erholung, VO2max/Ruhepuls, Gewicht) sind in der einen Körper-Grafik zusammengefasst; Kachel antippen wählt die Kennzahl. Neu aus dem Apple-Health-Export (07.10.2026 06:49): 310 Apple-Watch-Workouts von 2017 bis zum Strava-Start (17.07.2025) mit 40 GPS-Strecken, Schritte, Strecke zu Fuß und Stockwerke seit 2018 (Uhr hat Vorrang vor iPhone), HRV-Tagesmittel und Gehpuls seit 2018, Blutsauerstoff und Atemfrequenz im Schlaf seit 2021, Handgelenk-Temperatur (als Abweichung) und Atemstörungen seit 2024, Tageslicht seit 2023. Nacht 06./07.10. (Note 81, vorläufig: der Ruhepuls des 07.10. war erst 6 Stunden erfasst), Ring-Tag 06.10., Gewicht 07.10., VO2max 06.10. Korrektur: Einschlaf-/Aufwachzeiten von 318 Winter-Nächten standen 1 Stunde zu spät (Apple schreibt alle Zeiten mit dem Sommer-Offset). Fünfte RHR-Revision (Nacht 05.10. 64 auf 63, nur dokumentiert). Härte zählt nur noch Einheiten mit Strava-Anstrengung; Fitness/Frische beginnt mit der ersten Strava-Einheit. Schlaf in Std. und Min. Nicht übernommen: 13 Nächte 2021 ohne Schlafphasen, „Zeit im Bett“ 2018–2023 (nur Wecker-Zeitplan), FTP von Wahoo (meldet konstant 124 W), Ernährung (1 Eintrag), EKG.' },
     { v: '06.10-8', d: '06.10.2026', t: 'Neues App-Symbol für den Home-Bildschirm: ein Rennrad-Laufrad, dessen Felge als Jahresziel-Bogen leuchtet, mit Statistik-Balken in der Mitte. Als echtes PNG eingebettet (iOS ignoriert SVG-Symbole und zeigte deshalb nur den Buchstaben S). Wird erst nach dem erneuten Hinzufügen zum Home-Bildschirm sichtbar.' },
     { v: '06.10-7', d: '06.10.2026', t: 'Gewicht und Körperfett komplett: Aus dem Apple-Health-Export stammen jetzt 562 Gewichtstage ab Februar 2018 (2018 bis 2021 manuell eingetragen, ab 2024 Withings-Waage) und 304 Körperfett-Tage ab Januar 2024. Mehrere Wägungen am Tag werden gemittelt. Drei bereits gespeicherte Werte (21.02., 12.06., 16.09.2026) wurden durch nachgetragene Abendwägungen leicht korrigiert. Im Gewichts-Diagramm gibt es zusätzlich 1 Jahr und 3 Jahre. Von 2022 bis 2023 existieren nur je zwei Messungen; Lücken ohne Messung (über 75 Tage) sind im Diagramm gepunktet verbunden. Neu: grau gestrichelte Trendlinie (Ausgleichsgerade) bei Gewicht, Körperfett und VO₂max, mit Zahl „pro Monat“ bzw. „pro Jahr“ über dem Diagramm.' },
