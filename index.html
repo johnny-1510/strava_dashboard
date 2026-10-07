@@ -441,7 +441,8 @@ footer{font-size:11px;color:var(--muted);text-align:center;padding:16px 8px 4px;
 .bt-note{margin:12px 2px 0;font-size:12.5px;line-height:1.45;color:var(--muted);}
 .bt-note b{color:var(--text);font-weight:600;}
 
-.bt-chartbox{margin-top:10px;}
+.bt-chartbox{grid-column:1/-1;position:relative;margin:4px 0 6px;padding:12px 12px 8px;border-radius:16px;background:var(--panel-2);border:1px solid var(--text);}
+.bt-chartbox::before{content:"";position:absolute;top:-7px;left:calc(var(--caret,25%) - 7px);width:12px;height:12px;background:var(--panel-2);border-left:1px solid var(--text);border-top:1px solid var(--text);transform:rotate(45deg);}
 .bt-chart-head{font-size:12.5px;color:var(--muted);line-height:1.4;margin-bottom:6px;}
 .bt-chart-head b{color:var(--text);font-weight:600;}
 
@@ -677,11 +678,11 @@ html[data-theme="light"] .tf-seg button[aria-checked="true"]{background:#fff;box
   <main class="panel" data-panel="koerper" hidden>
     <section class="card card-pad vitals" aria-label="Körper auf einen Blick">
       <div class="card-title">Dein Körper <span class="sub" id="vitalsSub"></span></div>
+      <div id="bodyTiles"></div>
       <div class="bt-chartbox" id="btBox">
         <div class="bt-chart-head" id="btChartHead"></div>
         <div class="chart" id="btChart"></div>
       </div>
-      <div id="bodyTiles"></div>
       <p class="bt-note" id="btNote"></p>
     </section>
     <div class="panel-tools"><button class="link-btn" type="button" data-coll-all="koerper">Alles aufklappen</button></div>
@@ -1724,6 +1725,17 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
 
   // ---------- Dein Körper: Kacheln (gruppiert) + Verlaufsgrafik ----------
   let btMetric = store.get('bt-metric') && M[store.get('bt-metric')] ? store.get('bt-metric') : 'erholung';
+  // Die Grafik steht immer direkt unter der Zeile der angetippten Kachel (nicht weit weg oben in der Karte)
+  const BT_BOX = $('btBox');
+  function placeBtBox(){
+    const tile = document.querySelector(`#bodyTiles .tile[data-m="${btMetric}"]`);
+    if(!tile) return;
+    const grid = tile.parentElement, tiles = [...grid.querySelectorAll('.tile')];
+    const cols = Math.max(1, getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length);
+    const i = tiles.indexOf(tile), last = tiles[Math.min(tiles.length - 1, Math.floor(i / cols) * cols + cols - 1)];
+    if(last.nextElementSibling !== BT_BOX) last.after(BT_BOX);
+    BT_BOX.style.setProperty('--caret', `${((i % cols) + 0.5) / cols * 100}%`);
+  }
   function renderBodyTiles(){
     const b = tfBounds();
     let html = '';
@@ -1735,16 +1747,18 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       });
       html += '</div></div>';
     });
+    BT_BOX.remove();                     // Grafik vor dem Neuaufbau herausnehmen, danach wieder unter die Kachel setzen
     $('bodyTiles').innerHTML = html;
     const D = b.Ec;
-    if(b.unit === 'D') $('btNote').innerHTML = `<b>So liest du die Kacheln:</b> Schlaf, Erholung, Ruhepuls, Atmung und Temperatur gehören zur <b>Nacht ${nightLabel(nightOf(D))}</b> (aufgewacht am ${dm(D)}). Bewegen, Schritte, HRV, Blutsauerstoff und Tageslicht zählen den Tag ${dm(D)} selbst. Gewicht, Körperfett und VO₂max zeigen die letzte Messung bis dahin. „vs. Ø 14 Tage“ vergleicht mit deinem Schnitt der 14 Tage davor. Kachel antippen zeigt sie oben in der Grafik.`;
-    else if(b.unit === 'A') $('btNote').innerHTML = `<b>Alle Daten seit ${isoToDMY(b.S)}:</b> Durchschnitte über alle Tage mit Messwert, ohne Vergleichszeitraum. Die Kennzahlen beginnen unterschiedlich: Ringe, Ruhepuls, HRV, Schritte und Gehpuls 2018, Blutsauerstoff und Atemfrequenz 2021, Schlafphasen, Erholung und Handgelenk-Temperatur 2024, Frische mit Strava ab Juli 2025. Kachel antippen zeigt sie oben in der Grafik.`;
-    else $('btNote').innerHTML = `<b>${tfLabel(b).main}:</b> Durchschnitte über die Tage mit Messwert. „${b.vs}“ vergleicht mit ${b.partial ? 'dem gleich langen Abschnitt davor' : 'dem ganzen Zeitraum davor'} (${dmY(b.S2)} – ${dmY(b.E2)}). Nacht-Werte zählen zum Aufwach-Tag. Kachel antippen zeigt sie oben in der Grafik.`;
+    if(b.unit === 'D') $('btNote').innerHTML = `<b>So liest du die Kacheln:</b> Schlaf, Erholung, Ruhepuls, Atmung und Temperatur gehören zur <b>Nacht ${nightLabel(nightOf(D))}</b> (aufgewacht am ${dm(D)}). Bewegen, Schritte, HRV, Blutsauerstoff und Tageslicht zählen den Tag ${dm(D)} selbst. Gewicht, Körperfett und VO₂max zeigen die letzte Messung bis dahin. „vs. Ø 14 Tage“ vergleicht mit deinem Schnitt der 14 Tage davor. Kachel antippen zeigt ihren Verlauf direkt darunter.`;
+    else if(b.unit === 'A') $('btNote').innerHTML = `<b>Alle Daten seit ${isoToDMY(b.S)}:</b> Durchschnitte über alle Tage mit Messwert, ohne Vergleichszeitraum. Die Kennzahlen beginnen unterschiedlich: Ringe, Ruhepuls, HRV, Schritte und Gehpuls 2018, Blutsauerstoff und Atemfrequenz 2021, Schlafphasen, Erholung und Handgelenk-Temperatur 2024, Frische mit Strava ab Juli 2025. Kachel antippen zeigt ihren Verlauf direkt darunter.`;
+    else $('btNote').innerHTML = `<b>${tfLabel(b).main}:</b> Durchschnitte über die Tage mit Messwert. „${b.vs}“ vergleicht mit ${b.partial ? 'dem gleich langen Abschnitt davor' : 'dem ganzen Zeitraum davor'} (${dmY(b.S2)} – ${dmY(b.E2)}). Nacht-Werte zählen zum Aufwach-Tag. Kachel antippen zeigt ihren Verlauf direkt darunter.`;
     $('vitalsSub').textContent = tfShort(b);
     drawBt();
   }
 
   function drawBt(){
+    placeBtBox();
     const el = $('btChart'); if(!el) return;
     const w = Math.floor(el.clientWidth); if(w < 80) return;
     const m = M[btMetric], key = btMetric;
@@ -2732,8 +2746,11 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     $$('#bodyTiles .tile').forEach(t => { const on = t.dataset.m === k; t.classList.toggle('on', on); t.setAttribute('aria-pressed', String(on)); });
     drawBt();
     if(scroll){
-      const box = $('btBox'), r = box.getBoundingClientRect(), top = $('tfbar').getBoundingClientRect().bottom;
-      if(r.top < top || r.top > window.innerHeight * 0.5) window.scrollTo({ top: window.scrollY + r.top - top - 8, behavior:'smooth' });
+      // Kachel + Grafik zusammen sichtbar machen, nur wenn die Grafik unten aus dem Bild ragt
+      const tile = document.querySelector(`#bodyTiles .tile[data-m="${k}"]`), box = $('btBox');
+      const top = $('tfbar').getBoundingClientRect().bottom, nav = window.innerWidth < 760 ? $('tabs').getBoundingClientRect().height : 0;
+      const tr = tile.getBoundingClientRect(), br = box.getBoundingClientRect();
+      if(br.bottom > window.innerHeight - nav || tr.top < top) window.scrollTo({ top: window.scrollY + tr.top - top - 10, behavior:'smooth' });
     }
   }
   $('bodyTiles').addEventListener('click', e => { const t = e.target.closest('[data-m]'); if(t) selectBtMetric(t.dataset.m, true); });
@@ -2777,6 +2794,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   // Änderungsverlauf
   // ============================================================
   const CHANGELOG = [
+    { v: '07.10-2', d: '07.10.2026', t: 'Körper: Die Verlaufsgrafik klappt jetzt direkt unter der angetippten Kachel auf (mit kleinem Zeiger auf die Kachel) statt oben in der Karte. Kachel und Grafik bleiben so gemeinsam im Bild, auf dem Handy wie am Desktop.' },
     { v: '07.10-1', d: '07.10.2026', t: 'Ein Zeitraum für alles: Oben gibt es jetzt nur noch eine Zeitleiste (Tag, Woche, Monat, Jahr, Gesamt) mit Pfeilen, Datumssprung, Wischen und „Heute“. Sie bleibt beim Scrollen stehen und gilt in allen Tabs: Überblick, Kennzahlen, Tabelle, Kalender, Körper-Kacheln, Ringe, Erholung, Trainingszustand, Gewicht und Karte. Die vielen einzelnen Zeit-Chips, die eigenen Datums-Pfeile der Ringe und die Jahr/Monat-Auswahl der Karte sind entfernt. Doppelte Diagramme (Erholung, VO2max/Ruhepuls, Gewicht) sind in der einen Körper-Grafik zusammengefasst; Kachel antippen wählt die Kennzahl. Neu aus dem Apple-Health-Export (07.10.2026 06:49): 310 Apple-Watch-Workouts von 2017 bis zum Strava-Start (17.07.2025) mit 40 GPS-Strecken, Schritte, Strecke zu Fuß und Stockwerke seit 2018 (Uhr hat Vorrang vor iPhone), HRV-Tagesmittel und Gehpuls seit 2018, Blutsauerstoff und Atemfrequenz im Schlaf seit 2021, Handgelenk-Temperatur (als Abweichung) und Atemstörungen seit 2024, Tageslicht seit 2023. Nacht 06./07.10. (Note 81, vorläufig: der Ruhepuls des 07.10. war erst 6 Stunden erfasst), Ring-Tag 06.10., Gewicht 07.10., VO2max 06.10. Korrektur: Einschlaf-/Aufwachzeiten von 318 Winter-Nächten standen 1 Stunde zu spät (Apple schreibt alle Zeiten mit dem Sommer-Offset). Fünfte RHR-Revision (Nacht 05.10. 64 auf 63, nur dokumentiert). Härte zählt nur noch Einheiten mit Strava-Anstrengung; Fitness/Frische beginnt mit der ersten Strava-Einheit. Schlaf in Std. und Min. Nicht übernommen: 13 Nächte 2021 ohne Schlafphasen, „Zeit im Bett“ 2018–2023 (nur Wecker-Zeitplan), FTP von Wahoo (meldet konstant 124 W), Ernährung (1 Eintrag), EKG.' },
     { v: '06.10-8', d: '06.10.2026', t: 'Neues App-Symbol für den Home-Bildschirm: ein Rennrad-Laufrad, dessen Felge als Jahresziel-Bogen leuchtet, mit Statistik-Balken in der Mitte. Als echtes PNG eingebettet (iOS ignoriert SVG-Symbole und zeigte deshalb nur den Buchstaben S). Wird erst nach dem erneuten Hinzufügen zum Home-Bildschirm sichtbar.' },
     { v: '06.10-7', d: '06.10.2026', t: 'Gewicht und Körperfett komplett: Aus dem Apple-Health-Export stammen jetzt 562 Gewichtstage ab Februar 2018 (2018 bis 2021 manuell eingetragen, ab 2024 Withings-Waage) und 304 Körperfett-Tage ab Januar 2024. Mehrere Wägungen am Tag werden gemittelt. Drei bereits gespeicherte Werte (21.02., 12.06., 16.09.2026) wurden durch nachgetragene Abendwägungen leicht korrigiert. Im Gewichts-Diagramm gibt es zusätzlich 1 Jahr und 3 Jahre. Von 2022 bis 2023 existieren nur je zwei Messungen; Lücken ohne Messung (über 75 Tage) sind im Diagramm gepunktet verbunden. Neu: grau gestrichelte Trendlinie (Ausgleichsgerade) bei Gewicht, Körperfett und VO₂max, mit Zahl „pro Monat“ bzw. „pro Jahr“ über dem Diagramm.' },
