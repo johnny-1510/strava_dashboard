@@ -1901,7 +1901,8 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     const w = Math.floor(el.clientWidth); if(w < 80) return;
     const key = btMetric, { m, win, Sc, Ec, spanD, bucket, pts, nSlots, avgAll } = btSeries(key);
     const head = $('btChartHead');
-    const rangeTxt = `${dmY(Sc)} – ${dmY(Ec)}`;
+    const yrs = Sc.slice(0,4) !== Ec.slice(0,4);
+    const rangeTxt = `${yrs ? isoToDMY(Sc) : dmY(Sc)} – ${yrs ? isoToDMY(Ec) : dmY(Ec)}` + (Sc > win.S ? ` (vorher keine ${m.label}-Daten, der Zeitraum beginnt am ${isoToDMY(win.S)})` : '');
     const h = w < 520 ? 210 : Math.min(360, Math.max(250, Math.round(w * 0.2)));
     if(pts.length < (m.chart === 'bar' ? 1 : 2)){
       const sp0 = DATA_SPAN[key], why = !pts.length && sp0 && Ec < sp0.first ? `${m.label} gibt es erst ab ${isoToDMY(sp0.first)}.` : (pts.length ? 'Nur ein Messwert in diesem Zeitraum.' : `Keine ${m.label}-Daten in diesem Zeitraum.`);
@@ -2889,6 +2890,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   // Änderungsverlauf
   // ============================================================
   const CHANGELOG = [
+    { v: '16.10-3', d: '16.10.2026', t: 'Körper-Grafik: Beginnt eine Kennzahl später als der gewählte Zeitraum (z. B. Schlaf erst ab 15.03.2024 bei „Gesamt“ seit 2017), steht das jetzt direkt über der Grafik. Über mehrere Jahre zeigt der Bereich immer beide Jahreszahlen.' },
     { v: '16.10-2', d: '16.10.2026', t: 'Körper-Grafik bei „Gesamt“: Die Balken sind jetzt echte Kalendermonate statt 30-Tage-Blöcke, die rückwärts vom letzten Tag gezählt wurden. Dadurch sitzen die Monatsnamen unter dem richtigen Balken, die Achse zeigt Quartale mit Jahreszahl, und die Ø-Linie ist der Schnitt über alle Nächte bzw. Tage, also derselbe Wert wie in der Kachel „Durchschnitt“.' },
     { v: '16.10-1', d: '16.10.2026', t: 'Apple-Health-Export vom 16.10.2026 10:40: neue Nächte 12./13.10. (Note 56), 13./14.10. (43), 14./15.10. (49) und 15./16.10. (66, vorläufig: Ruhepuls des 16.10. erst 9,5 h erfasst), Ring-Tage 13. bis 16.10. (12.10. jetzt vollständig), Gewicht 13.–15.10. (zuletzt 88,1 kg / 14,2 %), Schritte und Vitalwerte bis 15.10. Strava: Zwift 14.10. (25,1 km) ergänzt.' },
     { v: '10.10-2', d: '10.10.2026', t: 'Auf einen Blick: Die Laufen-Zeile zeigt im Jahr jetzt wie die Rad-Zeile, wie viele Kilometer du vor oder hinter Plan liegst.' },
