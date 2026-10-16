@@ -1278,7 +1278,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       if(mo > 12){ mo = 1; yr++; }
       const d = `${yr}-${pad2(mo)}-01`; if(d > E) break;
       if(d < S) continue;
-      if(span > 1100 && mo !== 1) continue;
+      if(span > 1100 ? mo !== 1 : span > 420 && (mo - 1) % 3) continue;   // lange Zeiträume: nur Jahre bzw. Quartale (Januar = Jahreszahl)
       const px = xOf(d);
       if(px - last > (span > 1100 ? 28 : 40) && px - padL > 8){ g += T(px, h-7, mo === 1 ? String(yr) : MONTH_SHORT[mo-1], { anchor:'middle' }); last = px; }
     }
@@ -1844,7 +1844,27 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   }
   $('btMetrics').innerHTML = GROUPS.map(([g]) => Object.keys(M).filter(k => M[k].group === g).map(k => `<button type="button" class="chip" role="tab" data-m="${k}">${M[k].label}</button>`).join('')).join('<span class="bt-sep" aria-hidden="true"></span>');
 
-  // Verlauf einer Kennzahl im Grafik-Fenster des Zeitraums (Tageswerte, ab >120 Tagen Wochen-, ab >420 Tagen 30-Tage-Mittel)
+  // Blöcke für die Grafik: Tage bzw. Wochen von hinten (neuester Tag) her, ab >420 Tagen Kalendermonate
+  function btBlocks(Sc, Ec, bucket){
+    const out = [];
+    if(bucket === 30){
+      let yr = +Sc.slice(0,4), mo = +Sc.slice(5,7);
+      for(;;){
+        const ms = `${yr}-${pad2(mo)}-01`; if(ms > Ec) break;
+        const ny = mo === 12 ? yr + 1 : yr, nm = mo === 12 ? 1 : mo + 1, me = addDaysIso(`${ny}-${pad2(nm)}-01`, -1);
+        out.push({ d0: ms < Sc ? Sc : ms, dEnd: me > Ec ? Ec : me, mo, yr });
+        yr = ny; mo = nm;
+      }
+    } else {
+      const nB = Math.ceil((daysBetween(Sc, Ec) + 1) / bucket);
+      for(let bb = nB - 1; bb >= 0; bb--){
+        const dEnd = addDaysIso(Ec, -bb * bucket), x0 = addDaysIso(dEnd, -(bucket - 1));
+        out.push({ d0: x0 < Sc ? Sc : x0, dEnd });
+      }
+    }
+    return out;
+  }
+  // Verlauf einer Kennzahl im Grafik-Fenster des Zeitraums (Tageswerte, ab >120 Tagen Wochen-, ab >420 Tagen Monatsmittel)
   function btSeries(key){
     const m = M[key];
     const win = chartWindow();
@@ -1854,36 +1874,32 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     const spanD = daysBetween(Sc, Ec) + 1;
     let bucket = (m.kind === 'meas' || spanD <= 120) ? 1 : spanD <= 420 ? 7 : 30;
     let pts = [];
+    const allVals = [];
     if(m.kind === 'meas'){
       const inW = m.arr().filter(p => p[0] >= Sc && p[0] <= Ec);
       if(inW.length > 90) bucket = spanD <= 420 ? 7 : 30;
       if(bucket === 1) inW.forEach(p => pts.push({ t: utcOf(p[0]), v: p[1], lab: isoToDMY(p[0]), d: p[0] }));
-      else {
-        const nB = Math.ceil(spanD / bucket);
-        for(let bb = 0; bb < nB; bb++){
-          const dEnd = addDaysIso(Ec, -bb * bucket), x0 = addDaysIso(dEnd, -(bucket - 1)), d0 = x0 < Sc ? Sc : x0;
-          const vals = inW.filter(q => q[0] >= d0 && q[0] <= dEnd).map(q => q[1]);
-          if(vals.length) pts.push({ i: nB - 1 - bb, t: (utcOf(d0) + utcOf(dEnd)) / 2, v: mean(vals), lab: `${isoToDM(d0)} – ${isoToDMY(dEnd)} (${bucket === 7 ? 'Wochenmittel' : 'Monatsmittel'})`, d: dEnd });
-        }
-      }
+      else btBlocks(Sc, Ec, bucket).forEach((k, i) => {
+        const vals = inW.filter(q => q[0] >= k.d0 && q[0] <= k.dEnd).map(q => q[1]);
+        if(vals.length) pts.push({ i, t: (utcOf(k.d0) + utcOf(k.dEnd)) / 2, v: mean(vals), lab: bucket === 7 ? `${isoToDM(k.d0)} – ${isoToDMY(k.dEnd)} (Wochenmittel)` : `${MONTH_FULL[k.mo-1]} ${k.yr} (Monatsmittel)`, d: k.dEnd });
+      });
     } else {
-      const nB = Math.ceil(spanD / bucket);
-      for(let bb = 0; bb < nB; bb++){            // Blöcke von hinten (neuester Tag) her, nur der älteste Block ist ggf. kürzer
-        const dEnd = addDaysIso(Ec, -bb * bucket), x0 = addDaysIso(dEnd, -(bucket - 1)), d0 = x0 < Sc ? Sc : x0;
-        const vals = valsIn(m, d0, dEnd);
-        if(!vals.length) continue;
-        const lab = bucket === 1 ? (m.kind === 'night' ? `Nacht ${nightLabel(nightOf(d0))}` : `${wdOf(d0).slice(0,2)}, ${isoToDMY(d0)}`) : `${isoToDM(d0)} – ${isoToDMY(dEnd)} (${bucket === 7 ? 'Wochenmittel' : '30-Tage-Mittel'})`;
-        const r = key === 'bewegen' && bucket === 1 ? RING_MAP.get(d0) : null;
-        pts.push({ i: nB - 1 - bb, t: (utcOf(d0) + utcOf(dEnd)) / 2, v: mean(vals), lab, d: bucket === 1 ? d0 : dEnd, hit: r ? ringHitK(r) : null, goal: r ? ringGoalK(r) : null });
-      }
+      btBlocks(Sc, Ec, bucket).forEach((k, i) => {
+        const vals = valsIn(m, k.d0, k.dEnd);
+        if(!vals.length) return;
+        allVals.push(...vals);
+        const lab = bucket === 1 ? (m.kind === 'night' ? `Nacht ${nightLabel(nightOf(k.d0))}` : `${wdOf(k.d0).slice(0,2)}, ${isoToDMY(k.d0)}`) : bucket === 7 ? `${isoToDM(k.d0)} – ${isoToDMY(k.dEnd)} (Wochenmittel)` : `${MONTH_FULL[k.mo-1]} ${k.yr} (Monatsmittel${k.d0.slice(8) !== '01' || k.dEnd !== addDaysIso(`${k.mo === 12 ? k.yr + 1 : k.yr}-${pad2(k.mo === 12 ? 1 : k.mo + 1)}-01`, -1) ? `, ${isoToDM(k.d0)} – ${isoToDM(k.dEnd)}` : ''})`;
+        const r = key === 'bewegen' && bucket === 1 ? RING_MAP.get(k.d0) : null;
+        pts.push({ i, t: (utcOf(k.d0) + utcOf(k.dEnd)) / 2, v: mean(vals), lab, d: bucket === 1 ? k.d0 : k.dEnd, hit: r ? ringHitK(r) : null, goal: r ? ringGoalK(r) : null });
+      });
     }
     pts.sort((a, c) => a.t - c.t);
-    return { m, win, Sc, Ec, spanD, bucket, pts };
+    return { m, win, Sc, Ec, spanD, bucket, pts, nSlots: btBlocks(Sc, Ec, bucket).length, avgAll: allVals.length ? mean(allVals) : null };
   }
   function drawBt(){
     const el = $('btChart'); if(!el) return;
     const w = Math.floor(el.clientWidth); if(w < 80) return;
-    const key = btMetric, { m, win, Sc, Ec, spanD, bucket, pts } = btSeries(key);
+    const key = btMetric, { m, win, Sc, Ec, spanD, bucket, pts, nSlots, avgAll } = btSeries(key);
     const head = $('btChartHead');
     const rangeTxt = `${dmY(Sc)} – ${dmY(Ec)}`;
     const h = w < 520 ? 210 : Math.min(360, Math.max(250, Math.round(w * 0.2)));
@@ -1901,15 +1917,15 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
     else if(m.chart === 'bar'){ lo = 0; hi = vmax * 1.1 || 1; }
     else { const pad = (vmax - vmin) * 0.15 || 1; lo = vmin - pad; hi = vmax + pad; if(m.zero){ lo = Math.min(lo, -pad); hi = Math.max(hi, pad); } }
     const t0 = utcOf(Sc), t1 = utcOf(Ec);
-    const nSlots = Math.ceil(spanD / bucket), slotW = cw / Math.max(nSlots, 1);
+    const slotW = cw / Math.max(nSlots, 1);
     const tx = p => m.chart === 'bar' ? padL + (p.i + 0.5) * slotW : padL + (p.t - t0) / ((t1 - t0) || 1) * cw;
     const y = v => padT + ch - (v - lo) / (hi - lo) * ch;
     let g = '';
     yTicks(lo, hi, 4).forEach(v => { g += `<line x1="${padL}" x2="${w-padR}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--line)"/>` + T(padL-6, y(v)+4, m.dec && (hi - lo) < 10 ? fmt1(v) : fmtInt(v), { anchor:'end' }); });
     if(key === 'erholung') [34, 67].forEach(v => { g += `<line x1="${padL}" x2="${w-padR}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--line-strong)" stroke-dasharray="2 4"/>`; });
     if(m.zero && lo < 0 && hi > 0) g += `<line x1="${padL}" x2="${w-padR}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="var(--line-strong)"/>`;
-    g += dateAxis(Sc, Ec, iso => m.chart === 'bar' ? padL + (Math.floor(daysBetween(Sc, iso) / bucket) + 0.5) * slotW : padL + (utcOf(iso) - t0) / ((t1 - t0) || 1) * cw, h, w, padL);
-    const avgV = mean(pts.map(p => p.v));
+    g += dateAxis(Sc, Ec, iso => m.chart === 'bar' ? padL + ((bucket === 30 ? (+iso.slice(0,4) - +Sc.slice(0,4)) * 12 + (+iso.slice(5,7) - +Sc.slice(5,7)) : Math.floor((daysBetween(Sc, iso) + (bucket - spanD % bucket) % bucket) / bucket)) + 0.5) * slotW : padL + (utcOf(iso) - t0) / ((t1 - t0) || 1) * cw, h, w, padL);
+    const avgV = avgAll != null ? avgAll : mean(pts.map(p => p.v));   // Ø über alle Tage/Nächte, wie die Kachel „Durchschnitt“
     if(m.kind !== 'meas') g += `<line x1="${padL}" x2="${w-padR}" y1="${y(avgV).toFixed(1)}" y2="${y(avgV).toFixed(1)}" stroke="var(--text-dim)" stroke-dasharray="5 4" stroke-width="1.2" opacity=".75"/>`;
     const xs = pts.map(tx);
     const hasSel = !!win.mark && pts.some(p => p.d === win.mark);
@@ -1957,7 +1973,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
       const extra = (key === 'bewegen' && p.goal) ? `<br><span style="opacity:.7">Ziel ${fmtInt(p.goal)} kcal ${p.hit ? 'erreicht' : 'nicht erreicht'}</span>` : '';
       return `<b>${p.lab}</b><br>${fmtVal(m, p.v)}${m.unit ? ' ' + m.unit : ''}${bucket > 1 ? ' (Ø)' : ''}${extra}`;
     }, padT, h - padB);
-    const aggTxt = bucket > 1 ? (bucket === 7 ? ' (Wochenmittel)' : m.kind === 'meas' ? ' (Monatsmittel, gepunktet = keine Messung)' : ' (30-Tage-Mittel)') : '';
+    const aggTxt = bucket > 1 ? (bucket === 7 ? ' (Wochenmittel)' : m.kind === 'meas' ? ' (Monatsmittel, gepunktet = keine Messung)' : ' (Monatsmittel)') : '';
     head.innerHTML = `<b>${m.label}</b> ${m.per}${aggTxt} · ${rangeTxt}${win.mark ? ' (30 Tage bis zum gewählten Tag)' : ''}${m.kind !== 'meas' ? ` · <span class="bt-avg">- - Ø ${fmtVal(m, avgV)}${m.unit ? ' ' + m.unit : ''}</span>` : ''}${trendTxt}`;
   }
 
@@ -2873,6 +2889,7 @@ const AVATAR_URL = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDA
   // Änderungsverlauf
   // ============================================================
   const CHANGELOG = [
+    { v: '16.10-2', d: '16.10.2026', t: 'Körper-Grafik bei „Gesamt“: Die Balken sind jetzt echte Kalendermonate statt 30-Tage-Blöcke, die rückwärts vom letzten Tag gezählt wurden. Dadurch sitzen die Monatsnamen unter dem richtigen Balken, die Achse zeigt Quartale mit Jahreszahl, und die Ø-Linie ist der Schnitt über alle Nächte bzw. Tage, also derselbe Wert wie in der Kachel „Durchschnitt“.' },
     { v: '16.10-1', d: '16.10.2026', t: 'Apple-Health-Export vom 16.10.2026 10:40: neue Nächte 12./13.10. (Note 56), 13./14.10. (43), 14./15.10. (49) und 15./16.10. (66, vorläufig: Ruhepuls des 16.10. erst 9,5 h erfasst), Ring-Tage 13. bis 16.10. (12.10. jetzt vollständig), Gewicht 13.–15.10. (zuletzt 88,1 kg / 14,2 %), Schritte und Vitalwerte bis 15.10. Strava: Zwift 14.10. (25,1 km) ergänzt.' },
     { v: '10.10-2', d: '10.10.2026', t: 'Auf einen Blick: Die Laufen-Zeile zeigt im Jahr jetzt wie die Rad-Zeile, wie viele Kilometer du vor oder hinter Plan liegst.' },
     { v: '12.10-1', d: '12.10.2026', t: 'Apple-Health-Export vom 12.10.2026 22:22: neue Nächte 10./11.10. (Note 69) und 11./12.10. (Note 57, 5:58 h Schlaf), Ring-Tage 10. bis 12.10. (10.10. jetzt vollständig), Gewicht 10.10. (87,6 kg / 14,8 %), Schritte und Vitalwerte bis 11.10. Die vorläufige Nacht 09./10.10. ist jetzt vollständig: Ruhepuls 61 statt 55 bpm, Note 71 statt 79. Strava: Zwift 10.10. (42,1 km) und 12.10. (55,1 km) ergänzt.' },
