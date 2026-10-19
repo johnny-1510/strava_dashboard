@@ -5,7 +5,13 @@
 //   GET  /product/<barcode>   -> Open-Food-Facts-Produkt mit CORS
 //   GET  /dash-keys           -> veröffentlichte Passkey-Geräteschlüssel fürs Sports Dashboard (KV DASH_KEYS)
 //   POST /dash-keys           { id, iv, wrapped } – nur neu anlegen, nie überschreiben, höchstens 20
+//   GET  /sync/<id>           -> verschlüsselter Ernährungs-Stand des Dashboards { rev, iv, ct } (KV DASH_KEYS, Schlüssel sync:<id>)
+//   PUT  /sync/<id>           { base, iv, ct } – nur wenn base == aktuelle rev (sonst 409 mit aktuellem Stand)
 //   GET  /health
+//
+// Sync: Das Dashboard verschlüsselt Einträge, Lebensmittel, Gewichte und Profil auf dem Gerät (AES-GCM, Schlüssel aus dem
+// Dashboard-Geheimnis abgeleitet). Der Worker sieht nur Chiffretext und eine zufällig wirkende ID. Die erste ID, die schreibt,
+// wird festgehalten (sync:owner) – andere IDs werden abgewiesen, damit niemand den Speicher vollschreibt.
 //
 // Wichtig für die Ehrlichkeit der App: Das Bildmodell nennt nur, WAS auf dem Teller liegt und WIE VIEL ungefähr.
 // Kalorien und Nährwerte rechnet die App ausschließlich mit den Laborwerten des Bundeslebensmittelschlüssels (BLS).
@@ -39,7 +45,7 @@ function cors(origin) {
   const ok = ALLOWED_ORIGINS.includes(origin) || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || '');
   return {
     'Access-Control-Allow-Origin': ok ? origin : ALLOWED_ORIGINS[0],
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Vary': 'Origin',
   };
@@ -139,6 +145,29 @@ async function dashKeys(request, env, origin) {
   return json({ ok: true }, 201, origin);
 }
 
+// ---- Sports Dashboard: Ernährungs-Sync (nur Chiffretext) ----
+const SYNC_MAX = 4_000_000;
+async function sync(request, env, origin, id) {
+  if (!env.DASH_KEYS) return json({ error: 'KV-Binding DASH_KEYS fehlt' }, 500, origin);
+  const owner = await env.DASH_KEYS.get('sync:owner');
+  if (owner && owner !== id) return json({ error: 'Unbekannt' }, 403, origin);
+  const cur = await env.DASH_KEYS.get('sync:' + id, 'json');
+  if (request.method === 'GET') return json(cur || { rev: 0, empty: true }, 200, origin);
+  if (request.method !== 'PUT') return json({ error: 'Nur GET/PUT' }, 405, origin);
+  const len = Number(request.headers.get('Content-Length') || 0);
+  if (len > SYNC_MAX) return json({ error: 'Zu groß' }, 413, origin);
+  let b; try { b = await request.json(); } catch { return json({ error: 'Ungültig' }, 400, origin); }
+  const ok = b && Number.isInteger(b.base) && b.base >= 0 && typeof b.iv === 'string' && b.iv.length === 16 && B64.test(b.iv)
+    && typeof b.ct === 'string' && b.ct.length >= 20 && b.ct.length <= SYNC_MAX && B64.test(b.ct);
+  if (!ok) return json({ error: 'Ungültig' }, 400, origin);
+  const rev = cur ? cur.rev : 0;
+  if (b.base !== rev) return json({ conflict: true, ...(cur || { rev: 0, empty: true }) }, 409, origin);
+  const next = { rev: rev + 1, iv: b.iv, ct: b.ct, z: !!b.z, at: Date.now() };
+  if (!owner) await env.DASH_KEYS.put('sync:owner', id);
+  await env.DASH_KEYS.put('sync:' + id, JSON.stringify(next));
+  return json({ ok: true, rev: next.rev }, 200, origin);
+}
+
 export default {
   async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin') || '';
@@ -146,6 +175,8 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/dash-keys') return dashKeys(request, env, origin);
+    const sm = url.pathname.match(/^\/sync\/([0-9a-f]{64})$/);
+    if (sm) return sync(request, env, origin, sm[1]);
 
     if (url.pathname === '/vision') {
       if (request.method !== 'POST') return json({ error: 'Nur POST' }, 405, origin);
@@ -197,7 +228,7 @@ export default {
       return out;
     }
 
-    if (url.pathname === '/' || url.pathname === '/health') return json({ ok: true, service: 'verical-api', vision: !!env.AI }, 200, origin);
+    if (url.pathname === '/' || url.pathname === '/health') return json({ ok: true, service: 'verical-api', vision: !!env.AI, sync: true }, 200, origin);
     return json({ error: 'Unbekannter Pfad' }, 404, origin);
   },
 };
