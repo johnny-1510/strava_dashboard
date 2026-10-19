@@ -1,4 +1,4 @@
-// Cloudflare Worker "verical-api" – das einzige Backend von Verical. Kein Konto, keine Datenbank, nichts wird gespeichert.
+// Cloudflare Worker "verical-api" – das einzige Backend von Verical. Kein Konto; gespeichert werden nur verschlüsselte Daten (Sync, Passkey-Schlüssel).
 //
 //   POST /vision              { image: "<JPEG als Base64>" } -> { items: [{ name, grams, count, unit, confidence }], note }
 //   GET  /search?q=skyr       -> Open-Food-Facts-Suche mit CORS (für die Web-Version)
