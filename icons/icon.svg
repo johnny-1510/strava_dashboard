@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- App-Symbol Sports Dashboard: Cockpit-Tacho (Grafit, Orange, goldene Bonus-Zone). Vollflächig; iOS/macOS/Chrome runden selbst ab. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232831"/>
+      <stop offset=".55" stop-color="#14171c"/>
+      <stop offset="1" stop-color="#0b0d10"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".3" cy=".22" r=".75">
+      <stop offset="0" stop-color="#ff5a1f" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#ff5a1f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ice" cx=".85" cy=".95" r=".6">
+      <stop offset="0" stop-color="#78cdff" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#78cdff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="arc" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff4a12"/>
+      <stop offset="1" stop-color="#ffa27a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="1" stop-color="#ffc94a"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <rect width="1024" height="1024" fill="url(#ice)"/>
+  <!-- feine Lichtkante oben -->
+  <rect x="0" y="0" width="1024" height="6" fill="#ffffff" opacity=".10"/>
+
+  <!-- Tacho: Mittelpunkt 512/560, Radius 300, 240° von 150° bis 30° -->
+  <g transform="translate(512 548) scale(1.06)">
+    <!-- Skala -->
+    <g stroke="#8c94a1" stroke-linecap="round">
+      <line x1="-308.3" y1="178.0" x2="-339.5" y2="196.0" stroke-width="12" opacity="0.75"/>
+      <line x1="-354.5" y1="62.5" x2="-374.2" y2="66.0" stroke-width="7" opacity="0.45"/>
+      <line x1="-354.5" y1="-62.5" x2="-374.2" y2="-66.0" stroke-width="7" opacity="0.45"/>
+      <line x1="-308.3" y1="-178.0" x2="-339.5" y2="-196.0" stroke-width="12" opacity="0.75"/>
+      <line x1="-231.4" y1="-275.8" x2="-244.3" y2="-291.1" stroke-width="7" opacity="0.45"/>
+      <line x1="-123.1" y1="-338.3" x2="-130.0" y2="-357.1" stroke-width="7" opacity="0.45"/>
+      <line x1="-0.0" y1="-356.0" x2="-0.0" y2="-392.0" stroke-width="12" opacity="0.75"/>
+      <line x1="123.1" y1="-338.3" x2="130.0" y2="-357.1" stroke-width="7" opacity="0.45"/>
+      <line x1="231.4" y1="-275.8" x2="244.3" y2="-291.1" stroke-width="7" opacity="0.45"/>
+      <line x1="308.3" y1="-178.0" x2="339.5" y2="-196.0" stroke-width="12" opacity="0.75"/>
+      <line x1="354.5" y1="-62.5" x2="374.2" y2="-66.0" stroke-width="7" opacity="0.45"/>
+      <line x1="354.5" y1="62.5" x2="374.2" y2="66.0" stroke-width="7" opacity="0.45"/>
+      <line x1="308.3" y1="178.0" x2="339.5" y2="196.0" stroke-width="12" opacity="0.75"/>
+    </g>
+    <!-- Spur -->
+    <path d="M-259.8 150 A300 300 0 1 1 259.8 150" fill="none" stroke="#ffffff" stroke-opacity=".13" stroke-width="64" stroke-linecap="round"/>
+    <!-- Bonus-Zone (die letzten 40°) -->
+    <path d="M259.8 -150 A300 300 0 0 1 259.8 150" fill="none" stroke="#ffc94a" stroke-opacity=".5" stroke-width="64" stroke-linecap="round"/>
+    <!-- Füllung: Glühen + Bogen bis 70 % -->
+    <path d="M-259.8 150 A300 300 0 1 1 212.1 -212.1" fill="none" stroke="#ff5a1f" stroke-width="64" stroke-linecap="round" filter="url(#soft)" opacity=".75"/>
+    <path d="M-259.8 150 A300 300 0 1 1 212.1 -212.1" fill="none" stroke="url(#arc)" stroke-width="64" stroke-linecap="round"/>
+    <!-- Ziel-Marke und Bonus-Strich -->
+    <line x1="225" y1="-130" x2="303" y2="-175" stroke="#eef1f5" stroke-width="12" stroke-linecap="round"/>
+    <!-- Zeiger -->
+    <g transform="rotate(-45)">
+      <line x1="-60" y1="0" x2="250" y2="0" stroke="#000000" stroke-opacity=".5" stroke-width="40" stroke-linecap="round" transform="translate(0 10)" filter="url(#soft)"/>
+      <line x1="-60" y1="0" x2="250" y2="0" stroke="#eef1f5" stroke-width="30" stroke-linecap="round"/>
+      <circle cx="250" cy="0" r="17" fill="#ff5a1f"/>
+    </g>
+    <!-- Nabe -->
+    <circle r="56" fill="#191d23" stroke="#eef1f5" stroke-width="20"/>
+    <circle r="15" fill="#ff5a1f"/>
+  </g>
+</svg>
