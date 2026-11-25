@@ -1,6 +1,6 @@
 {
   "name": "Sports Dashboard",
-  "short_name": "Sports",
+  "short_name": "Sports Dashboard",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
